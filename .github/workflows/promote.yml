@@ -16,7 +16,8 @@
 #   version      e.g. v3.6.9
 #   base_version e.g. v3.6.9
 #   profile      e.g. "" or "tls" or "cluster"
-#   src_digest   e.g. sha256:abc123...
+#   src_digest   e.g. sha256:abc123...  (used for signing/SBOM, not src ref)
+#   src_tag      e.g. v3.6.9 or main    (tag resolved upstream — used for copy)
 #   src_image    e.g. ghcr.io/relicfrog/gwshield-traefik
 # =============================================================================
 
@@ -54,16 +55,16 @@ jobs:
           NAME="${{ github.event.client_payload.name }}"
           VERSION="${{ github.event.client_payload.version }}"
           SRC_DIGEST="${{ github.event.client_payload.src_digest }}"
-          if [[ -z "${NAME}" || -z "${VERSION}" || -z "${SRC_DIGEST}" ]]; then
-            echo "ERROR: missing required payload fields (name, version, src_digest)" >&2
+          SRC_TAG="${{ github.event.client_payload.src_tag }}"
+          if [[ -z "${NAME}" || -z "${VERSION}" || -z "${SRC_DIGEST}" || -z "${SRC_TAG}" ]]; then
+            echo "ERROR: missing required payload fields (name, version, src_digest, src_tag)" >&2
             exit 1
           fi
-          echo "Promoting ${NAME}:${VERSION} (digest: ${SRC_DIGEST})"
+          echo "Promoting ${NAME}:${VERSION} from tag :${SRC_TAG} (digest: ${SRC_DIGEST})"
 
       # -----------------------------------------------------------------------
       # Generate short-lived App token for relicfrog org (src pull).
       # gwshield-builder is installed in relicfrog org with packages: read.
-      # Secrets are stored in this repo (gwshield/images).
       # -----------------------------------------------------------------------
       - name: Generate token for relicfrog org (src pull)
         id: token-relicfrog
@@ -115,9 +116,8 @@ jobs:
 
       # -----------------------------------------------------------------------
       # Copy source image to gwshield GHCR via skopeo.
-      # --src-creds: relicfrog App token (read:packages for relicfrog org).
-      # --dest-creds: GITHUB_TOKEN for gwshield (native write:packages).
-      # Copy by digest — deterministic, matches what relicfrog pipeline built.
+      # Source addressed by tag (GHCR requires tag ref for App token pulls).
+      # Destination uses GITHUB_TOKEN — native write:packages for gwshield org.
       # -----------------------------------------------------------------------
       - name: Copy image to ghcr.io/gwshield (skopeo)
         id: push
@@ -127,8 +127,8 @@ jobs:
         run: |
           set -euo pipefail
           SRC_IMAGE="${{ github.event.client_payload.src_image }}"
-          SRC_DIGEST="${{ github.event.client_payload.src_digest }}"
-          SRC_REF="docker://${SRC_IMAGE}@${SRC_DIGEST}"
+          SRC_TAG="${{ github.event.client_payload.src_tag }}"
+          SRC_REF="docker://${SRC_IMAGE}:${SRC_TAG}"
           FIRST_TAG=""
 
           for TAG in ${{ steps.tags.outputs.tags }}; do
@@ -221,7 +221,8 @@ jobs:
             echo ""
             echo "| Item | Value |"
             echo "|---|---|"
-            echo "| Source | \`${{ github.event.client_payload.src_image }}@${{ github.event.client_payload.src_digest }}\` |"
+            echo "| Source | \`${{ github.event.client_payload.src_image }}:${{ github.event.client_payload.src_tag }}\` |"
+            echo "| Source digest | \`${{ github.event.client_payload.src_digest }}\` |"
             echo "| Public tags | \`${{ steps.tags.outputs.tags }}\` |"
             echo "| Pushed digest | \`${{ steps.push.outputs.digest }}\` |"
             echo "| Signed | cosign keyless (Sigstore / gwshield OIDC) |"
