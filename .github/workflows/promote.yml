@@ -4,8 +4,9 @@
 # Triggered by repository_dispatch (event: promote-image) from the private
 # build pipeline (RelicFrog/gwshield-images release-public workflow).
 #
-# Auth strategy (no PATs, no credential leakage):
-#   - Src pull (ghcr.io/relicfrog): App token generated here for relicfrog org
+# Auth strategy (no broad PATs, no credential leakage):
+#   - Src pull (ghcr.io/relicfrog): RELICFROG_READ_PAT — fine-grained PAT
+#     scoped to RelicFrog/gwshield-images with read:packages only
 #   - Dst push (ghcr.io/gwshield):  GITHUB_TOKEN — native write:packages for
 #     gwshield org (this workflow runs inside gwshield/images)
 #   - cosign OIDC:                  id-token: write — OIDC identity from
@@ -16,7 +17,7 @@
 #   version      e.g. v3.6.9
 #   base_version e.g. v3.6.9
 #   profile      e.g. "" or "tls" or "cluster"
-#   src_digest   e.g. sha256:abc123...  (used for signing/SBOM, not src ref)
+#   src_digest   e.g. sha256:abc123...  (used for signing/SBOM ref)
 #   src_tag      e.g. v3.6.9 or main    (tag resolved upstream — used for copy)
 #   src_image    e.g. ghcr.io/relicfrog/gwshield-traefik
 # =============================================================================
@@ -60,19 +61,7 @@ jobs:
             echo "ERROR: missing required payload fields (name, version, src_digest, src_tag)" >&2
             exit 1
           fi
-          echo "Promoting ${NAME}:${VERSION} from tag :${SRC_TAG} (digest: ${SRC_DIGEST})"
-
-      # -----------------------------------------------------------------------
-      # Generate short-lived App token for relicfrog org (src pull).
-      # gwshield-builder is installed in relicfrog org with packages: read.
-      # -----------------------------------------------------------------------
-      - name: Generate token for relicfrog org (src pull)
-        id: token-relicfrog
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id:      ${{ secrets.GWSHIELD_BUILDER_APP_ID }}
-          private-key: ${{ secrets.GWSHIELD_BUILDER_PRIVATE_KEY }}
-          owner:       relicfrog
+          echo "Promoting ${NAME}:${VERSION} from :${SRC_TAG} (digest: ${SRC_DIGEST})"
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v3
@@ -116,13 +105,15 @@ jobs:
 
       # -----------------------------------------------------------------------
       # Copy source image to gwshield GHCR via skopeo.
-      # Source addressed by tag (GHCR requires tag ref for App token pulls).
-      # Destination uses GITHUB_TOKEN — native write:packages for gwshield org.
+      # --src-creds: RELICFROG_READ_PAT (fine-grained, read:packages only,
+      #   scoped to RelicFrog/gwshield-images — the repo that owns the packages).
+      # --dest-creds: GITHUB_TOKEN (native write:packages for gwshield org).
+      # Source addressed by tag — GHCR resolves tag refs reliably.
       # -----------------------------------------------------------------------
       - name: Copy image to ghcr.io/gwshield (skopeo)
         id: push
         env:
-          SRC_CREDS: x-access-token:${{ steps.token-relicfrog.outputs.token }}
+          SRC_CREDS: x-access-token:${{ secrets.RELICFROG_READ_PAT }}
           DST_CREDS: x-access-token:${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
