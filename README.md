@@ -6,6 +6,20 @@ Built from source, signed with cosign, SBOM attached.
 All runtime images run as non-root (UID 65532) with no shell, no package
 manager, and no network utilities in the runtime layer.
 
+> **This registry is currently in early access (alpha).** We are actively
+> expanding the image catalogue and working on a dedicated landing page at
+> **gwshield.io** — featuring an interactive image database, CVE delta
+> comparisons, and a request form for new zero-CVE image targets.
+>
+> Coming soon to this repository:
+> - **MCP server** — a Model Context Protocol server for querying and
+>   consuming hardened image metadata directly from AI-assisted workflows
+> - **Extended tooling** — signing verification helpers, SBOM diffing,
+>   and policy-as-code examples
+>
+> Until the landing page launches, watch this repository or follow
+> [@RelicFrog](https://github.com/RelicFrog) for updates.
+
 > The source build pipeline is private. This registry is the public distribution
 > endpoint. Every image is built from upstream source with SHA-256 verification,
 > scanned with Trivy and Grype before promotion, and cosign-signed with a
@@ -19,41 +33,41 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 ### nginx — HTTP server / reverse proxy
 
-| Tag | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|
-| `ghcr.io/gwshield/nginx:v1.28.2` | standard | `98dae4d2fa5a` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http2` | HTTP/2 | `81d45bb45c45` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http3` | HTTP/3 / QUIC | `81feb797cc56` | 0 CVEs | 2026-03-08 |
+| Tag | Version | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|---|
+| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `98dae4d2fa5a` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `81d45bb45c45` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `81feb797cc56` | 0 CVEs | 2026-03-08 |
 
 ### PostgreSQL — relational database
 
-| Tag | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|
-| `ghcr.io/gwshield/postgres:v15.17` | standard | `03f0a0643d20` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/postgres:v15.17-cli` | client only | `ed61bf148637` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/postgres:v15.17-timescale` | TimescaleDB | `f857ec6b3fd2` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/postgres:v15.17-tls` | TLS | `27feb7118bba` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/postgres:v15.17-vector` | pgvector | `734b817d53e7` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/postgres:v17.9` | standard | `46da2a762797` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/postgres:v17.9-cli` | client only | `1ffaf8181e32` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/postgres:v17.9-timescale` | TimescaleDB | `7e808ac27833` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/postgres:v17.9-tls` | TLS | `54f9bf1fbeea` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/postgres:v17.9-vector` | pgvector | `d6ae1257294e` | 0 CVEs | 2026-03-08 |
+| Tag | Version | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|---|
+| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `03f0a0643d20` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `ed61bf148637` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `f857ec6b3fd2` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `27feb7118bba` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `734b817d53e7` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `46da2a762797` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `1ffaf8181e32` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `7e808ac27833` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `54f9bf1fbeea` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `d6ae1257294e` | 0 CVEs | 2026-03-08 |
 
 ### Redis — in-memory data store
 
-| Tag | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|
-| `ghcr.io/gwshield/redis:v7.4.8` | standard | `9288563afa14` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/redis:v7.4.8-cli` | client only | `e1d70087c9ee` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/redis:v7.4.8-cluster` | cluster mode | `6707ab218e0e` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/redis:v7.4.8-tls` | TLS | `c10721015f5d` | 0 CVEs | 2026-03-08 |
+| Tag | Version | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|---|
+| `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `9288563afa14` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `e1d70087c9ee` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `6707ab218e0e` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `c10721015f5d` | 0 CVEs | 2026-03-08 |
 
 ### Traefik — cloud-native edge router
 
-| Tag | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|
-| `ghcr.io/gwshield/traefik:v3.6.9` | standard | `8d9c28ded370` | 0 CVEs | 2026-03-08 |
+| Tag | Version | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|---|
+| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `8d9c28ded370` | 0 CVEs | 2026-03-08 |
 
 ---
 
@@ -75,19 +89,19 @@ ENTRYPOINT ["/myapp"]
 
 ### Go — reproducible static builds (CGO_ENABLED=0)
 
-| Tag | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|
-| `ghcr.io/gwshield/go-builder:v1.24` | standard | `3d90a0589ad0` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/go-builder:v1.24-dev` | compile + test + lint | `4c17f7b9b9b9` | 0 CVEs | 2026-03-08 |
+| Tag | Version | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|---|
+| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `3d90a0589ad0` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `4c17f7b9b9b9` | 0 CVEs | 2026-03-08 |
 
 ### Python — reproducible wheel builds
 
-| Tag | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|
-| `ghcr.io/gwshield/python-builder:v3.12` | standard | `180d4bf1d3ac` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/python-builder:v3.12-dev` | compile + test + lint | `d3ad286b6bb1` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/python-builder:v3.13` | standard | `f99463ba595f` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/python-builder:v3.13-dev` | compile + test + lint | `714780de371d` | 0 CVEs | 2026-03-08 |
+| Tag | Version | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|---|
+| `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `180d4bf1d3ac` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `d3ad286b6bb1` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `f99463ba595f` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `714780de371d` | 0 CVEs | 2026-03-08 |
 
 ---
 
