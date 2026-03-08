@@ -222,8 +222,13 @@ Apache-2.0 — Gatewarden / RelicFrog Foundation
 
 def generate(registry_path: pathlib.Path, output_path: pathlib.Path) -> None:
     if not registry_path.exists():
-        print(f"ERROR: {registry_path} not found", file=sys.stderr)
-        sys.exit(1)
+        print(f"WARNING: {registry_path} not found — writing placeholder README", file=sys.stderr)
+        output_path.write_text(
+            "# Gatewarden Shield — Hardened Container Images\n\n"
+            "Registry initializing — image metadata will appear after the first promote run.\n"
+        )
+        print(f"Placeholder README written to {output_path}")
+        return
 
     data = json.loads(registry_path.read_text())
     images = data.get("images", {})
