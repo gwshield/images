@@ -133,7 +133,7 @@ jobs:
           FIRST_TAG=""
 
           for TAG in ${{ steps.tags.outputs.tags }}; do
-            echo "skopeo copy ${SRC_REF} → docker://${TAG}"
+            echo "skopeo copy ${SRC_REF} -> docker://${TAG}"
             skopeo copy --all \
               --src-creds  "${SRC_CREDS}" \
               --dest-creds "${DST_CREDS}" \
@@ -159,7 +159,7 @@ jobs:
           set -euo pipefail
           DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
           DIGEST="${{ steps.push.outputs.digest }}"
-          [[ -z "${DIGEST}" ]] && { echo "WARNING: no digest — skip cosign"; exit 0; }
+          [[ -z "${DIGEST}" ]] && { echo "WARNING: no digest -- skip cosign"; exit 0; }
           echo "Signing ${DST_IMAGE}@${DIGEST} ..."
           cosign sign --yes "${DST_IMAGE}@${DIGEST}"
 
@@ -168,7 +168,7 @@ jobs:
           set -euo pipefail
           DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
           DIGEST="${{ steps.push.outputs.digest }}"
-          [[ -z "${DIGEST}" ]] && { echo "No digest — skip verify"; exit 0; }
+          [[ -z "${DIGEST}" ]] && { echo "No digest -- skip verify"; exit 0; }
           cosign verify \
             --certificate-identity-regexp="https://github.com/gwshield/images.*" \
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
@@ -187,7 +187,7 @@ jobs:
           DIGEST="${{ steps.push.outputs.digest }}"
           NAME="${{ github.event.client_payload.name }}"
           VERSION="${{ github.event.client_payload.version }}"
-          [[ -z "${DIGEST}" ]] && { echo "No digest — skip SBOM"; exit 0; }
+          [[ -z "${DIGEST}" ]] && { echo "No digest -- skip SBOM"; exit 0; }
           mkdir -p sbom-out
 
           syft "${DST_IMAGE}@${DIGEST}" \
@@ -215,9 +215,9 @@ jobs:
           if-no-files-found: warn
 
       # -----------------------------------------------------------------------
-      # CVE scan — Trivy on the public image (digest-pinned).
-      # Runs after the image is pushed so we scan exactly what's public.
-      # Findings are recorded in registry.json — they do NOT gate the promote
+      # CVE scan -- Trivy on the public image (digest-pinned).
+      # Runs after the image is pushed so we scan exactly what is public.
+      # Findings are recorded in registry.json -- they do NOT gate the promote
       # (the private build pipeline already enforces the gate on push events).
       # Uses trivy-action (JSON output) + a parse step to extract counts.
       # -----------------------------------------------------------------------
@@ -247,31 +247,25 @@ jobs:
             echo "high=0"     >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          python3 - <<'PYEOF'
-import json, os
-
-with open("trivy-results.json") as f:
-    d = json.load(f)
-
-total    = 0
-critical = 0
-high     = 0
-for res in d.get("Results", []):
-    for v in (res.get("Vulnerabilities") or []):
-        total += 1
-        sev = v.get("Severity", "")
-        if sev == "CRITICAL":
-            critical += 1
-        elif sev == "HIGH":
-            high += 1
-
-print(f"Trivy: total={total} critical={critical} high={high}")
-
-with open(os.environ["GITHUB_OUTPUT"], "a") as out:
-    out.write(f"total={total}\n")
-    out.write(f"critical={critical}\n")
-    out.write(f"high={high}\n")
-PYEOF
+          TOTAL=$(python3 -c "
+          import json
+          d = json.load(open('trivy-results.json'))
+          print(sum(len(r.get('Vulnerabilities') or []) for r in d.get('Results', [])))
+          ")
+          CRITICAL=$(python3 -c "
+          import json
+          d = json.load(open('trivy-results.json'))
+          print(sum(1 for r in d.get('Results', []) for v in (r.get('Vulnerabilities') or []) if v.get('Severity')=='CRITICAL'))
+          ")
+          HIGH=$(python3 -c "
+          import json
+          d = json.load(open('trivy-results.json'))
+          print(sum(1 for r in d.get('Results', []) for v in (r.get('Vulnerabilities') or []) if v.get('Severity')=='HIGH'))
+          ")
+          echo "Trivy: total=${TOTAL} critical=${CRITICAL} high=${HIGH}"
+          echo "total=${TOTAL}"       >> "$GITHUB_OUTPUT"
+          echo "critical=${CRITICAL}" >> "$GITHUB_OUTPUT"
+          echo "high=${HIGH}"         >> "$GITHUB_OUTPUT"
 
       - name: Upload Trivy scan report
         if: always() && steps.push.outputs.digest != ''
@@ -284,7 +278,7 @@ PYEOF
 
       # -----------------------------------------------------------------------
       # Update registry.json via GitHub Contents API (atomic read-modify-write)
-      # No git push — avoids race conditions when 13 jobs run in parallel.
+      # No git push -- avoids race conditions when 13 jobs run in parallel.
       # The API returns 409 if the SHA is stale; we retry with the fresh SHA.
       # Both promote and scan sub-commands run in the same retry loop so the
       # file is only written once per attempt.
@@ -313,7 +307,7 @@ PYEOF
 
           MAX=8
           for i in $(seq 1 $MAX); do
-            echo "Attempt ${i}/${MAX} — fetching current registry.json from API..."
+            echo "Attempt ${i}/${MAX} -- fetching current registry.json from API..."
 
             API_RESP=$(gh api repos/gwshield/images/contents/registry.json 2>/dev/null || echo "NOT_FOUND")
 
@@ -351,17 +345,7 @@ PYEOF
 
             NEW_CONTENT=$(base64 < registry.json | tr -d '\n')
 
-            PAYLOAD=$(python3 -c "
-          import json, sys
-          d = {
-            'message': sys.argv[1],
-            'content': sys.argv[2],
-            'branch':  'main',
-          }
-          if sys.argv[3]:
-            d['sha'] = sys.argv[3]
-          print(json.dumps(d))
-          " "${COMMIT_MSG}" "${NEW_CONTENT}" "${FILE_SHA}")
+            PAYLOAD=$(python3 -c "import json,sys; d={'message':sys.argv[1],'content':sys.argv[2],'branch':'main'}; d.update({'sha':sys.argv[3]} if sys.argv[3] else {}); print(json.dumps(d))" "${COMMIT_MSG}" "${NEW_CONTENT}" "${FILE_SHA}")
 
             HTTP_STATUS=$(echo "${PAYLOAD}" | gh api repos/gwshield/images/contents/registry.json \
               --method PUT \
@@ -374,7 +358,7 @@ PYEOF
               exit 0
             fi
 
-            echo "API write failed (attempt ${i}/${MAX}, likely stale SHA) — retrying..."
+            echo "API write failed (attempt ${i}/${MAX}, likely stale SHA) -- retrying..."
             sleep $((i * 2))
           done
 
