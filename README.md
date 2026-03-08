@@ -13,6 +13,12 @@ no package manager, and no network utilities in the runtime layer.
 
 ## Available images
 
+### Redis — in-memory data store
+
+| Tag | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|
+| `ghcr.io/gwshield/redis:v7.4.8-cli` | client only | `b127debf88dd` | not scanned | 2026-03-08 |
+
 ### Traefik — cloud-native edge router
 
 | Tag | Profile | Digest | CVE status | Promoted |
@@ -36,19 +42,19 @@ no package manager, and no network utilities in the runtime layer.
 
 ```bash
 # Pull by tag
-docker pull ghcr.io/gwshield/traefik:v3.6.9
+docker pull ghcr.io/gwshield/redis:v7.4.8-cli
 
 # Pull by immutable digest
-docker pull ghcr.io/gwshield/traefik@sha256:92010130d60e6b291cda79cd02c5f0ffa43fd37c5d66ff7c47a4618f64009fe0
+docker pull ghcr.io/gwshield/redis@sha256:b127debf88ddbd755055fc5a31041dec3ab71c754b74e80ca5f9d3981c6c5c4b
 
 # Verify cosign signature
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
   --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
-  ghcr.io/gwshield/traefik:v3.6.9
+  ghcr.io/gwshield/redis:v7.4.8-cli
 
 # Inspect attached SBOM
-cosign download sbom ghcr.io/gwshield/traefik:v3.6.9
+cosign download sbom ghcr.io/gwshield/redis:v7.4.8-cli
 ```
 
 ---
@@ -57,6 +63,7 @@ cosign download sbom ghcr.io/gwshield/traefik:v3.6.9
 
 | Image | Tag | Verify command |
 |---|---|---|
+| `ghcr.io/gwshield/redis` | `v7.4.8-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cli` |
 | `ghcr.io/gwshield/traefik` | `v3.6.9` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/traefik:v3.6.9` |
 
 ---
