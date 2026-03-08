@@ -13,11 +13,11 @@ no package manager, and no network utilities in the runtime layer.
 
 ## Available images
 
-### PostgreSQL — relational database
+### Traefik — cloud-native edge router
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
-| `ghcr.io/gwshield/postgres:v15.17-timescale` | TimescaleDB | `a5c11f824ae8` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/traefik:v3.6.9` | standard | `1324e3991c42` | not scanned | 2026-03-08 |
 
 ## Hardening principles
 
@@ -36,19 +36,19 @@ no package manager, and no network utilities in the runtime layer.
 
 ```bash
 # Pull by tag
-docker pull ghcr.io/gwshield/postgres:v15.17-timescale
+docker pull ghcr.io/gwshield/traefik:v3.6.9
 
 # Pull by immutable digest
-docker pull ghcr.io/gwshield/postgres@sha256:a5c11f824ae8a03b27acef531051ef07021a3ee5bd0098f5630bcf11f900c0dd
+docker pull ghcr.io/gwshield/traefik@sha256:1324e3991c42d574bd0487d7c6a8dcf7a2f10459dcd835126ebbf70609d8f1dd
 
 # Verify cosign signature
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
   --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
-  ghcr.io/gwshield/postgres:v15.17-timescale
+  ghcr.io/gwshield/traefik:v3.6.9
 
 # Inspect attached SBOM
-cosign download sbom ghcr.io/gwshield/postgres:v15.17-timescale
+cosign download sbom ghcr.io/gwshield/traefik:v3.6.9
 ```
 
 ---
@@ -57,7 +57,7 @@ cosign download sbom ghcr.io/gwshield/postgres:v15.17-timescale
 
 | Image | Tag | Verify command |
 |---|---|---|
-| `ghcr.io/gwshield/postgres` | `v15.17-timescale` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17-timescale` |
+| `ghcr.io/gwshield/traefik` | `v3.6.9` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/traefik:v3.6.9` |
 
 ---
 
