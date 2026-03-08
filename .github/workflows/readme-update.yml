@@ -1,0 +1,133 @@
+# =============================================================================
+# README-UPDATE — Regenerate README.md from registry.json
+# =============================================================================
+# Triggered by:
+#   - repository_dispatch (event: registry-updated) — fired by promote.yml
+#     and by scan-update dispatches from RelicFrog/gwshield-images scan.yml
+#   - workflow_dispatch — manual regeneration
+#
+# Steps:
+#   1. Checkout gwshield/images (with write token)
+#   2. Run generate-readme.py against registry.json
+#   3. Commit + push README.md if changed ([skip ci] to avoid loops)
+# =============================================================================
+
+name: readme-update
+
+on:
+  repository_dispatch:
+    types: [registry-updated]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual run'
+        required: false
+        default: 'manual'
+
+concurrency:
+  group: readme-update
+  cancel-in-progress: false   # queue, never drop — every update must land
+
+permissions:
+  contents: write   # push README.md commit
+
+jobs:
+  regenerate:
+    name: Regenerate README.md
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate registry.json exists
+        run: |
+          if [[ ! -f registry.json ]]; then
+            echo "registry.json not found — nothing to generate from"
+            exit 0
+          fi
+          python3 -c "import json, pathlib; json.loads(pathlib.Path('registry.json').read_text()); print('registry.json is valid JSON')"
+
+      # -----------------------------------------------------------------------
+      # If this dispatch carries scan results, update registry.json first.
+      # Payload fields: scan_name, scan_version, cve_total, cve_critical,
+      #   cve_high, scanned_at (all optional — skipped if absent)
+      # -----------------------------------------------------------------------
+      - name: Update CVE status in registry.json (if scan payload present)
+        if: github.event.client_payload.scan_name != ''
+        run: |
+          set -euo pipefail
+          NAME="${{ github.event.client_payload.scan_name }}"
+          VERSION="${{ github.event.client_payload.scan_version }}"
+          TOTAL="${{ github.event.client_payload.cve_total || '0' }}"
+          CRITICAL="${{ github.event.client_payload.cve_critical || '0' }}"
+          HIGH="${{ github.event.client_payload.cve_high || '0' }}"
+          SCANNED_AT="${{ github.event.client_payload.scanned_at }}"
+
+          [[ -z "${NAME}" || -z "${VERSION}" ]] && { echo "No scan payload — skipping"; exit 0; }
+
+          python3 scripts/update-registry.py scan \
+            --name         "${NAME}" \
+            --version      "${VERSION}" \
+            --cve-total    "${TOTAL}" \
+            --cve-critical "${CRITICAL}" \
+            --cve-high     "${HIGH}" \
+            --scanner      trivy \
+            --scanned-at   "${SCANNED_AT}"
+
+          git config user.name  "gwshield-builder[bot]"
+          git config user.email "gwshield-builder[bot]@users.noreply.github.com"
+          if ! git diff --quiet registry.json; then
+            git add registry.json
+            git commit -m "chore(registry): scan update ${NAME}:${VERSION} — CVEs: ${TOTAL} [skip ci]"
+            git push
+          fi
+
+      - name: Generate README.md
+        run: |
+          python3 scripts/generate-readme.py \
+            --registry registry.json \
+            --output README.md
+
+      - name: Show diff
+        run: git diff README.md || true
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name  "gwshield-builder[bot]"
+          git config user.email "gwshield-builder[bot]@users.noreply.github.com"
+
+          if git diff --quiet README.md; then
+            echo "README.md unchanged — nothing to commit"
+            exit 0
+          fi
+
+          git add README.md
+          git commit -m "chore(docs): auto-update README from registry.json [skip ci]"
+          git push
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "## README update"
+            echo ""
+            if [[ -f registry.json ]]; then
+              ENTRIES=$(python3 -c "import json; d=json.load(open('registry.json')); print(len(d.get('images', {})))")
+              echo "| Item | Value |"
+              echo "|---|---|"
+              echo "| Images in registry | \`${ENTRIES}\` |"
+              echo "| Trigger | \`${{ github.event_name }}\` |"
+              echo "| Reason | \`${{ github.event.client_payload.reason || inputs.reason || 'auto' }}\` |"
+            else
+              echo "registry.json not present."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
