@@ -1,19 +1,20 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-08T06:08:37Z",
+  "last_updated": "2026-03-08T06:08:38Z",
   "images": {
-    "redis:v7.4.8-tls": {
-      "name": "redis",
-      "version": "v7.4.8-tls",
-      "base_version": "v7.4.8",
-      "profile": "tls",
-      "public_image": "ghcr.io/gwshield/redis",
+    "postgres:v15.17": {
+      "name": "postgres",
+      "version": "v15.17",
+      "base_version": "v15.17",
+      "profile": "",
+      "public_image": "ghcr.io/gwshield/postgres",
       "tags": [
-        "ghcr.io/gwshield/redis:v7.4.8-tls"
+        "ghcr.io/gwshield/postgres:v15.17",
+        "ghcr.io/gwshield/postgres:latest"
       ],
-      "digest": "sha256:23ad3ff3463d101a050a89ba13083c3f3413c23a56a84c014df617fb66a9e60d",
+      "digest": "sha256:359bfcda06073f61920cc25eb9aaaebad292eecec365af6adacb50c987e841b7",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-08T06:08:36Z",
+      "promoted_at": "2026-03-08T06:08:37Z",
       "scan": {
         "status": "unknown",
         "total": null,
