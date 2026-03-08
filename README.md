@@ -27,9 +27,9 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
-| `ghcr.io/gwshield/nginx:v1.28.2` | standard | `98dae4d2fa5a` | — not scanned | 2026-03-08 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http2` | HTTP/2 | `81d45bb45c45` | — not scanned | 2026-03-08 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http3` | HTTP/3 / QUIC | `81feb797cc56` | — not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/nginx:v1.28.2` | standard | `98dae4d2fa5a` | ✅ 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http2` | HTTP/2 | `81d45bb45c45` | ✅ 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http3` | HTTP/3 / QUIC | `81feb797cc56` | ✅ 0 CVEs | 2026-03-08 |
 
 ### PostgreSQL — relational database
 
@@ -39,16 +39,16 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v15.17-cli` | client only | `ed61bf148637` | — not scanned | 2026-03-08 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | TimescaleDB | `f857ec6b3fd2` | — not scanned | 2026-03-08 |
 | `ghcr.io/gwshield/postgres:v15.17-tls` | TLS | `27feb7118bba` | — not scanned | 2026-03-08 |
-| `ghcr.io/gwshield/postgres:v15.17-vector` | pgvector | `734b817d53e7` | — not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17-vector` | pgvector | `734b817d53e7` | ✅ 0 CVEs | 2026-03-08 |
 
 ### Redis — in-memory data store
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
 | `ghcr.io/gwshield/redis:v7.4.8` | standard | `9288563afa14` | — not scanned | 2026-03-08 |
-| `ghcr.io/gwshield/redis:v7.4.8-cli` | client only | `e1d70087c9ee` | — not scanned | 2026-03-08 |
-| `ghcr.io/gwshield/redis:v7.4.8-cluster` | cluster mode | `6707ab218e0e` | — not scanned | 2026-03-08 |
-| `ghcr.io/gwshield/redis:v7.4.8-tls` | TLS | `c10721015f5d` | — not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/redis:v7.4.8-cli` | client only | `e1d70087c9ee` | ✅ 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/redis:v7.4.8-cluster` | cluster mode | `6707ab218e0e` | ✅ 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/redis:v7.4.8-tls` | TLS | `c10721015f5d` | ✅ 0 CVEs | 2026-03-08 |
 
 ### Traefik — cloud-native edge router
 
