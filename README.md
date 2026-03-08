@@ -13,6 +13,19 @@ no package manager, and no network utilities in the runtime layer.
 
 ## Available images
 
+### PostgreSQL — relational database
+
+| Tag | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|
+| `ghcr.io/gwshield/postgres:v15.17-cli` | client only | `3823337deeab` | not scanned | 2026-03-08 |
+
+### Redis — in-memory data store
+
+| Tag | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|
+| `ghcr.io/gwshield/redis:v7.4.8-cli` | client only | `406d976cdca7` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/redis:v7.4.8-tls` | TLS | `851fe82125d9` | not scanned | 2026-03-08 |
+
 ### Traefik — cloud-native edge router
 
 | Tag | Profile | Digest | CVE status | Promoted |
@@ -36,19 +49,19 @@ no package manager, and no network utilities in the runtime layer.
 
 ```bash
 # Pull by tag
-docker pull ghcr.io/gwshield/traefik:v3.6.9
+docker pull ghcr.io/gwshield/postgres:v15.17-cli
 
 # Pull by immutable digest
-docker pull ghcr.io/gwshield/traefik@sha256:1324e3991c42d574bd0487d7c6a8dcf7a2f10459dcd835126ebbf70609d8f1dd
+docker pull ghcr.io/gwshield/postgres@sha256:3823337deeab74cca053e787f14c8e20ebdbcfbdcdac387b6bf8fe01ca610728
 
 # Verify cosign signature
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
   --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
-  ghcr.io/gwshield/traefik:v3.6.9
+  ghcr.io/gwshield/postgres:v15.17-cli
 
 # Inspect attached SBOM
-cosign download sbom ghcr.io/gwshield/traefik:v3.6.9
+cosign download sbom ghcr.io/gwshield/postgres:v15.17-cli
 ```
 
 ---
@@ -57,6 +70,9 @@ cosign download sbom ghcr.io/gwshield/traefik:v3.6.9
 
 | Image | Tag | Verify command |
 |---|---|---|
+| `ghcr.io/gwshield/postgres` | `v15.17-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17-cli` |
+| `ghcr.io/gwshield/redis` | `v7.4.8-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cli` |
+| `ghcr.io/gwshield/redis` | `v7.4.8-tls` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-tls` |
 | `ghcr.io/gwshield/traefik` | `v3.6.9` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/traefik:v3.6.9` |
 
 ---
