@@ -79,12 +79,12 @@ def scan_cell(scan: dict) -> str:
     status = scan.get("status") if scan else None
     total = scan.get("total") if scan else None
     if status == "clean" or total == 0:
-        return "✅ 0 CVEs"
+        return "0 CVEs"
     if status == "findings" and total is not None:
         critical = scan.get("critical", 0) or 0
         high = scan.get("high", 0) or 0
-        return f"⚠️ {total} ({critical} CRIT / {high} HIGH)"
-    return "— not scanned"
+        return f"{total} findings ({critical} critical, {high} high)"
+    return "not scanned"
 
 
 def group_by_name(entries: list[dict]) -> dict[str, list[dict]]:
