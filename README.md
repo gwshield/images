@@ -13,18 +13,11 @@ no package manager, and no network utilities in the runtime layer.
 
 ## Available images
 
-### Redis — in-memory data store
+### nginx — HTTP server / reverse proxy
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
-| `ghcr.io/gwshield/redis:v7.4.8-cli` | client only | `b127debf88dd` | not scanned | 2026-03-08 |
-| `ghcr.io/gwshield/redis:v7.4.8-cluster` | cluster mode | `65554e1878e2` | not scanned | 2026-03-08 |
-
-### Traefik — cloud-native edge router
-
-| Tag | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|
-| `ghcr.io/gwshield/traefik:v3.6.9` | standard | `92010130d60e` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http3` | HTTP/3 / QUIC | `d3253cbe4107` | not scanned | 2026-03-08 |
 
 ## Hardening principles
 
@@ -43,19 +36,19 @@ no package manager, and no network utilities in the runtime layer.
 
 ```bash
 # Pull by tag
-docker pull ghcr.io/gwshield/redis:v7.4.8-cli
+docker pull ghcr.io/gwshield/nginx:v1.28.2-http3
 
 # Pull by immutable digest
-docker pull ghcr.io/gwshield/redis@sha256:b127debf88ddbd755055fc5a31041dec3ab71c754b74e80ca5f9d3981c6c5c4b
+docker pull ghcr.io/gwshield/nginx@sha256:d3253cbe41078a9601044ac7b138f45a779e1fc4366e3cd833269896ebd8c8ca
 
 # Verify cosign signature
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
   --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
-  ghcr.io/gwshield/redis:v7.4.8-cli
+  ghcr.io/gwshield/nginx:v1.28.2-http3
 
 # Inspect attached SBOM
-cosign download sbom ghcr.io/gwshield/redis:v7.4.8-cli
+cosign download sbom ghcr.io/gwshield/nginx:v1.28.2-http3
 ```
 
 ---
@@ -64,9 +57,7 @@ cosign download sbom ghcr.io/gwshield/redis:v7.4.8-cli
 
 | Image | Tag | Verify command |
 |---|---|---|
-| `ghcr.io/gwshield/redis` | `v7.4.8-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cli` |
-| `ghcr.io/gwshield/redis` | `v7.4.8-cluster` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cluster` |
-| `ghcr.io/gwshield/traefik` | `v3.6.9` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/traefik:v3.6.9` |
+| `ghcr.io/gwshield/nginx` | `v1.28.2-http3` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2-http3` |
 
 ---
 
