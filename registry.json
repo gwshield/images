@@ -1,41 +1,19 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-08T06:08:40Z",
+  "last_updated": "2026-03-08T06:08:41Z",
   "images": {
-    "nginx:v1.28.2-http2": {
-      "name": "nginx",
-      "version": "v1.28.2-http2",
-      "base_version": "v1.28.2",
-      "profile": "http2",
-      "public_image": "ghcr.io/gwshield/nginx",
+    "postgres:v15.17-vector": {
+      "name": "postgres",
+      "version": "v15.17-vector",
+      "base_version": "v15.17",
+      "profile": "vector",
+      "public_image": "ghcr.io/gwshield/postgres",
       "tags": [
-        "ghcr.io/gwshield/nginx:v1.28.2-http2"
+        "ghcr.io/gwshield/postgres:v15.17-vector"
       ],
-      "digest": "sha256:dec0436b96d9878b0e97744d2f96a18687fbb73aefb468f99367befef4b2f41e",
+      "digest": "sha256:56f1bc1077573f1d5edb5ac80e1f3cb6bc6c170f750acab6cf8d7ae7d17ecfc6",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-08T06:08:36Z",
-      "scan": {
-        "status": "unknown",
-        "total": null,
-        "critical": null,
-        "high": null,
-        "scanner": null,
-        "scanned_at": null
-      }
-    },
-    "redis:v7.4.8": {
-      "name": "redis",
-      "version": "v7.4.8",
-      "base_version": "v7.4.8",
-      "profile": "",
-      "public_image": "ghcr.io/gwshield/redis",
-      "tags": [
-        "ghcr.io/gwshield/redis:v7.4.8",
-        "ghcr.io/gwshield/redis:latest"
-      ],
-      "digest": "sha256:77e4527765bf8b9bbfcb761edcc46960a2bb3fba6c492349f7b92ea9527c2d9c",
-      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-08T06:08:39Z",
+      "promoted_at": "2026-03-08T06:08:37Z",
       "scan": {
         "status": "unknown",
         "total": null,
