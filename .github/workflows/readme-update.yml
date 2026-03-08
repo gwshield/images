@@ -48,6 +48,11 @@ jobs:
         with:
           python-version: '3.12'
 
+      # Ensure we have the latest commit — promote.yml may have just pushed
+      # registry.json a few seconds before this workflow started.
+      - name: Pull latest commits
+        run: git pull --rebase --autostash
+
       - name: Validate registry.json exists
         run: |
           if [[ ! -f registry.json ]]; then
