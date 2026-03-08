@@ -17,12 +17,6 @@ manager, and no network utilities in the runtime layer.
 
 Production-hardened service images. Each image is compiled from upstream source with a patched toolchain, runs from a minimal `scratch` or distroless base, and ships with a cosign signature and SBOM.
 
-### go-builder
-
-| Tag | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|
-| `ghcr.io/gwshield/go-builder:v1.24` | standard | `3d90a0589ad0` | — not scanned | 2026-03-08 |
-
 ### nginx — HTTP server / reverse proxy
 
 | Tag | Profile | Digest | CVE status | Promoted |
@@ -35,17 +29,17 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
-| `ghcr.io/gwshield/postgres:v15.17` | standard | `03f0a0643d20` | — not scanned | 2026-03-08 |
-| `ghcr.io/gwshield/postgres:v15.17-cli` | client only | `ed61bf148637` | — not scanned | 2026-03-08 |
-| `ghcr.io/gwshield/postgres:v15.17-timescale` | TimescaleDB | `f857ec6b3fd2` | — not scanned | 2026-03-08 |
-| `ghcr.io/gwshield/postgres:v15.17-tls` | TLS | `27feb7118bba` | — not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17` | standard | `03f0a0643d20` | ✅ 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17-cli` | client only | `ed61bf148637` | ✅ 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17-timescale` | TimescaleDB | `f857ec6b3fd2` | ✅ 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17-tls` | TLS | `27feb7118bba` | ✅ 0 CVEs | 2026-03-08 |
 | `ghcr.io/gwshield/postgres:v15.17-vector` | pgvector | `734b817d53e7` | ✅ 0 CVEs | 2026-03-08 |
 
 ### Redis — in-memory data store
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
-| `ghcr.io/gwshield/redis:v7.4.8` | standard | `9288563afa14` | — not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/redis:v7.4.8` | standard | `9288563afa14` | ✅ 0 CVEs | 2026-03-08 |
 | `ghcr.io/gwshield/redis:v7.4.8-cli` | client only | `e1d70087c9ee` | ✅ 0 CVEs | 2026-03-08 |
 | `ghcr.io/gwshield/redis:v7.4.8-cluster` | cluster mode | `6707ab218e0e` | ✅ 0 CVEs | 2026-03-08 |
 | `ghcr.io/gwshield/redis:v7.4.8-tls` | TLS | `c10721015f5d` | ✅ 0 CVEs | 2026-03-08 |
@@ -58,6 +52,29 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 ---
 
+## Builder images
+
+Secure build baseline images — published to enable reproducible, CVE-free builds in downstream multi-stage Dockerfiles. Builder images are **not** deployed as runtime containers.
+
+```dockerfile
+# Example downstream usage
+FROM ghcr.io/gwshield/go-builder:1.24 AS builder
+COPY . /build/myapp
+RUN go build -o /build/myapp .
+
+FROM scratch
+COPY --from=builder /build/myapp /myapp
+USER 65532:65532
+ENTRYPOINT ["/myapp"]
+```
+
+### Go — reproducible static builds (CGO_ENABLED=0)
+
+| Tag | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|
+| `ghcr.io/gwshield/go-builder:v1.24` | standard | `3d90a0589ad0` | ✅ 0 CVEs | 2026-03-08 |
+
+---
 
 ## Hardening principles
 
@@ -86,8 +103,16 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 ```bash
 # Runtime image — pull and verify
+docker pull ghcr.io/gwshield/nginx:v1.28.2
+docker pull ghcr.io/gwshield/nginx@sha256:98dae4d2fa5afaa227143d9273b1614b669d10e9d439da1ca90e74219edfeca0
+
+cosign verify \
+  --certificate-identity-regexp='https://github.com/gwshield/images.*' \
+  --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
+  ghcr.io/gwshield/nginx:v1.28.2
+
+# Builder image — pull and verify
 docker pull ghcr.io/gwshield/go-builder:v1.24
-docker pull ghcr.io/gwshield/go-builder@sha256:3d90a0589ad0a6daaf285ff6809891175eee7537511e3fcf34b7517a2cd8708a
 
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
@@ -95,7 +120,7 @@ cosign verify \
   ghcr.io/gwshield/go-builder:v1.24
 
 # Inspect attached SBOM
-cosign download sbom ghcr.io/gwshield/go-builder:v1.24
+cosign download sbom ghcr.io/gwshield/nginx:v1.28.2
 ```
 
 ---
@@ -104,7 +129,6 @@ cosign download sbom ghcr.io/gwshield/go-builder:v1.24
 
 | Category | Image | Tag | Verify command |
 |---|---|---|---|
-| runtime | `ghcr.io/gwshield/go-builder` | `v1.24` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/go-builder:v1.24` |
 | runtime | `ghcr.io/gwshield/nginx` | `v1.28.2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2` |
 | runtime | `ghcr.io/gwshield/nginx` | `v1.28.2-http2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2-http2` |
 | runtime | `ghcr.io/gwshield/nginx` | `v1.28.2-http3` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2-http3` |
@@ -118,6 +142,7 @@ cosign download sbom ghcr.io/gwshield/go-builder:v1.24
 | runtime | `ghcr.io/gwshield/redis` | `v7.4.8-cluster` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cluster` |
 | runtime | `ghcr.io/gwshield/redis` | `v7.4.8-tls` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-tls` |
 | runtime | `ghcr.io/gwshield/traefik` | `v3.6.9` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/traefik:v3.6.9` |
+| builder | `ghcr.io/gwshield/go-builder` | `v1.24` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/go-builder:v1.24` |
 
 ---
 
