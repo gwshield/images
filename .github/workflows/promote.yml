@@ -240,23 +240,55 @@ jobs:
             --cosign-identity "${COSIGN_IDENTITY}" \
             --promoted-at     "${PROMOTED_AT}"
 
+          # Expose promoted_at for the retry commit loop
+          echo "promoted_at=${PROMOTED_AT}" >> "$GITHUB_OUTPUT"
+
       - name: Commit registry.json
         run: |
           set -euo pipefail
           git config user.name  "gwshield-builder[bot]"
           git config user.email "gwshield-builder[bot]@users.noreply.github.com"
 
-          # Stage first — git diff --quiet only detects tracked changes.
-          # registry.json may be a new (untracked) file on first promote.
-          git add registry.json
+          # Up to 5 attempts — parallel promote jobs race on the same branch.
+          # Strategy: pull --rebase before every push attempt so each job
+          # merges the latest registry.json from other jobs before committing.
+          MAX=5
+          for i in $(seq 1 $MAX); do
+            # Always pull latest to pick up concurrent writes from other jobs
+            git pull --rebase --autostash origin main || true
 
-          if git diff --cached --quiet registry.json; then
-            echo "registry.json unchanged — nothing to commit"
-            exit 0
-          fi
+            # Re-run update-registry.py so our entry is applied on top of the
+            # freshly pulled registry.json (idempotent upsert — safe to repeat)
+            python3 scripts/update-registry.py promote \
+              --name            "${{ github.event.client_payload.name }}" \
+              --version         "${{ github.event.client_payload.version }}" \
+              --base-version    "${{ github.event.client_payload.base_version }}" \
+              --profile         "${{ github.event.client_payload.profile }}" \
+              --digest          "${{ steps.push.outputs.digest }}" \
+              --tags            "${{ steps.tags.outputs.tags }}" \
+              --cosign-identity "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main" \
+              --promoted-at     "${{ steps.registry.outputs.promoted_at }}"
 
-          git commit -m "chore(registry): promote ${{ github.event.client_payload.name }}:${{ github.event.client_payload.version }} [skip ci]"
-          git push
+            git add registry.json
+            if git diff --cached --quiet registry.json; then
+              echo "registry.json unchanged after rebase — nothing to commit"
+              exit 0
+            fi
+
+            git commit -m "chore(registry): promote ${{ github.event.client_payload.name }}:${{ github.event.client_payload.version }} [skip ci]"
+
+            if git push origin main; then
+              echo "Push succeeded on attempt ${i}"
+              exit 0
+            fi
+
+            echo "Push failed (attempt ${i}/${MAX}) — retrying after rebase..."
+            git reset --soft HEAD~1   # undo commit, keep staged changes
+            sleep $((i * 2))
+          done
+
+          echo "ERROR: could not push registry.json after ${MAX} attempts" >&2
+          exit 1
 
       # -----------------------------------------------------------------------
       # Trigger readme-update workflow (via repository_dispatch to self)
