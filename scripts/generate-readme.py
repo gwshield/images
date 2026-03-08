@@ -5,6 +5,10 @@
 # Reads registry.json (single source of truth) and writes README.md.
 # Run by the readme-update workflow after every promote or scan event.
 #
+# Images are split into two sections:
+#   Runtime images  — production service images (traefik, nginx, redis, postgres)
+#   Builder images  — secure build baseline images (go-builder, python-builder)
+#
 # Usage:
 #   python3 scripts/generate-readme.py \
 #     --registry registry.json \
@@ -24,29 +28,30 @@ from datetime import datetime, timezone
 # Helpers
 # ---------------------------------------------------------------------------
 
-SCAN_BADGE = {
-    "clean":    "0 CVEs",
-    "findings": "findings",
-    "unknown":  "not scanned",
-    None:       "not scanned",
-}
-
 PROFILE_LABEL = {
-    "":          "standard",
-    "tls":       "TLS",
-    "http2":     "HTTP/2",
-    "http3":     "HTTP/3 / QUIC",
-    "cluster":   "cluster mode",
-    "cli":       "client only",
-    "vector":    "pgvector",
-    "timescale": "TimescaleDB",
+    "":            "standard",
+    "tls":         "TLS",
+    "http2":       "HTTP/2",
+    "http3":       "HTTP/3 / QUIC",
+    "cluster":     "cluster mode",
+    "cli":         "client only",
+    "vector":      "pgvector",
+    "timescale":   "TimescaleDB",
+    "compile-only": "compile-only",
+    "dev":         "compile + test + lint",
 }
 
-IMAGE_DESCRIPTION = {
-    "postgres":  "PostgreSQL — relational database",
-    "redis":     "Redis — in-memory data store",
-    "nginx":     "nginx — HTTP server / reverse proxy",
-    "traefik":   "Traefik — cloud-native edge router",
+RUNTIME_DESCRIPTION = {
+    "postgres": "PostgreSQL — relational database",
+    "redis":    "Redis — in-memory data store",
+    "nginx":    "nginx — HTTP server / reverse proxy",
+    "traefik":  "Traefik — cloud-native edge router",
+}
+
+BUILDER_DESCRIPTION = {
+    "go-builder":     "Go — reproducible static builds (CGO_ENABLED=0)",
+    "python-builder": "Python — reproducible wheel builds",
+    "node-builder":   "Node.js — deterministic package builds",
 }
 
 
@@ -62,7 +67,7 @@ def fmt_date(iso: str | None) -> str:
 
 def short_digest(digest: str) -> str:
     if digest and digest.startswith("sha256:"):
-        return digest[7:19]  # first 12 hex chars
+        return digest[7:19]
     return digest or "—"
 
 
@@ -74,23 +79,36 @@ def scan_cell(scan: dict) -> str:
     status = scan.get("status") if scan else None
     total = scan.get("total") if scan else None
     if status == "clean" or total == 0:
-        return "0 CVEs"
+        return "✅ 0 CVEs"
     if status == "findings" and total is not None:
         critical = scan.get("critical", 0) or 0
         high = scan.get("high", 0) or 0
-        return f"{total} ({critical} CRIT / {high} HIGH)"
-    return "not scanned"
+        return f"⚠️ {total} ({critical} CRIT / {high} HIGH)"
+    return "— not scanned"
 
 
-def group_by_name(images: dict) -> dict[str, list[dict]]:
+def group_by_name(entries: list[dict]) -> dict[str, list[dict]]:
     groups: dict[str, list[dict]] = {}
-    for entry in images.values():
+    for entry in entries:
         name = entry.get("name", "unknown")
         groups.setdefault(name, []).append(entry)
-    # Sort entries within group by version
     for name in groups:
         groups[name].sort(key=lambda e: e.get("version", ""))
     return dict(sorted(groups.items()))
+
+
+def split_by_category(images: dict) -> tuple[list[dict], list[dict]]:
+    """Return (runtime_entries, builder_entries) sorted by name+version."""
+    runtime, builder = [], []
+    for entry in images.values():
+        cat = entry.get("category", "runtime")
+        if cat == "builder":
+            builder.append(entry)
+        else:
+            runtime.append(entry)
+    runtime.sort(key=lambda e: (e.get("name", ""), e.get("version", "")))
+    builder.sort(key=lambda e: (e.get("name", ""), e.get("version", "")))
+    return runtime, builder
 
 
 # ---------------------------------------------------------------------------
@@ -101,39 +119,89 @@ def render_header() -> str:
     return """\
 # Gatewarden Shield — Hardened Container Images
 
-Zero-CVE, production-hardened container images. Built from source, signed with
-cosign, SBOM attached. All images run as non-root (UID 65532) with no shell,
-no package manager, and no network utilities in the runtime layer.
+Zero-CVE, production-hardened container images and secure build baselines.
+Built from source, signed with cosign, SBOM attached.
+
+All runtime images run as non-root (UID 65532) with no shell, no package
+manager, and no network utilities in the runtime layer.
 
 > The source build pipeline is private. This registry is the public distribution
-> endpoint. Every image is built from upstream source tarballs with SHA-256
-> verification, scanned with Trivy and Grype before promotion, and cosign-signed
-> with a keyless Sigstore OIDC identity.
+> endpoint. Every image is built from upstream source with SHA-256 verification,
+> scanned with Trivy and Grype before promotion, and cosign-signed with a
+> keyless Sigstore OIDC identity.
 
 ---
 """
 
 
-def render_image_table(groups: dict[str, list[dict]]) -> str:
+def render_runtime_section(entries: list[dict]) -> str:
+    if not entries:
+        return ""
     lines: list[str] = []
-    lines.append("## Available images\n")
+    lines.append("## Runtime images\n")
+    lines.append(
+        "Production-hardened service images. Each image is compiled from upstream source "
+        "with a patched toolchain, runs from a minimal `scratch` or distroless base, and "
+        "ships with a cosign signature and SBOM.\n"
+    )
 
-    for name, entries in groups.items():
-        desc = IMAGE_DESCRIPTION.get(name, name)
+    for name, group in group_by_name(entries).items():
+        desc = RUNTIME_DESCRIPTION.get(name, name)
         lines.append(f"### {desc}\n")
         lines.append("| Tag | Profile | Digest | CVE status | Promoted |")
         lines.append("|---|---|---|---|---|")
-        for e in entries:
+        for e in group:
             tag = e.get("version", "—")
             full_ref = f"`ghcr.io/gwshield/{name}:{tag}`"
             profile = profile_label(e.get("profile", ""))
             digest = short_digest(e.get("digest", ""))
-            scan = e.get("scan") or {}
-            cve = scan_cell(scan)
+            cve = scan_cell(e.get("scan") or {})
             promoted = fmt_date(e.get("promoted_at"))
             lines.append(f"| {full_ref} | {profile} | `{digest}` | {cve} | {promoted} |")
         lines.append("")
 
+    lines.append("---\n")
+    return "\n".join(lines)
+
+
+def render_builder_section(entries: list[dict]) -> str:
+    if not entries:
+        return ""
+    lines: list[str] = []
+    lines.append("## Builder images\n")
+    lines.append(
+        "Secure build baseline images — published to enable reproducible, CVE-free builds "
+        "in downstream multi-stage Dockerfiles. Builder images are **not** deployed as "
+        "runtime containers.\n"
+    )
+    lines.append("```dockerfile")
+    lines.append("# Example downstream usage")
+    lines.append("FROM ghcr.io/gwshield/go-builder:1.24 AS builder")
+    lines.append("COPY . /build/myapp")
+    lines.append("RUN go build -o /build/myapp .")
+    lines.append("")
+    lines.append("FROM scratch")
+    lines.append("COPY --from=builder /build/myapp /myapp")
+    lines.append("USER 65532:65532")
+    lines.append('ENTRYPOINT ["/myapp"]')
+    lines.append("```\n")
+
+    for name, group in group_by_name(entries).items():
+        desc = BUILDER_DESCRIPTION.get(name, name)
+        lines.append(f"### {desc}\n")
+        lines.append("| Tag | Profile | Digest | CVE status | Promoted |")
+        lines.append("|---|---|---|---|---|")
+        for e in group:
+            tag = e.get("version", "—")
+            full_ref = f"`ghcr.io/gwshield/{name}:{tag}`"
+            profile = profile_label(e.get("profile", ""))
+            digest = short_digest(e.get("digest", ""))
+            cve = scan_cell(e.get("scan") or {})
+            promoted = fmt_date(e.get("promoted_at"))
+            lines.append(f"| {full_ref} | {profile} | `{digest}` | {cve} | {promoted} |")
+        lines.append("")
+
+    lines.append("---\n")
     return "\n".join(lines)
 
 
@@ -141,12 +209,22 @@ def render_hardening() -> str:
     return """\
 ## Hardening principles
 
-- Built from upstream source tarballs with SHA-256 verification
+**Runtime images**
+- Compiled from upstream source tarballs with SHA-256 verification
 - Multi-stage builds — `FROM scratch` or distroless runtime layer
 - No shell, no package manager, no `curl`/`wget` in the runtime layer
 - Non-root execution: UID/GID 65532
 - Hardened compiler flags: `-fstack-protector-strong`, `-D_FORTIFY_SOURCE=2`, RELRO, NOW
-- Trivy + Grype CVE scan gate — 0 unfixed HIGH/CRITICAL findings at release time
+
+**Builder images**
+- Digest-pinned toolchain base (golang:alpine, python:alpine, ...)
+- `CGO_ENABLED=0` and `-trimpath` set by default
+- Non-root execution: UID/GID 65532
+- No test runners or linters in compile-only profiles
+- Shell retained intentionally for downstream `RUN` steps
+
+**All images**
+- Trivy + Grype CVE scan gate — 0 unfixed HIGH/CRITICAL at release time
 - cosign keyless signed (Sigstore / OIDC) — no long-lived key material
 - SBOM attached to OCI manifest (CycloneDX + SPDX)
 
@@ -154,50 +232,71 @@ def render_hardening() -> str:
 """
 
 
-def render_verify(groups: dict[str, list[dict]]) -> str:
-    # Use the first available image as example
-    example_name = next(iter(groups), "postgres")
-    example_entries = groups.get(example_name, [])
-    example_entry = example_entries[0] if example_entries else {}
-    example_version = example_entry.get("version", "v15.17")
-    example_digest = example_entry.get("digest", "sha256:<digest>")
+def render_verify(runtime: list[dict], builder: list[dict]) -> str:
+    # Pick one runtime + one builder as examples if available
+    ex_rt = runtime[0] if runtime else None
+    ex_bl = builder[0] if builder else None
 
-    lines: list[str] = []
-    lines.append("## Verify an image\n")
-    lines.append("```bash")
-    lines.append(f"# Pull by tag")
-    lines.append(f"docker pull ghcr.io/gwshield/{example_name}:{example_version}")
-    lines.append("")
-    lines.append(f"# Pull by immutable digest")
-    lines.append(f"docker pull ghcr.io/gwshield/{example_name}@{example_digest}")
-    lines.append("")
-    lines.append("# Verify cosign signature")
-    lines.append("cosign verify \\")
-    lines.append("  --certificate-identity-regexp='https://github.com/gwshield/images.*' \\")
-    lines.append("  --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \\")
-    lines.append(f"  ghcr.io/gwshield/{example_name}:{example_version}")
-    lines.append("")
-    lines.append("# Inspect attached SBOM")
-    lines.append(f"cosign download sbom ghcr.io/gwshield/{example_name}:{example_version}")
-    lines.append("```\n")
-    lines.append("---\n")
+    lines: list[str] = ["## Verify an image\n", "```bash"]
+
+    if ex_rt:
+        n, v = ex_rt.get("name", "postgres"), ex_rt.get("version", "v15.17")
+        d = ex_rt.get("digest", "sha256:<digest>")
+        lines += [
+            f"# Runtime image — pull and verify",
+            f"docker pull ghcr.io/gwshield/{n}:{v}",
+            f"docker pull ghcr.io/gwshield/{n}@{d}",
+            "",
+            "cosign verify \\",
+            "  --certificate-identity-regexp='https://github.com/gwshield/images.*' \\",
+            "  --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \\",
+            f"  ghcr.io/gwshield/{n}:{v}",
+            "",
+        ]
+
+    if ex_bl:
+        n, v = ex_bl.get("name", "go-builder"), ex_bl.get("version", "1.24")
+        lines += [
+            f"# Builder image — pull and verify",
+            f"docker pull ghcr.io/gwshield/{n}:{v}",
+            "",
+            "cosign verify \\",
+            "  --certificate-identity-regexp='https://github.com/gwshield/images.*' \\",
+            "  --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \\",
+            f"  ghcr.io/gwshield/{n}:{v}",
+            "",
+        ]
+
+    if ex_rt:
+        n, v = ex_rt.get("name", "postgres"), ex_rt.get("version", "v15.17")
+        lines.append(f"# Inspect attached SBOM")
+        lines.append(f"cosign download sbom ghcr.io/gwshield/{n}:{v}")
+
+    lines += ["```\n", "---\n"]
     return "\n".join(lines)
 
 
-def render_cosign_table(groups: dict[str, list[dict]]) -> str:
+def render_cosign_table(runtime: list[dict], builder: list[dict]) -> str:
     lines: list[str] = []
     lines.append("## Cosign verify — all images\n")
-    lines.append("| Image | Tag | Verify command |")
-    lines.append("|---|---|---|")
-    for name, entries in groups.items():
-        for e in entries:
-            tag = e.get("version", "—")
-            ref = f"ghcr.io/gwshield/{name}:{tag}"
-            cmd = (
-                f'`cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*"'
-                f' --certificate-oidc-issuer="https://token.actions.githubusercontent.com" {ref}`'
-            )
-            lines.append(f"| `ghcr.io/gwshield/{name}` | `{tag}` | {cmd} |")
+    lines.append("| Category | Image | Tag | Verify command |")
+    lines.append("|---|---|---|---|")
+
+    def cosign_row(category: str, entry: dict) -> str:
+        name = entry.get("name", "—")
+        tag = entry.get("version", "—")
+        ref = f"ghcr.io/gwshield/{name}:{tag}"
+        cmd = (
+            f'`cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*"'
+            f' --certificate-oidc-issuer="https://token.actions.githubusercontent.com" {ref}`'
+        )
+        return f"| {category} | `ghcr.io/gwshield/{name}` | `{tag}` | {cmd} |"
+
+    for e in sorted(runtime, key=lambda x: (x.get("name", ""), x.get("version", ""))):
+        lines.append(cosign_row("runtime", e))
+    for e in sorted(builder, key=lambda x: (x.get("name", ""), x.get("version", ""))):
+        lines.append(cosign_row("builder", e))
+
     lines.append("")
     lines.append("---\n")
     return "\n".join(lines)
@@ -237,34 +336,31 @@ def generate(registry_path: pathlib.Path, output_path: pathlib.Path) -> None:
     if not images:
         print("WARNING: registry.json has no image entries — README will be sparse", file=sys.stderr)
 
-    groups = group_by_name(images)
+    runtime, builder = split_by_category(images)
 
     sections = [
         render_header(),
-        render_image_table(groups),
+        render_runtime_section(runtime),
+        render_builder_section(builder),
         render_hardening(),
-        render_verify(groups),
-        render_cosign_table(groups),
+        render_verify(runtime, builder),
+        render_cosign_table(runtime, builder),
         render_footer(last_updated),
     ]
 
     readme = "\n".join(sections)
     output_path.write_text(readme)
-    print(f"README.md written ({len(images)} images, {output_path.stat().st_size} bytes)")
+    print(
+        f"README.md written "
+        f"({len(runtime)} runtime + {len(builder)} builder images, "
+        f"{output_path.stat().st_size} bytes)"
+    )
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Generate README.md from registry.json"
-    )
-    parser.add_argument(
-        "--registry", default="registry.json",
-        help="Path to registry.json (default: registry.json)"
-    )
-    parser.add_argument(
-        "--output", default="README.md",
-        help="Output path for README.md (default: README.md)"
-    )
+    parser = argparse.ArgumentParser(description="Generate README.md from registry.json")
+    parser.add_argument("--registry", default="registry.json")
+    parser.add_argument("--output",   default="README.md")
     args = parser.parse_args()
     generate(pathlib.Path(args.registry), pathlib.Path(args.output))
 
