@@ -19,7 +19,7 @@ no package manager, and no network utilities in the runtime layer.
 |---|---|---|---|---|
 | `ghcr.io/gwshield/nginx:v1.28.2` | standard | `5348bb0d37c9` | not scanned | 2026-03-08 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http2` | HTTP/2 | `dec0436b96d9` | not scanned | 2026-03-08 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http3` | HTTP/3 / QUIC | `d3253cbe4107` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http3` | HTTP/3 / QUIC | `f870ede3e51a` | not scanned | 2026-03-08 |
 
 ### PostgreSQL — relational database
 
