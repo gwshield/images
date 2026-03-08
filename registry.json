@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-08T06:48:55Z",
+  "last_updated": "2026-03-08T06:48:56Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -96,9 +96,9 @@
       "tags": [
         "ghcr.io/gwshield/postgres:v15.17-timescale"
       ],
-      "digest": "sha256:b3132a4c71e1941dc2fa65c6755826a689bbb11e881d97ac7ded1dd682b5d8f8",
+      "digest": "sha256:f857ec6b3fd2ebeb4f961918f0cb8d4d7d205374ae0fe81913514ab3806bb634",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-08T06:26:55Z",
+      "promoted_at": "2026-03-08T06:48:55Z",
       "scan": {
         "status": "unknown",
         "total": null,
