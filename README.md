@@ -13,11 +13,11 @@ no package manager, and no network utilities in the runtime layer.
 
 ## Available images
 
-### nginx — HTTP server / reverse proxy
+### Redis — in-memory data store
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
-| `ghcr.io/gwshield/nginx:v1.28.2` | standard | `d3253cbe4107` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/redis:v7.4.8-cli` | client only | `406d976cdca7` | not scanned | 2026-03-08 |
 
 ## Hardening principles
 
@@ -36,19 +36,19 @@ no package manager, and no network utilities in the runtime layer.
 
 ```bash
 # Pull by tag
-docker pull ghcr.io/gwshield/nginx:v1.28.2
+docker pull ghcr.io/gwshield/redis:v7.4.8-cli
 
 # Pull by immutable digest
-docker pull ghcr.io/gwshield/nginx@sha256:d3253cbe41078a9601044ac7b138f45a779e1fc4366e3cd833269896ebd8c8ca
+docker pull ghcr.io/gwshield/redis@sha256:406d976cdca7b41fc71c965ef7f5976f7beab6d11da38aa5c1dccdfeead5c327
 
 # Verify cosign signature
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
   --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
-  ghcr.io/gwshield/nginx:v1.28.2
+  ghcr.io/gwshield/redis:v7.4.8-cli
 
 # Inspect attached SBOM
-cosign download sbom ghcr.io/gwshield/nginx:v1.28.2
+cosign download sbom ghcr.io/gwshield/redis:v7.4.8-cli
 ```
 
 ---
@@ -57,7 +57,7 @@ cosign download sbom ghcr.io/gwshield/nginx:v1.28.2
 
 | Image | Tag | Verify command |
 |---|---|---|
-| `ghcr.io/gwshield/nginx` | `v1.28.2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2` |
+| `ghcr.io/gwshield/redis` | `v7.4.8-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cli` |
 
 ---
 
