@@ -33,7 +33,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write       # commit registry.json + trigger readme-update
   packages: write       # GITHUB_TOKEN write:packages for gwshield org
   id-token: write       # cosign OIDC keyless signing
 
@@ -50,6 +50,16 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Validate payload
         run: |
           set -euo pipefail
@@ -204,6 +214,63 @@ jobs:
           retention-days: 365
           if-no-files-found: warn
 
+      # -----------------------------------------------------------------------
+      # Update registry.json (single source of truth for image metadata)
+      # -----------------------------------------------------------------------
+      - name: Update registry.json
+        id: registry
+        run: |
+          set -euo pipefail
+          NAME="${{ github.event.client_payload.name }}"
+          VERSION="${{ github.event.client_payload.version }}"
+          BASE_VERSION="${{ github.event.client_payload.base_version }}"
+          PROFILE="${{ github.event.client_payload.profile }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+          TAGS="${{ steps.tags.outputs.tags }}"
+          PROMOTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          COSIGN_IDENTITY="https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main"
+
+          python3 scripts/update-registry.py promote \
+            --name            "${NAME}" \
+            --version         "${VERSION}" \
+            --base-version    "${BASE_VERSION}" \
+            --profile         "${PROFILE}" \
+            --digest          "${DIGEST}" \
+            --tags            "${TAGS}" \
+            --cosign-identity "${COSIGN_IDENTITY}" \
+            --promoted-at     "${PROMOTED_AT}"
+
+      - name: Commit registry.json
+        run: |
+          set -euo pipefail
+          git config user.name  "gwshield-builder[bot]"
+          git config user.email "gwshield-builder[bot]@users.noreply.github.com"
+
+          if git diff --quiet registry.json; then
+            echo "registry.json unchanged — nothing to commit"
+            exit 0
+          fi
+
+          git add registry.json
+          git commit -m "chore(registry): promote ${{ github.event.client_payload.name }}:${{ github.event.client_payload.version }} [skip ci]"
+          git push
+
+      # -----------------------------------------------------------------------
+      # Trigger readme-update workflow (via repository_dispatch to self)
+      # -----------------------------------------------------------------------
+      - name: Trigger README update
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api /repos/gwshield/images/dispatches \
+            --method POST \
+            --field event_type=registry-updated \
+            --field "client_payload[reason]=promote:${{ github.event.client_payload.name }}:${{ github.event.client_payload.version }}"
+          echo "readme-update dispatch sent"
+
+      # -----------------------------------------------------------------------
+      # Job summary
+      # -----------------------------------------------------------------------
       - name: Job summary
         if: always()
         run: |
@@ -218,6 +285,7 @@ jobs:
             echo "| Pushed digest | \`${{ steps.push.outputs.digest }}\` |"
             echo "| Signed | cosign keyless (Sigstore / gwshield OIDC) |"
             echo "| SBOM | CycloneDX + SPDX attached |"
+            echo "| registry.json | updated |"
             echo ""
             echo "### Verify"
             echo '```bash'
