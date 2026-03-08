@@ -75,6 +75,13 @@ ENTRYPOINT ["/myapp"]
 | `ghcr.io/gwshield/go-builder:v1.24` | standard | `3d90a0589ad0` | 0 CVEs | 2026-03-08 |
 | `ghcr.io/gwshield/go-builder:v1.24-dev` | compile + test + lint | `162ea2ef4e64` | 0 CVEs | 2026-03-08 |
 
+### Python — reproducible wheel builds
+
+| Tag | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|
+| `ghcr.io/gwshield/python-builder:v3.13` | standard | `f99463ba595f` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/python-builder:v3.13-dev` | compile + test + lint | `113b6084572f` | 0 CVEs | 2026-03-08 |
+
 ---
 
 ## Hardening principles
@@ -145,6 +152,8 @@ cosign download sbom ghcr.io/gwshield/nginx:v1.28.2
 | runtime | `ghcr.io/gwshield/traefik` | `v3.6.9` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/traefik:v3.6.9` |
 | builder | `ghcr.io/gwshield/go-builder` | `v1.24` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/go-builder:v1.24` |
 | builder | `ghcr.io/gwshield/go-builder` | `v1.24-dev` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/go-builder:v1.24-dev` |
+| builder | `ghcr.io/gwshield/python-builder` | `v3.13` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/python-builder:v3.13` |
+| builder | `ghcr.io/gwshield/python-builder` | `v3.13-dev` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/python-builder:v3.13-dev` |
 
 ---
 
