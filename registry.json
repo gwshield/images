@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-08T06:56:01Z",
+  "last_updated": "2026-03-08T06:56:02Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -72,13 +72,14 @@
       "version": "v7.4.8-tls",
       "base_version": "v7.4.8",
       "profile": "tls",
+      "category": "runtime",
       "public_image": "ghcr.io/gwshield/redis",
       "tags": [
         "ghcr.io/gwshield/redis:v7.4.8-tls"
       ],
       "digest": "sha256:c10721015f5d2c953cadf2843b5efaf89e92b3996f14f920a498edf59dd1a355",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-08T06:49:55Z",
+      "promoted_at": "2026-03-08T06:56:01Z",
       "scan": {
         "status": "unknown",
         "total": null,
