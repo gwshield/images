@@ -22,6 +22,28 @@
         "scanner": null,
         "scanned_at": null
       }
+    },
+    "redis:v7.4.8": {
+      "name": "redis",
+      "version": "v7.4.8",
+      "base_version": "v7.4.8",
+      "profile": "",
+      "public_image": "ghcr.io/gwshield/redis",
+      "tags": [
+        "ghcr.io/gwshield/redis:v7.4.8",
+        "ghcr.io/gwshield/redis:latest"
+      ],
+      "digest": "sha256:77e4527765bf8b9bbfcb761edcc46960a2bb3fba6c492349f7b92ea9527c2d9c",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "promoted_at": "2026-03-08T06:08:39Z",
+      "scan": {
+        "status": "unknown",
+        "total": null,
+        "critical": null,
+        "high": null,
+        "scanner": null,
+        "scanned_at": null
+      }
     }
   }
 }
