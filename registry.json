@@ -1,20 +1,19 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-08T06:08:38Z",
+  "last_updated": "2026-03-08T06:08:40Z",
   "images": {
-    "postgres:v15.17": {
-      "name": "postgres",
-      "version": "v15.17",
-      "base_version": "v15.17",
-      "profile": "",
-      "public_image": "ghcr.io/gwshield/postgres",
+    "nginx:v1.28.2-http2": {
+      "name": "nginx",
+      "version": "v1.28.2-http2",
+      "base_version": "v1.28.2",
+      "profile": "http2",
+      "public_image": "ghcr.io/gwshield/nginx",
       "tags": [
-        "ghcr.io/gwshield/postgres:v15.17",
-        "ghcr.io/gwshield/postgres:latest"
+        "ghcr.io/gwshield/nginx:v1.28.2-http2"
       ],
-      "digest": "sha256:359bfcda06073f61920cc25eb9aaaebad292eecec365af6adacb50c987e841b7",
+      "digest": "sha256:dec0436b96d9878b0e97744d2f96a18687fbb73aefb468f99367befef4b2f41e",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-08T06:08:37Z",
+      "promoted_at": "2026-03-08T06:08:36Z",
       "scan": {
         "status": "unknown",
         "total": null,
