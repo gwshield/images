@@ -246,12 +246,15 @@ jobs:
           git config user.name  "gwshield-builder[bot]"
           git config user.email "gwshield-builder[bot]@users.noreply.github.com"
 
-          if git diff --quiet registry.json; then
+          # Stage first — git diff --quiet only detects tracked changes.
+          # registry.json may be a new (untracked) file on first promote.
+          git add registry.json
+
+          if git diff --cached --quiet registry.json; then
             echo "registry.json unchanged — nothing to commit"
             exit 0
           fi
 
-          git add registry.json
           git commit -m "chore(registry): promote ${{ github.event.client_payload.name }}:${{ github.event.client_payload.version }} [skip ci]"
           git push
 
