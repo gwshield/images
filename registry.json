@@ -170,6 +170,27 @@
         "scanner": null,
         "scanned_at": null
       }
+    },
+    "redis:v7.4.8-cluster": {
+      "name": "redis",
+      "version": "v7.4.8-cluster",
+      "base_version": "v7.4.8",
+      "profile": "cluster",
+      "public_image": "ghcr.io/gwshield/redis",
+      "tags": [
+        "ghcr.io/gwshield/redis:v7.4.8-cluster"
+      ],
+      "digest": "sha256:422db1a57bc4b26e4e8e1e76073d48dbef61eafd0c9d9cf4db499340a7e55324",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "promoted_at": "2026-03-08T06:14:31Z",
+      "scan": {
+        "status": "unknown",
+        "total": null,
+        "critical": null,
+        "high": null,
+        "scanner": null,
+        "scanned_at": null
+      }
     }
   }
 }
