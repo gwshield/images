@@ -125,6 +125,20 @@ Built from source, signed with cosign, SBOM attached.
 All runtime images run as non-root (UID 65532) with no shell, no package
 manager, and no network utilities in the runtime layer.
 
+> **This registry is currently in early access (alpha).** We are actively
+> expanding the image catalogue and working on a dedicated landing page at
+> **gwshield.io** — featuring an interactive image database, CVE delta
+> comparisons, and a request form for new zero-CVE image targets.
+>
+> Coming soon to this repository:
+> - **MCP server** — a Model Context Protocol server for querying and
+>   consuming hardened image metadata directly from AI-assisted workflows
+> - **Extended tooling** — signing verification helpers, SBOM diffing,
+>   and policy-as-code examples
+>
+> Until the landing page launches, watch this repository or follow
+> [@RelicFrog](https://github.com/RelicFrog) for updates.
+
 > The source build pipeline is private. This registry is the public distribution
 > endpoint. Every image is built from upstream source with SHA-256 verification,
 > scanned with Trivy and Grype before promotion, and cosign-signed with a
@@ -148,16 +162,17 @@ def render_runtime_section(entries: list[dict]) -> str:
     for name, group in group_by_name(entries).items():
         desc = RUNTIME_DESCRIPTION.get(name, name)
         lines.append(f"### {desc}\n")
-        lines.append("| Tag | Profile | Digest | CVE status | Promoted |")
-        lines.append("|---|---|---|---|---|")
+        lines.append("| Tag | Version | Profile | Digest | CVE status | Promoted |")
+        lines.append("|---|---|---|---|---|---|")
         for e in group:
             tag = e.get("version", "—")
             full_ref = f"`ghcr.io/gwshield/{name}:{tag}`"
+            version = tag
             profile = profile_label(e.get("profile", ""))
             digest = short_digest(e.get("digest", ""))
             cve = scan_cell(e.get("scan") or {})
             promoted = fmt_date(e.get("promoted_at"))
-            lines.append(f"| {full_ref} | {profile} | `{digest}` | {cve} | {promoted} |")
+            lines.append(f"| {full_ref} | `{version}` | {profile} | `{digest}` | {cve} | {promoted} |")
         lines.append("")
 
     lines.append("---\n")
@@ -189,16 +204,17 @@ def render_builder_section(entries: list[dict]) -> str:
     for name, group in group_by_name(entries).items():
         desc = BUILDER_DESCRIPTION.get(name, name)
         lines.append(f"### {desc}\n")
-        lines.append("| Tag | Profile | Digest | CVE status | Promoted |")
-        lines.append("|---|---|---|---|---|")
+        lines.append("| Tag | Version | Profile | Digest | CVE status | Promoted |")
+        lines.append("|---|---|---|---|---|---|")
         for e in group:
             tag = e.get("version", "—")
             full_ref = f"`ghcr.io/gwshield/{name}:{tag}`"
+            version = tag
             profile = profile_label(e.get("profile", ""))
             digest = short_digest(e.get("digest", ""))
             cve = scan_cell(e.get("scan") or {})
             promoted = fmt_date(e.get("promoted_at"))
-            lines.append(f"| {full_ref} | {profile} | `{digest}` | {cve} | {promoted} |")
+            lines.append(f"| {full_ref} | `{version}` | {profile} | `{digest}` | {cve} | {promoted} |")
         lines.append("")
 
     lines.append("---\n")
