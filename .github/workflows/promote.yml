@@ -36,6 +36,7 @@ permissions:
   contents: write       # commit registry.json + trigger readme-update
   packages: write       # GITHUB_TOKEN write:packages for gwshield org
   id-token: write       # cosign OIDC keyless signing
+  security-events: write # upload Trivy SARIF (optional — future use)
 
 env:
   SRC_REGISTRY: ghcr.io
@@ -216,12 +217,108 @@ jobs:
           if-no-files-found: warn
 
       # -----------------------------------------------------------------------
-      # Update registry.json (single source of truth for image metadata)
+      # CVE scan — Trivy on the public image (digest-pinned).
+      # Runs after the image is pushed so we scan exactly what's public.
+      # Findings are recorded in registry.json — they do NOT gate the promote
+      # (the private build pipeline already enforces the gate on push events).
+      # A separate finding would indicate a database update after the build gate.
       # -----------------------------------------------------------------------
+      - name: Trivy CVE scan
+        id: trivy
+        run: |
+          set -euo pipefail
+          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+
+          if [[ -z "${DIGEST}" ]]; then
+            echo "No digest — skip Trivy scan"
+            echo "total=0"    >> "$GITHUB_OUTPUT"
+            echo "critical=0" >> "$GITHUB_OUTPUT"
+            echo "high=0"     >> "$GITHUB_OUTPUT"
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          IMAGE_REF="${DST_IMAGE}@${DIGEST}"
+          echo "Scanning ${IMAGE_REF} ..."
+
+          # Install Trivy
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sh -s -- -b /usr/local/bin v0.62.0
+
+          # Run scan — JSON output, HIGH+CRITICAL, unfixed included
+          trivy image \
+            --format json \
+            --severity HIGH,CRITICAL \
+            --ignore-unfixed=false \
+            --output trivy-results.json \
+            --timeout 15m \
+            "${IMAGE_REF}" || true  # don't fail promote on findings
+
+          # Parse counts from JSON
+          TOTAL=$(python3 -c "
+          import json, sys
+          try:
+            d = json.load(open('trivy-results.json'))
+            total = sum(
+              len(r.get('Vulnerabilities') or [])
+              for res in d.get('Results', [])
+              for r in [res]
+            )
+            print(total)
+          except Exception as e:
+            print('0')
+          ")
+
+          CRITICAL=$(python3 -c "
+          import json, sys
+          try:
+            d = json.load(open('trivy-results.json'))
+            n = sum(
+              1 for res in d.get('Results', [])
+              for v in (res.get('Vulnerabilities') or [])
+              if v.get('Severity') == 'CRITICAL'
+            )
+            print(n)
+          except Exception:
+            print('0')
+          ")
+
+          HIGH=$(python3 -c "
+          import json, sys
+          try:
+            d = json.load(open('trivy-results.json'))
+            n = sum(
+              1 for res in d.get('Results', [])
+              for v in (res.get('Vulnerabilities') or [])
+              if v.get('Severity') == 'HIGH'
+            )
+            print(n)
+          except Exception:
+            print('0')
+          ")
+
+          echo "Trivy result: total=${TOTAL} critical=${CRITICAL} high=${HIGH}"
+          echo "total=${TOTAL}"       >> "$GITHUB_OUTPUT"
+          echo "critical=${CRITICAL}" >> "$GITHUB_OUTPUT"
+          echo "high=${HIGH}"         >> "$GITHUB_OUTPUT"
+          echo "skipped=false"        >> "$GITHUB_OUTPUT"
+
+      - name: Upload Trivy scan report
+        if: steps.trivy.outputs.skipped == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-${{ github.event.client_payload.name }}-${{ github.event.client_payload.version }}-${{ github.run_id }}
+          path: trivy-results.json
+          retention-days: 90
+          if-no-files-found: ignore
+
       # -----------------------------------------------------------------------
       # Update registry.json via GitHub Contents API (atomic read-modify-write)
       # No git push — avoids race conditions when 13 jobs run in parallel.
       # The API returns 409 if the SHA is stale; we retry with the fresh SHA.
+      # Both promote and scan sub-commands run in the same retry loop so the
+      # file is only written once per attempt.
       # -----------------------------------------------------------------------
       - name: Update registry.json (via GitHub API)
         id: registry
@@ -233,11 +330,17 @@ jobs:
           VERSION="${{ github.event.client_payload.version }}"
           BASE_VERSION="${{ github.event.client_payload.base_version }}"
           PROFILE="${{ github.event.client_payload.profile }}"
+          CATEGORY="${{ github.event.client_payload.category }}"
           DIGEST="${{ steps.push.outputs.digest }}"
           TAGS="${{ steps.tags.outputs.tags }}"
           PROMOTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           COSIGN_IDENTITY="https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main"
           COMMIT_MSG="chore(registry): promote ${NAME}:${VERSION} [skip ci]"
+
+          CVE_TOTAL="${{ steps.trivy.outputs.total }}"
+          CVE_CRITICAL="${{ steps.trivy.outputs.critical }}"
+          CVE_HIGH="${{ steps.trivy.outputs.high }}"
+          SCANNED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
           MAX=8
           for i in $(seq 1 $MAX); do
@@ -254,7 +357,7 @@ jobs:
               FILE_SHA=$(echo "${API_RESP}" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['sha'])")
             fi
 
-            # Write current content to disk and apply our upsert
+            # Write current content to disk and apply our upserts
             if [[ -n "${CURRENT_CONTENT}" ]]; then
               echo "${CURRENT_CONTENT}" > registry.json
             fi
@@ -269,6 +372,15 @@ jobs:
               --tags            "${TAGS}" \
               --cosign-identity "${COSIGN_IDENTITY}" \
               --promoted-at     "${PROMOTED_AT}"
+
+            python3 scripts/update-registry.py scan \
+              --name         "${NAME}" \
+              --version      "${VERSION}" \
+              --cve-total    "${CVE_TOTAL:-0}" \
+              --cve-critical "${CVE_CRITICAL:-0}" \
+              --cve-high     "${CVE_HIGH:-0}" \
+              --scanner      trivy \
+              --scanned-at   "${SCANNED_AT}"
 
             # Base64-encode the updated file for the API
             NEW_CONTENT=$(base64 < registry.json | tr -d '\n')
@@ -335,6 +447,7 @@ jobs:
             echo "| Pushed digest | \`${{ steps.push.outputs.digest }}\` |"
             echo "| Signed | cosign keyless (Sigstore / gwshield OIDC) |"
             echo "| SBOM | CycloneDX + SPDX attached |"
+            echo "| CVE total | ${{ steps.trivy.outputs.total }} (critical: ${{ steps.trivy.outputs.critical }}, high: ${{ steps.trivy.outputs.high }}) |"
             echo "| registry.json | updated |"
             echo ""
             echo "### Verify"
