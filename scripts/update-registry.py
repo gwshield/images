@@ -42,6 +42,7 @@
 #     "version":          "v15.17",
 #     "base_version":     "v15.17",
 #     "profile":          "",
+#     "category":         "runtime",        # runtime | builder
 #     "public_image":     "ghcr.io/gwshield/postgres",
 #     "tags":             ["ghcr.io/gwshield/postgres:v15.17", ...],
 #     "digest":           "sha256:...",
@@ -131,6 +132,7 @@ def cmd_promote(args: argparse.Namespace) -> None:
         "version":         args.version,
         "base_version":    args.base_version or args.version.split("-")[0],
         "profile":         args.profile or "",
+        "category":        args.category or "runtime",
         "public_image":    f"ghcr.io/gwshield/{args.name}",
         "tags":            tags,
         "digest":          args.digest,
@@ -214,6 +216,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--version",          required=True,  help="Full version tag (e.g. v15.17-tls)")
     p.add_argument("--base-version",     default="",     help="Base version without profile suffix (e.g. v15.17)")
     p.add_argument("--profile",          default="",     help="Profile suffix (e.g. tls, cluster, '')")
+    p.add_argument("--category",         default="runtime", help="Image category: runtime | builder")
     p.add_argument("--digest",           required=True,  help="OCI digest of the pushed image (sha256:...)")
     p.add_argument("--tags",             default="",     help="Space- or comma-separated list of public tags")
     p.add_argument("--cosign-identity",  default="",     help="cosign OIDC identity URL")
