@@ -35,7 +35,7 @@ no package manager, and no network utilities in the runtime layer.
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
-| `ghcr.io/gwshield/redis:v7.4.8` | standard | `87fd4702bb10` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/redis:v7.4.8` | standard | `9288563afa14` | not scanned | 2026-03-08 |
 | `ghcr.io/gwshield/redis:v7.4.8-cli` | client only | `e1d70087c9ee` | not scanned | 2026-03-08 |
 | `ghcr.io/gwshield/redis:v7.4.8-cluster` | cluster mode | `6707ab218e0e` | not scanned | 2026-03-08 |
 | `ghcr.io/gwshield/redis:v7.4.8-tls` | TLS | `c10721015f5d` | not scanned | 2026-03-08 |
