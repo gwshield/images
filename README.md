@@ -17,6 +17,12 @@ manager, and no network utilities in the runtime layer.
 
 Production-hardened service images. Each image is compiled from upstream source with a patched toolchain, runs from a minimal `scratch` or distroless base, and ships with a cosign signature and SBOM.
 
+### go-builder
+
+| Tag | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|
+| `ghcr.io/gwshield/go-builder:v1.24` | standard | `3d90a0589ad0` | — not scanned | 2026-03-08 |
+
 ### nginx — HTTP server / reverse proxy
 
 | Tag | Profile | Digest | CVE status | Promoted |
@@ -80,16 +86,16 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 ```bash
 # Runtime image — pull and verify
-docker pull ghcr.io/gwshield/nginx:v1.28.2
-docker pull ghcr.io/gwshield/nginx@sha256:98dae4d2fa5afaa227143d9273b1614b669d10e9d439da1ca90e74219edfeca0
+docker pull ghcr.io/gwshield/go-builder:v1.24
+docker pull ghcr.io/gwshield/go-builder@sha256:3d90a0589ad0a6daaf285ff6809891175eee7537511e3fcf34b7517a2cd8708a
 
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
   --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
-  ghcr.io/gwshield/nginx:v1.28.2
+  ghcr.io/gwshield/go-builder:v1.24
 
 # Inspect attached SBOM
-cosign download sbom ghcr.io/gwshield/nginx:v1.28.2
+cosign download sbom ghcr.io/gwshield/go-builder:v1.24
 ```
 
 ---
@@ -98,6 +104,7 @@ cosign download sbom ghcr.io/gwshield/nginx:v1.28.2
 
 | Category | Image | Tag | Verify command |
 |---|---|---|---|
+| runtime | `ghcr.io/gwshield/go-builder` | `v1.24` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/go-builder:v1.24` |
 | runtime | `ghcr.io/gwshield/nginx` | `v1.28.2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2` |
 | runtime | `ghcr.io/gwshield/nginx` | `v1.28.2-http2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2-http2` |
 | runtime | `ghcr.io/gwshield/nginx` | `v1.28.2-http3` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2-http3` |
