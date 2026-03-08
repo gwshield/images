@@ -17,6 +17,7 @@ no package manager, and no network utilities in the runtime layer.
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
+| `ghcr.io/gwshield/nginx:v1.28.2` | standard | `5348bb0d37c9` | not scanned | 2026-03-08 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http2` | HTTP/2 | `dec0436b96d9` | not scanned | 2026-03-08 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http3` | HTTP/3 / QUIC | `d3253cbe4107` | not scanned | 2026-03-08 |
 
@@ -61,19 +62,19 @@ no package manager, and no network utilities in the runtime layer.
 
 ```bash
 # Pull by tag
-docker pull ghcr.io/gwshield/nginx:v1.28.2-http2
+docker pull ghcr.io/gwshield/nginx:v1.28.2
 
 # Pull by immutable digest
-docker pull ghcr.io/gwshield/nginx@sha256:dec0436b96d9878b0e97744d2f96a18687fbb73aefb468f99367befef4b2f41e
+docker pull ghcr.io/gwshield/nginx@sha256:5348bb0d37c990a2fa4ae30c2a245b2709281cb31a5cbf711638da3c64b4314a
 
 # Verify cosign signature
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
   --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
-  ghcr.io/gwshield/nginx:v1.28.2-http2
+  ghcr.io/gwshield/nginx:v1.28.2
 
 # Inspect attached SBOM
-cosign download sbom ghcr.io/gwshield/nginx:v1.28.2-http2
+cosign download sbom ghcr.io/gwshield/nginx:v1.28.2
 ```
 
 ---
@@ -82,6 +83,7 @@ cosign download sbom ghcr.io/gwshield/nginx:v1.28.2-http2
 
 | Image | Tag | Verify command |
 |---|---|---|
+| `ghcr.io/gwshield/nginx` | `v1.28.2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2` |
 | `ghcr.io/gwshield/nginx` | `v1.28.2-http2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2-http2` |
 | `ghcr.io/gwshield/nginx` | `v1.28.2-http3` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2-http3` |
 | `ghcr.io/gwshield/postgres` | `v15.17` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17` |
