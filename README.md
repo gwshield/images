@@ -13,11 +13,11 @@ no package manager, and no network utilities in the runtime layer.
 
 ## Available images
 
-### Redis — in-memory data store
+### PostgreSQL — relational database
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
-| `ghcr.io/gwshield/redis:v7.4.8-cli` | client only | `406d976cdca7` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17-timescale` | TimescaleDB | `a5c11f824ae8` | not scanned | 2026-03-08 |
 
 ## Hardening principles
 
@@ -36,19 +36,19 @@ no package manager, and no network utilities in the runtime layer.
 
 ```bash
 # Pull by tag
-docker pull ghcr.io/gwshield/redis:v7.4.8-cli
+docker pull ghcr.io/gwshield/postgres:v15.17-timescale
 
 # Pull by immutable digest
-docker pull ghcr.io/gwshield/redis@sha256:406d976cdca7b41fc71c965ef7f5976f7beab6d11da38aa5c1dccdfeead5c327
+docker pull ghcr.io/gwshield/postgres@sha256:a5c11f824ae8a03b27acef531051ef07021a3ee5bd0098f5630bcf11f900c0dd
 
 # Verify cosign signature
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
   --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
-  ghcr.io/gwshield/redis:v7.4.8-cli
+  ghcr.io/gwshield/postgres:v15.17-timescale
 
 # Inspect attached SBOM
-cosign download sbom ghcr.io/gwshield/redis:v7.4.8-cli
+cosign download sbom ghcr.io/gwshield/postgres:v15.17-timescale
 ```
 
 ---
@@ -57,7 +57,7 @@ cosign download sbom ghcr.io/gwshield/redis:v7.4.8-cli
 
 | Image | Tag | Verify command |
 |---|---|---|
-| `ghcr.io/gwshield/redis` | `v7.4.8-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cli` |
+| `ghcr.io/gwshield/postgres` | `v15.17-timescale` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17-timescale` |
 
 ---
 
