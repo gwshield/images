@@ -44,7 +44,7 @@ no package manager, and no network utilities in the runtime layer.
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
-| `ghcr.io/gwshield/traefik:v3.6.9` | standard | `1324e3991c42` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/traefik:v3.6.9` | standard | `8d9c28ded370` | not scanned | 2026-03-08 |
 
 ## Hardening principles
 
