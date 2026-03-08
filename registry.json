@@ -1,62 +1,19 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-08T06:08:20Z",
+  "last_updated": "2026-03-08T06:08:25Z",
   "images": {
-    "traefik:v3.6.9": {
-      "name": "traefik",
-      "version": "v3.6.9",
-      "base_version": "v3.6.9",
-      "profile": "",
-      "public_image": "ghcr.io/gwshield/traefik",
+    "nginx:v1.28.2-http3": {
+      "name": "nginx",
+      "version": "v1.28.2-http3",
+      "base_version": "v1.28.2",
+      "profile": "http3",
+      "public_image": "ghcr.io/gwshield/nginx",
       "tags": [
-        "ghcr.io/gwshield/traefik:v3.6.9",
-        "ghcr.io/gwshield/traefik:latest"
+        "ghcr.io/gwshield/nginx:v1.28.2-http3"
       ],
-      "digest": "sha256:92010130d60e6b291cda79cd02c5f0ffa43fd37c5d66ff7c47a4618f64009fe0",
+      "digest": "sha256:d3253cbe41078a9601044ac7b138f45a779e1fc4366e3cd833269896ebd8c8ca",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-08T05:22:48Z",
-      "scan": {
-        "status": "unknown",
-        "total": null,
-        "critical": null,
-        "high": null,
-        "scanner": null,
-        "scanned_at": null
-      }
-    },
-    "redis:v7.4.8-cli": {
-      "name": "redis",
-      "version": "v7.4.8-cli",
-      "base_version": "v7.4.8",
-      "profile": "cli",
-      "public_image": "ghcr.io/gwshield/redis",
-      "tags": [
-        "ghcr.io/gwshield/redis:v7.4.8-cli"
-      ],
-      "digest": "sha256:b127debf88ddbd755055fc5a31041dec3ab71c754b74e80ca5f9d3981c6c5c4b",
-      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-08T05:24:32Z",
-      "scan": {
-        "status": "unknown",
-        "total": null,
-        "critical": null,
-        "high": null,
-        "scanner": null,
-        "scanned_at": null
-      }
-    },
-    "redis:v7.4.8-cluster": {
-      "name": "redis",
-      "version": "v7.4.8-cluster",
-      "base_version": "v7.4.8",
-      "profile": "cluster",
-      "public_image": "ghcr.io/gwshield/redis",
-      "tags": [
-        "ghcr.io/gwshield/redis:v7.4.8-cluster"
-      ],
-      "digest": "sha256:65554e1878e2483d3e30a42cf40ba3bf5b924a12def8b9f7685f169ea6bc4399",
-      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-08T06:08:20Z",
+      "promoted_at": "2026-03-08T06:08:24Z",
       "scan": {
         "status": "unknown",
         "total": null,
