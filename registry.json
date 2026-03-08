@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-08T06:14:45Z",
+  "last_updated": "2026-03-08T06:14:51Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -226,6 +226,28 @@
       "digest": "sha256:d3253cbe41078a9601044ac7b138f45a779e1fc4366e3cd833269896ebd8c8ca",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
       "promoted_at": "2026-03-08T06:14:40Z",
+      "scan": {
+        "status": "unknown",
+        "total": null,
+        "critical": null,
+        "high": null,
+        "scanner": null,
+        "scanned_at": null
+      }
+    },
+    "nginx:v1.28.2": {
+      "name": "nginx",
+      "version": "v1.28.2",
+      "base_version": "v1.28.2",
+      "profile": "",
+      "public_image": "ghcr.io/gwshield/nginx",
+      "tags": [
+        "ghcr.io/gwshield/nginx:v1.28.2",
+        "ghcr.io/gwshield/nginx:latest"
+      ],
+      "digest": "sha256:5348bb0d37c990a2fa4ae30c2a245b2709281cb31a5cbf711638da3c64b4314a",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "promoted_at": "2026-03-08T06:14:47Z",
       "scan": {
         "status": "unknown",
         "total": null,
