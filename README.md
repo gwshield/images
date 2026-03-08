@@ -13,17 +13,29 @@ no package manager, and no network utilities in the runtime layer.
 
 ## Available images
 
+### nginx — HTTP server / reverse proxy
+
+| Tag | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|
+| `ghcr.io/gwshield/nginx:v1.28.2-http2` | HTTP/2 | `dec0436b96d9` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http3` | HTTP/3 / QUIC | `d3253cbe4107` | not scanned | 2026-03-08 |
+
 ### PostgreSQL — relational database
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
+| `ghcr.io/gwshield/postgres:v15.17` | standard | `eefe314ee341` | not scanned | 2026-03-08 |
 | `ghcr.io/gwshield/postgres:v15.17-cli` | client only | `3823337deeab` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17-timescale` | TimescaleDB | `b3132a4c71e1` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17-tls` | TLS | `55a4a8d91d4e` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17-vector` | pgvector | `aa8d023a7a18` | not scanned | 2026-03-08 |
 
 ### Redis — in-memory data store
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
 | `ghcr.io/gwshield/redis:v7.4.8-cli` | client only | `406d976cdca7` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/redis:v7.4.8-cluster` | cluster mode | `422db1a57bc4` | not scanned | 2026-03-08 |
 | `ghcr.io/gwshield/redis:v7.4.8-tls` | TLS | `851fe82125d9` | not scanned | 2026-03-08 |
 
 ### Traefik — cloud-native edge router
@@ -49,19 +61,19 @@ no package manager, and no network utilities in the runtime layer.
 
 ```bash
 # Pull by tag
-docker pull ghcr.io/gwshield/postgres:v15.17-cli
+docker pull ghcr.io/gwshield/nginx:v1.28.2-http2
 
 # Pull by immutable digest
-docker pull ghcr.io/gwshield/postgres@sha256:3823337deeab74cca053e787f14c8e20ebdbcfbdcdac387b6bf8fe01ca610728
+docker pull ghcr.io/gwshield/nginx@sha256:dec0436b96d9878b0e97744d2f96a18687fbb73aefb468f99367befef4b2f41e
 
 # Verify cosign signature
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
   --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
-  ghcr.io/gwshield/postgres:v15.17-cli
+  ghcr.io/gwshield/nginx:v1.28.2-http2
 
 # Inspect attached SBOM
-cosign download sbom ghcr.io/gwshield/postgres:v15.17-cli
+cosign download sbom ghcr.io/gwshield/nginx:v1.28.2-http2
 ```
 
 ---
@@ -70,8 +82,15 @@ cosign download sbom ghcr.io/gwshield/postgres:v15.17-cli
 
 | Image | Tag | Verify command |
 |---|---|---|
+| `ghcr.io/gwshield/nginx` | `v1.28.2-http2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2-http2` |
+| `ghcr.io/gwshield/nginx` | `v1.28.2-http3` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2-http3` |
+| `ghcr.io/gwshield/postgres` | `v15.17` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17` |
 | `ghcr.io/gwshield/postgres` | `v15.17-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17-cli` |
+| `ghcr.io/gwshield/postgres` | `v15.17-timescale` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17-timescale` |
+| `ghcr.io/gwshield/postgres` | `v15.17-tls` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17-tls` |
+| `ghcr.io/gwshield/postgres` | `v15.17-vector` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17-vector` |
 | `ghcr.io/gwshield/redis` | `v7.4.8-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cli` |
+| `ghcr.io/gwshield/redis` | `v7.4.8-cluster` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cluster` |
 | `ghcr.io/gwshield/redis` | `v7.4.8-tls` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-tls` |
 | `ghcr.io/gwshield/traefik` | `v3.6.9` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/traefik:v3.6.9` |
 
