@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-08T09:37:28Z",
+  "last_updated": "2026-03-08T09:37:30Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -335,6 +335,29 @@
         "high": 0,
         "scanner": "trivy",
         "scanned_at": "2026-03-08T09:05:22Z"
+      }
+    },
+    "python-builder:v3.13": {
+      "name": "python-builder",
+      "version": "v3.13",
+      "base_version": "v3.13",
+      "profile": "",
+      "category": "builder",
+      "public_image": "ghcr.io/gwshield/python-builder",
+      "tags": [
+        "ghcr.io/gwshield/python-builder:v3.13",
+        "ghcr.io/gwshield/python-builder:latest"
+      ],
+      "digest": "sha256:f99463ba595f30f5ec7a5989ae178fb57e79721bfd380c00b2d005705bb87328",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "promoted_at": "2026-03-08T09:37:22Z",
+      "scan": {
+        "status": "clean",
+        "total": 0,
+        "critical": 0,
+        "high": 0,
+        "scanner": "trivy",
+        "scanned_at": "2026-03-08T09:37:22Z"
       }
     }
   }
