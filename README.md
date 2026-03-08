@@ -78,16 +78,16 @@ ENTRYPOINT ["/myapp"]
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
 | `ghcr.io/gwshield/go-builder:v1.24` | standard | `3d90a0589ad0` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/go-builder:v1.24-dev` | compile + test + lint | `162ea2ef4e64` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/go-builder:v1.24-dev` | compile + test + lint | `4c17f7b9b9b9` | 0 CVEs | 2026-03-08 |
 
 ### Python — reproducible wheel builds
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
 | `ghcr.io/gwshield/python-builder:v3.12` | standard | `180d4bf1d3ac` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/python-builder:v3.12-dev` | compile + test + lint | `81de6ff82fc4` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/python-builder:v3.12-dev` | compile + test + lint | `d3ad286b6bb1` | 0 CVEs | 2026-03-08 |
 | `ghcr.io/gwshield/python-builder:v3.13` | standard | `f99463ba595f` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/python-builder:v3.13-dev` | compile + test + lint | `113b6084572f` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/python-builder:v3.13-dev` | compile + test + lint | `714780de371d` | 0 CVEs | 2026-03-08 |
 
 ---
 
