@@ -1,20 +1,19 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-08T06:08:46Z",
+  "last_updated": "2026-03-08T06:08:57Z",
   "images": {
-    "nginx:v1.28.2": {
-      "name": "nginx",
-      "version": "v1.28.2",
-      "base_version": "v1.28.2",
-      "profile": "",
-      "public_image": "ghcr.io/gwshield/nginx",
+    "redis:v7.4.8-cli": {
+      "name": "redis",
+      "version": "v7.4.8-cli",
+      "base_version": "v7.4.8",
+      "profile": "cli",
+      "public_image": "ghcr.io/gwshield/redis",
       "tags": [
-        "ghcr.io/gwshield/nginx:v1.28.2",
-        "ghcr.io/gwshield/nginx:latest"
+        "ghcr.io/gwshield/redis:v7.4.8-cli"
       ],
-      "digest": "sha256:d3253cbe41078a9601044ac7b138f45a779e1fc4366e3cd833269896ebd8c8ca",
+      "digest": "sha256:406d976cdca7b41fc71c965ef7f5976f7beab6d11da38aa5c1dccdfeead5c327",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-08T06:08:45Z",
+      "promoted_at": "2026-03-08T06:08:40Z",
       "scan": {
         "status": "unknown",
         "total": null,
