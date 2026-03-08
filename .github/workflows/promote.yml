@@ -102,6 +102,7 @@ jobs:
           DST="${{ env.DST_REGISTRY }}/${{ env.DST_ORG }}/${{ github.event.client_payload.name }}"
           BASE="${{ github.event.client_payload.base_version }}"
           PROFILE="${{ github.event.client_payload.profile }}"
+          CATEGORY="${{ github.event.client_payload.category }}"
 
           if [[ -n "${PROFILE}" ]]; then
             TAGS="${DST}:${BASE}-${PROFILE}"
@@ -263,6 +264,7 @@ jobs:
               --version         "${VERSION}" \
               --base-version    "${BASE_VERSION}" \
               --profile         "${PROFILE}" \
+              --category        "${CATEGORY:-runtime}" \
               --digest          "${DIGEST}" \
               --tags            "${TAGS}" \
               --cosign-identity "${COSIGN_IDENTITY}" \
