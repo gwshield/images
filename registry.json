@@ -1,19 +1,19 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-08T06:08:41Z",
+  "last_updated": "2026-03-08T06:08:44Z",
   "images": {
-    "postgres:v15.17-vector": {
+    "postgres:v15.17-tls": {
       "name": "postgres",
-      "version": "v15.17-vector",
+      "version": "v15.17-tls",
       "base_version": "v15.17",
-      "profile": "vector",
+      "profile": "tls",
       "public_image": "ghcr.io/gwshield/postgres",
       "tags": [
-        "ghcr.io/gwshield/postgres:v15.17-vector"
+        "ghcr.io/gwshield/postgres:v15.17-tls"
       ],
-      "digest": "sha256:56f1bc1077573f1d5edb5ac80e1f3cb6bc6c170f750acab6cf8d7ae7d17ecfc6",
+      "digest": "sha256:a5c11f824ae8a03b27acef531051ef07021a3ee5bd0098f5630bcf11f900c0dd",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-08T06:08:37Z",
+      "promoted_at": "2026-03-08T06:08:42Z",
       "scan": {
         "status": "unknown",
         "total": null,
