@@ -17,7 +17,7 @@ no package manager, and no network utilities in the runtime layer.
 
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
-| `ghcr.io/gwshield/nginx:v1.28.2` | standard | `5348bb0d37c9` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/nginx:v1.28.2` | standard | `98dae4d2fa5a` | not scanned | 2026-03-08 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http2` | HTTP/2 | `81d45bb45c45` | not scanned | 2026-03-08 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http3` | HTTP/3 / QUIC | `81feb797cc56` | not scanned | 2026-03-08 |
 
@@ -38,7 +38,7 @@ no package manager, and no network utilities in the runtime layer.
 | `ghcr.io/gwshield/redis:v7.4.8` | standard | `87fd4702bb10` | not scanned | 2026-03-08 |
 | `ghcr.io/gwshield/redis:v7.4.8-cli` | client only | `e1d70087c9ee` | not scanned | 2026-03-08 |
 | `ghcr.io/gwshield/redis:v7.4.8-cluster` | cluster mode | `6707ab218e0e` | not scanned | 2026-03-08 |
-| `ghcr.io/gwshield/redis:v7.4.8-tls` | TLS | `851fe82125d9` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/redis:v7.4.8-tls` | TLS | `c10721015f5d` | not scanned | 2026-03-08 |
 
 ### Traefik — cloud-native edge router
 
@@ -66,7 +66,7 @@ no package manager, and no network utilities in the runtime layer.
 docker pull ghcr.io/gwshield/nginx:v1.28.2
 
 # Pull by immutable digest
-docker pull ghcr.io/gwshield/nginx@sha256:5348bb0d37c990a2fa4ae30c2a245b2709281cb31a5cbf711638da3c64b4314a
+docker pull ghcr.io/gwshield/nginx@sha256:98dae4d2fa5afaa227143d9273b1614b669d10e9d439da1ca90e74219edfeca0
 
 # Verify cosign signature
 cosign verify \
