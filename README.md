@@ -18,6 +18,7 @@ no package manager, and no network utilities in the runtime layer.
 | Tag | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|
 | `ghcr.io/gwshield/redis:v7.4.8-cli` | client only | `b127debf88dd` | not scanned | 2026-03-08 |
+| `ghcr.io/gwshield/redis:v7.4.8-cluster` | cluster mode | `65554e1878e2` | not scanned | 2026-03-08 |
 
 ### Traefik — cloud-native edge router
 
@@ -64,6 +65,7 @@ cosign download sbom ghcr.io/gwshield/redis:v7.4.8-cli
 | Image | Tag | Verify command |
 |---|---|---|
 | `ghcr.io/gwshield/redis` | `v7.4.8-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cli` |
+| `ghcr.io/gwshield/redis` | `v7.4.8-cluster` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cluster` |
 | `ghcr.io/gwshield/traefik` | `v3.6.9` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/traefik:v3.6.9` |
 
 ---
