@@ -1,1 +1,412 @@
+# =============================================================================
+# PROMOTE — Receive image promotion requests from RelicFrog/gwshield-images
+# =============================================================================
+# Triggered by repository_dispatch (event: promote-image) from the private
+# build pipeline (RelicFrog/gwshield-images release-public workflow).
+#
+# Auth strategy (no broad PATs, no credential leakage):
+#   - Src pull (ghcr.io/relicfrog): RELICFROG_READ_PAT — fine-grained PAT
+#     scoped to RelicFrog/gwshield-images with read:packages only
+#   - Dst push (ghcr.io/gwshield):  GITHUB_TOKEN — native write:packages for
+#     gwshield org (this workflow runs inside gwshield/images)
+#   - cosign OIDC:                  id-token: write — OIDC identity from
+#     https://github.com/gwshield/images/.github/workflows/promote.yml
+#
+# Payload fields (client_payload — no credentials):
+#   name         e.g. traefik
+#   version      e.g. v3.6.9
+#   base_version e.g. v3.6.9
+#   profile      e.g. "" or "tls" or "cluster"
+#   src_digest   e.g. sha256:abc123...  (used for signing/SBOM ref)
+#   src_tag      e.g. v3.6.9 or main    (tag resolved upstream — used for copy)
+#   src_image    e.g. ghcr.io/relicfrog/gwshield-traefik
+# =============================================================================
 
+name: promote
+
+on:
+  repository_dispatch:
+    types: [promote-image]
+
+concurrency:
+  group: promote-${{ github.event.client_payload.name }}-${{ github.event.client_payload.version }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write       # commit registry.json + trigger readme-update
+  packages: write       # GITHUB_TOKEN write:packages for gwshield org
+  id-token: write       # cosign OIDC keyless signing
+
+env:
+  SRC_REGISTRY: ghcr.io
+  SRC_ORG:      relicfrog
+  DST_REGISTRY: ghcr.io
+  DST_ORG:      gwshield
+
+jobs:
+  promote:
+    name: Promote ${{ github.event.client_payload.name }}:${{ github.event.client_payload.version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate payload
+        run: |
+          set -euo pipefail
+          NAME="${{ github.event.client_payload.name }}"
+          VERSION="${{ github.event.client_payload.version }}"
+          SRC_DIGEST="${{ github.event.client_payload.src_digest }}"
+          SRC_TAG="${{ github.event.client_payload.src_tag }}"
+          if [[ -z "${NAME}" || -z "${VERSION}" || -z "${SRC_DIGEST}" || -z "${SRC_TAG}" ]]; then
+            echo "ERROR: missing required payload fields (name, version, src_digest, src_tag)" >&2
+            exit 1
+          fi
+          echo "Promoting ${NAME}:${VERSION} from :${SRC_TAG} (digest: ${SRC_DIGEST})"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Install skopeo
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends skopeo
+
+      # -----------------------------------------------------------------------
+      # Log in to GHCR with GITHUB_TOKEN — gives write:packages for gwshield.
+      # Used by cosign and syft. skopeo uses --dest-creds directly.
+      # -----------------------------------------------------------------------
+      - name: Log in to GHCR (gwshield — GITHUB_TOKEN)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DST_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # -----------------------------------------------------------------------
+      # Compute destination tags.
+      # -----------------------------------------------------------------------
+      - name: Compute public tags
+        id: tags
+        run: |
+          set -euo pipefail
+          DST="${{ env.DST_REGISTRY }}/${{ env.DST_ORG }}/${{ github.event.client_payload.name }}"
+          BASE="${{ github.event.client_payload.base_version }}"
+          PROFILE="${{ github.event.client_payload.profile }}"
+
+          if [[ -n "${PROFILE}" ]]; then
+            TAGS="${DST}:${BASE}-${PROFILE}"
+          else
+            TAGS="${DST}:${BASE} ${DST}:latest"
+          fi
+
+          echo "tags=${TAGS}"         >> "$GITHUB_OUTPUT"
+          echo "dst_image=${DST}"     >> "$GITHUB_OUTPUT"
+          echo "Public tags: ${TAGS}"
+
+      # -----------------------------------------------------------------------
+      # Copy source image to gwshield GHCR via skopeo.
+      # --src-creds: RELICFROG_READ_PAT (fine-grained, read:packages only,
+      #   scoped to RelicFrog/gwshield-images — the repo that owns the packages).
+      # --dest-creds: GITHUB_TOKEN (native write:packages for gwshield org).
+      # Source addressed by tag — GHCR resolves tag refs reliably.
+      # -----------------------------------------------------------------------
+      - name: Copy image to ghcr.io/gwshield (skopeo)
+        id: push
+        env:
+          SRC_CREDS: x-access-token:${{ secrets.RELICFROG_READ_PAT }}
+          DST_CREDS: x-access-token:${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          SRC_IMAGE="${{ github.event.client_payload.src_image }}"
+          SRC_TAG="${{ github.event.client_payload.src_tag }}"
+          SRC_REF="docker://${SRC_IMAGE}:${SRC_TAG}"
+          FIRST_TAG=""
+
+          for TAG in ${{ steps.tags.outputs.tags }}; do
+            echo "skopeo copy ${SRC_REF} -> docker://${TAG}"
+            skopeo copy --all \
+              --src-creds  "${SRC_CREDS}" \
+              --dest-creds "${DST_CREDS}" \
+              "${SRC_REF}" \
+              "docker://${TAG}"
+            [[ -z "${FIRST_TAG}" ]] && FIRST_TAG="${TAG}"
+          done
+
+          PUSHED_DIGEST=$(skopeo inspect --format '{{.Digest}}' \
+            --creds "${DST_CREDS}" \
+            "docker://${FIRST_TAG}" 2>/dev/null || true)
+
+          echo "digest=${PUSHED_DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "first_tag=${FIRST_TAG}"  >> "$GITHUB_OUTPUT"
+          echo "Pushed digest: ${PUSHED_DIGEST}"
+
+      # -----------------------------------------------------------------------
+      # cosign keyless sign (Sigstore OIDC)
+      # Identity: https://github.com/gwshield/images/.github/workflows/promote.yml
+      # -----------------------------------------------------------------------
+      - name: Sign public image (cosign keyless)
+        run: |
+          set -euo pipefail
+          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+          [[ -z "${DIGEST}" ]] && { echo "WARNING: no digest -- skip cosign"; exit 0; }
+          echo "Signing ${DST_IMAGE}@${DIGEST} ..."
+          cosign sign --yes "${DST_IMAGE}@${DIGEST}"
+
+      - name: Verify cosign signature
+        run: |
+          set -euo pipefail
+          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+          [[ -z "${DIGEST}" ]] && { echo "No digest -- skip verify"; exit 0; }
+          cosign verify \
+            --certificate-identity-regexp="https://github.com/gwshield/images.*" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            "${DST_IMAGE}@${DIGEST}"
+
+      # -----------------------------------------------------------------------
+      # SBOM: CycloneDX + SPDX via syft, attested with cosign
+      # -----------------------------------------------------------------------
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Generate and attest SBOM
+        run: |
+          set -euo pipefail
+          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+          NAME="${{ github.event.client_payload.name }}"
+          VERSION="${{ github.event.client_payload.version }}"
+          [[ -z "${DIGEST}" ]] && { echo "No digest -- skip SBOM"; exit 0; }
+          mkdir -p sbom-out
+
+          syft "${DST_IMAGE}@${DIGEST}" \
+            --output cyclonedx-json=sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json
+
+          syft "${DST_IMAGE}@${DIGEST}" \
+            --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
+
+          cosign attest --yes \
+            --predicate sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json \
+            --type cyclonedx \
+            "${DST_IMAGE}@${DIGEST}"
+
+          cosign attest --yes \
+            --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
+            --type spdx \
+            "${DST_IMAGE}@${DIGEST}"
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.event.client_payload.name }}-${{ github.event.client_payload.version }}
+          path: sbom-out/
+          retention-days: 365
+          if-no-files-found: warn
+
+      # -----------------------------------------------------------------------
+      # CVE scan -- Trivy on the public image (digest-pinned).
+      # Runs after the image is pushed so we scan exactly what is public.
+      # Findings are recorded in registry.json -- they do NOT gate the promote
+      # (the private build pipeline already enforces the gate on push events).
+      # Uses trivy-action (JSON output) + a parse step to extract counts.
+      # -----------------------------------------------------------------------
+      - name: Trivy CVE scan (JSON)
+        id: trivy_scan
+        if: steps.push.outputs.digest != ''
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.31.0
+        with:
+          image-ref: ${{ steps.tags.outputs.dst_image }}@${{ steps.push.outputs.digest }}
+          format: json
+          output: trivy-results.json
+          severity: 'HIGH,CRITICAL'
+          ignore-unfixed: false
+          exit-code: '0'
+          timeout: '15m0s'
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Parse Trivy results
+        id: trivy
+        if: always()
+        run: |
+          set -euo pipefail
+          if [[ ! -f trivy-results.json ]]; then
+            echo "total=0"    >> "$GITHUB_OUTPUT"
+            echo "critical=0" >> "$GITHUB_OUTPUT"
+            echo "high=0"     >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          TOTAL=$(python3 -c "
+          import json
+          d = json.load(open('trivy-results.json'))
+          print(sum(len(r.get('Vulnerabilities') or []) for r in d.get('Results', [])))
+          ")
+          CRITICAL=$(python3 -c "
+          import json
+          d = json.load(open('trivy-results.json'))
+          print(sum(1 for r in d.get('Results', []) for v in (r.get('Vulnerabilities') or []) if v.get('Severity')=='CRITICAL'))
+          ")
+          HIGH=$(python3 -c "
+          import json
+          d = json.load(open('trivy-results.json'))
+          print(sum(1 for r in d.get('Results', []) for v in (r.get('Vulnerabilities') or []) if v.get('Severity')=='HIGH'))
+          ")
+          echo "Trivy: total=${TOTAL} critical=${CRITICAL} high=${HIGH}"
+          echo "total=${TOTAL}"       >> "$GITHUB_OUTPUT"
+          echo "critical=${CRITICAL}" >> "$GITHUB_OUTPUT"
+          echo "high=${HIGH}"         >> "$GITHUB_OUTPUT"
+
+      - name: Upload Trivy scan report
+        if: always() && steps.push.outputs.digest != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-${{ github.event.client_payload.name }}-${{ github.event.client_payload.version }}-${{ github.run_id }}
+          path: trivy-results.json
+          retention-days: 90
+          if-no-files-found: ignore
+
+      # -----------------------------------------------------------------------
+      # Update registry.json via GitHub Contents API (atomic read-modify-write)
+      # No git push -- avoids race conditions when 13 jobs run in parallel.
+      # The API returns 409 if the SHA is stale; we retry with the fresh SHA.
+      # Both promote and scan sub-commands run in the same retry loop so the
+      # file is only written once per attempt.
+      # -----------------------------------------------------------------------
+      - name: Update registry.json (via GitHub API)
+        id: registry
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          NAME="${{ github.event.client_payload.name }}"
+          VERSION="${{ github.event.client_payload.version }}"
+          BASE_VERSION="${{ github.event.client_payload.base_version }}"
+          PROFILE="${{ github.event.client_payload.profile }}"
+          CATEGORY="${{ github.event.client_payload.category }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+          TAGS="${{ steps.tags.outputs.tags }}"
+          PROMOTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          COSIGN_IDENTITY="https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main"
+          COMMIT_MSG="chore(registry): promote ${NAME}:${VERSION} [skip ci]"
+
+          CVE_TOTAL="${{ steps.trivy.outputs.total }}"
+          CVE_CRITICAL="${{ steps.trivy.outputs.critical }}"
+          CVE_HIGH="${{ steps.trivy.outputs.high }}"
+          SCANNED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          MAX=8
+          for i in $(seq 1 $MAX); do
+            echo "Attempt ${i}/${MAX} -- fetching current registry.json from API..."
+
+            API_RESP=$(gh api repos/gwshield/images/contents/registry.json 2>/dev/null || echo "NOT_FOUND")
+
+            if echo "${API_RESP}" | grep -q "NOT_FOUND"; then
+              CURRENT_CONTENT=''
+              FILE_SHA=''
+            else
+              CURRENT_CONTENT=$(echo "${API_RESP}" | python3 -c "import sys,json,base64; d=json.load(sys.stdin); print(base64.b64decode(d['content']).decode())")
+              FILE_SHA=$(echo "${API_RESP}" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['sha'])")
+            fi
+
+            if [[ -n "${CURRENT_CONTENT}" ]]; then
+              echo "${CURRENT_CONTENT}" > registry.json
+            fi
+
+            python3 scripts/update-registry.py promote \
+              --name            "${NAME}" \
+              --version         "${VERSION}" \
+              --base-version    "${BASE_VERSION}" \
+              --profile         "${PROFILE}" \
+              --category        "${CATEGORY:-runtime}" \
+              --digest          "${DIGEST}" \
+              --tags            "${TAGS}" \
+              --cosign-identity "${COSIGN_IDENTITY}" \
+              --promoted-at     "${PROMOTED_AT}"
+
+            python3 scripts/update-registry.py scan \
+              --name         "${NAME}" \
+              --version      "${VERSION}" \
+              --cve-total    "${CVE_TOTAL:-0}" \
+              --cve-critical "${CVE_CRITICAL:-0}" \
+              --cve-high     "${CVE_HIGH:-0}" \
+              --scanner      trivy \
+              --scanned-at   "${SCANNED_AT}"
+
+            NEW_CONTENT=$(base64 < registry.json | tr -d '\n')
+
+            PAYLOAD=$(python3 -c "import json,sys; d={'message':sys.argv[1],'content':sys.argv[2],'branch':'main'}; d.update({'sha':sys.argv[3]} if sys.argv[3] else {}); print(json.dumps(d))" "${COMMIT_MSG}" "${NEW_CONTENT}" "${FILE_SHA}")
+
+            HTTP_STATUS=$(echo "${PAYLOAD}" | gh api repos/gwshield/images/contents/registry.json \
+              --method PUT \
+              --input - \
+              --jq '.commit.sha' 2>&1) && EXIT=$? || EXIT=$?
+
+            if [[ $EXIT -eq 0 ]]; then
+              echo "registry.json updated successfully on attempt ${i} (commit: ${HTTP_STATUS})"
+              echo "promoted_at=${PROMOTED_AT}" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            echo "API write failed (attempt ${i}/${MAX}, likely stale SHA) -- retrying..."
+            sleep $((i * 2))
+          done
+
+          echo "ERROR: could not update registry.json after ${MAX} attempts" >&2
+          exit 1
+
+      # -----------------------------------------------------------------------
+      # Trigger readme-update workflow (via repository_dispatch to self)
+      # -----------------------------------------------------------------------
+      - name: Trigger README update
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api /repos/gwshield/images/dispatches \
+            --method POST \
+            --field event_type=registry-updated \
+            --field "client_payload[reason]=promote:${{ github.event.client_payload.name }}:${{ github.event.client_payload.version }}"
+          echo "readme-update dispatch sent"
+
+      # -----------------------------------------------------------------------
+      # Job summary
+      # -----------------------------------------------------------------------
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "## Promoted: ${{ github.event.client_payload.name }} ${{ github.event.client_payload.version }}"
+            echo ""
+            echo "| Item | Value |"
+            echo "|---|---|"
+            echo "| Source | \`${{ github.event.client_payload.src_image }}:${{ github.event.client_payload.src_tag }}\` |"
+            echo "| Source digest | \`${{ github.event.client_payload.src_digest }}\` |"
+            echo "| Public tags | \`${{ steps.tags.outputs.tags }}\` |"
+            echo "| Pushed digest | \`${{ steps.push.outputs.digest }}\` |"
+            echo "| Signed | cosign keyless (Sigstore / gwshield OIDC) |"
+            echo "| SBOM | CycloneDX + SPDX attached |"
+            echo "| CVE total | ${{ steps.trivy.outputs.total }} (critical: ${{ steps.trivy.outputs.critical }}, high: ${{ steps.trivy.outputs.high }}) |"
+            echo "| registry.json | updated |"
+            echo ""
+            echo "### Verify"
+            echo '```bash'
+            echo "cosign verify \\"
+            echo "  --certificate-identity-regexp='https://github.com/gwshield/images.*' \\"
+            echo "  --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \\"
+            echo "  ${{ steps.tags.outputs.dst_image }}@${{ steps.push.outputs.digest }}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
