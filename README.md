@@ -43,15 +43,15 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `03f0a0643d20` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `74ec19a9fb41` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `818e8af501b0` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `699b5fc00339` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `27feb7118bba` | 0 CVEs | 2026-03-08 |
 | `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `734b817d53e7` | 0 CVEs | 2026-03-08 |
-| `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `46da2a762797` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `aa97c82909d8` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `3ba14eaec711` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `870a667a2a69` | 0 CVEs | 2026-03-09 |
-| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `54f9bf1fbeea` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `1d865c97285a` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `ddfec19bc167` | 0 CVEs | 2026-03-09 |
 
 ### Redis — in-memory data store
@@ -91,7 +91,7 @@ ENTRYPOINT ["/myapp"]
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `3d90a0589ad0` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `d8afeace81b7` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `c9c40de1bac8` | 0 CVEs | 2026-03-09 |
 
 ### Python — reproducible wheel builds
