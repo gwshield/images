@@ -46,7 +46,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `74ec19a9fb41` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `818e8af501b0` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `699b5fc00339` | 0 CVEs | 2026-03-09 |
-| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `27feb7118bba` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `6ab602ca4ed7` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `1546a4aebcd4` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `aa97c82909d8` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `3ba14eaec711` | 0 CVEs | 2026-03-09 |
@@ -101,7 +101,7 @@ ENTRYPOINT ["/myapp"]
 | `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `4076d56bfcf1` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `85e5213c24ad` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `12d462e5aa8a` | 0 CVEs | 2026-03-09 |
-| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `714780de371d` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `b8aa19c21e07` | 0 CVEs | 2026-03-09 |
 
 ---
 
