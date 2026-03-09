@@ -346,7 +346,8 @@ jobs:
               --scanner      trivy \
               --scanned-at   "${SCANNED_AT}"
 
-            NEW_CONTENT=$(base64 < registry.json | tr -d '\n')
+            NEW_CONTENT=$(base64 < registry.json | tr -d '
+')
 
             PAYLOAD=$(python3 -c "import json,sys; d={'message':sys.argv[1],'content':sys.argv[2],'branch':'main'}; d.update({'sha':sys.argv[3]} if sys.argv[3] else {}); print(json.dumps(d))" "${COMMIT_MSG}" "${NEW_CONTENT}" "${FILE_SHA}")
 
@@ -367,6 +368,28 @@ jobs:
 
           echo "ERROR: could not update registry.json after ${MAX} attempts" >&2
           exit 1
+
+      # -----------------------------------------------------------------------
+      # Supabase writeback — upsert image/version/snapshot into gwshield-hub
+      # Uses service role key (bypasses RLS — pipeline writes are trusted)
+      # continue-on-error: true — Supabase outage must not block promote
+      # -----------------------------------------------------------------------
+      - name: Upsert image into Supabase
+        if: always()
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python3 scripts/supabase_ingress.py promote \
+            --name            "${{ github.event.client_payload.name }}" \
+            --version         "${{ github.event.client_payload.version }}" \
+            --base-version    "${{ github.event.client_payload.base_version }}" \
+            --profile         "${{ github.event.client_payload.profile }}" \
+            --digest          "${{ steps.push.outputs.digest }}" \
+            --tags            "${{ steps.tags.outputs.tags }}" \
+            --cosign-identity "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main" \
+            --promoted-at     "${{ steps.registry.outputs.promoted_at }}"
 
       # -----------------------------------------------------------------------
       # Trigger readme-update workflow (via repository_dispatch to self)
@@ -404,9 +427,9 @@ jobs:
             echo ""
             echo "### Verify"
             echo '```bash'
-            echo "cosign verify \\"
-            echo "  --certificate-identity-regexp='https://github.com/gwshield/images.*' \\"
-            echo "  --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \\"
+            echo "cosign verify \"
+            echo "  --certificate-identity-regexp='https://github.com/gwshield/images.*' \"
+            echo "  --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \"
             echo "  ${{ steps.tags.outputs.dst_image }}@${{ steps.push.outputs.digest }}"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
