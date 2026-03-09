@@ -67,7 +67,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `8d9c28ded370` | 0 CVEs | 2026-03-08 |
+| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `5e4a68394b13` | 0 CVEs | 2026-03-09 |
 
 ---
 
