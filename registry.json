@@ -694,6 +694,28 @@
         "scanner": "trivy",
         "scanned_at": "2026-03-11T17:58:40Z"
       }
+    },
+    "caddy:v2.11.2-cloudflare": {
+      "name": "caddy",
+      "version": "v2.11.2-cloudflare",
+      "base_version": "v2.11.2",
+      "profile": "cloudflare",
+      "category": "runtime",
+      "public_image": "ghcr.io/gwshield/caddy",
+      "tags": [
+        "ghcr.io/gwshield/caddy:v2.11.2-cloudflare"
+      ],
+      "digest": "sha256:b9253e41ce071e1072bee67d2df50d22a1a0f1bffdf214257ea4971526a73438",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "promoted_at": "2026-03-11T17:58:43Z",
+      "scan": {
+        "status": "clean",
+        "total": 0,
+        "critical": 0,
+        "high": 0,
+        "scanner": "trivy",
+        "scanned_at": "2026-03-11T17:58:43Z"
+      }
     }
   }
 }
