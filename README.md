@@ -103,6 +103,12 @@ ENTRYPOINT ["/myapp"]
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `12d462e5aa8a` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `b8aa19c21e07` | 0 CVEs | 2026-03-09 |
 
+### rust-builder
+
+| Tag | Version | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|---|
+| `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `f36d5bb4a703` | 0 CVEs | 2026-03-11 |
+
 ---
 
 ## Hardening principles
@@ -182,6 +188,7 @@ cosign download sbom ghcr.io/gwshield/nginx:v1.28.2
 | builder | `ghcr.io/gwshield/python-builder` | `v3.12-dev` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/python-builder:v3.12-dev` |
 | builder | `ghcr.io/gwshield/python-builder` | `v3.13` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/python-builder:v3.13` |
 | builder | `ghcr.io/gwshield/python-builder` | `v3.13-dev` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/python-builder:v3.13-dev` |
+| builder | `ghcr.io/gwshield/rust-builder` | `v1.87` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/rust-builder:v1.87` |
 
 ---
 
@@ -191,4 +198,4 @@ Apache-2.0 — Gatewarden / RelicFrog Foundation
 
 ---
 
-*Registry last updated: 2026-03-09. This file is auto-generated — do not edit manually.*
+*Registry last updated: 2026-03-11. This file is auto-generated — do not edit manually.*
