@@ -177,13 +177,17 @@ def _component_type(pkg_id: str, vuln_type: str) -> str:
     """Map trivy vuln type / pkg identifier to our component taxonomy."""
     if vuln_type in ("alpine", "apk") or "pkg:apk" in pkg_id:
         return "alpine-pkg"
+    if vuln_type in ("debian", "dpkg") or "pkg:deb" in pkg_id:
+        return "debian-pkg"
     if "pkg:cargo" in pkg_id or vuln_type == "cargo":
         return "rust-crate"
     if "pkg:golang" in pkg_id or vuln_type == "gomod":
         return "go-module"
     if "pkg:pypi" in pkg_id or vuln_type in ("pip", "poetry"):
         return "python-pkg"
-    return "os-pkg"
+    if "pkg:npm" in pkg_id or vuln_type in ("npm", "yarn"):
+        return "npm-pkg"
+    return "other"
 
 
 def extract_findings_from_trivy(trivy_json: dict) -> list[dict]:
@@ -194,11 +198,10 @@ def extract_findings_from_trivy(trivy_json: dict) -> list[dict]:
     Each finding captures:
       - cve_id, severity, package_name, package_version, fixed_version
       - description (Trivy Title field — concise, scanner-provided)
-      - mitigation: 'fixed' if FixedVersion exists, else 'no_fix_available'
+      - mitigation_type: 'pkg_upgrade' if FixedVersion exists, else 'not_applicable'
+      - mitigation_detail: null (filled in by pipeline if known)
       - layer: 'base_image' | 'builder_stage'  (derived from DiffID index)
       - component: 'alpine-pkg' | 'rust-crate' | 'go-module' | etc.
-      - cvss_score: NVD V3 score if available
-      - primary_url: NVD link or first reference URL
     """
     metadata = trivy_json.get("Metadata", {})
     history  = metadata.get("ImageConfig", {}).get("history", [])
@@ -215,37 +218,22 @@ def extract_findings_from_trivy(trivy_json: dict) -> list[dict]:
             # Classify layer using index; fall back to base_image if unknown
             layer = layer_index.get(layer_diff, "base_image")
 
-            fixed_ver  = v.get("FixedVersion") or None
-            mitigation = "fixed" if fixed_ver else "no_fix_available"
-
-            # CVSS score — prefer NVD V3, fall back to redhat, then None
-            cvss_score = None
-            for source in ("nvd", "redhat"):
-                score = v.get("CVSS", {}).get(source, {}).get("V3Score")
-                if score:
-                    cvss_score = float(score)
-                    break
-
-            # Primary reference URL — NVD preferred
-            refs = v.get("References") or []
-            primary_url = v.get("PrimaryURL") or next(
-                (r for r in refs if "nvd.nist.gov" in r), None
-            ) or (refs[0] if refs else None)
+            fixed_ver       = v.get("FixedVersion") or None
+            mitigation_type = "pkg_upgrade" if fixed_ver else "not_applicable"
 
             pkg_id = v.get("PkgID", "") or v.get("PkgIdentifier", {}).get("PURL", "")
 
             findings.append({
-                "cve_id":          v["VulnerabilityID"],
-                "severity":        v.get("Severity", "UNKNOWN"),
-                "package_name":    v.get("PkgName", ""),
-                "package_version": v.get("InstalledVersion", ""),
-                "fixed_version":   fixed_ver,
-                "description":     (v.get("Title") or v.get("Description", ""))[:500],
-                "mitigation":      mitigation,
-                "layer":           layer,
-                "component":       _component_type(pkg_id, vuln_type),
-                "cvss_score":      cvss_score,
-                "primary_url":     primary_url,
+                "cve_id":            v["VulnerabilityID"],
+                "severity":          v.get("Severity", "UNKNOWN"),
+                "package_name":      v.get("PkgName", ""),
+                "package_version":   v.get("InstalledVersion", ""),
+                "fixed_version":     fixed_ver,
+                "description":       (v.get("Title") or v.get("Description", ""))[:500],
+                "mitigation_type":   mitigation_type,
+                "mitigation_detail": None,
+                "layer":             layer,
+                "component":         _component_type(pkg_id, vuln_type),
             })
 
     return findings
@@ -299,15 +287,6 @@ class SupabaseClient:
         with urllib.request.urlopen(req) as resp:
             result = json.loads(resp.read())
             return result[0] if isinstance(result, list) else result
-
-    def insert_many(self, table: str, rows: list[dict]) -> list[dict]:
-        if not rows:
-            return []
-        url = f"{self.base}/{table}"
-        data = json.dumps(rows).encode()
-        req = urllib.request.Request(url, data=data, headers=self.headers, method="POST")
-        with urllib.request.urlopen(req) as resp:
-            return json.loads(resp.read())
 
     def select(self, table: str, filters: dict) -> list:
         params = {k: f"eq.{v}" for k, v in filters.items()}
@@ -405,27 +384,26 @@ def write_findings(db: SupabaseClient, version_id: str, findings: list[dict],
         except Exception as e:
             print(f"[WARN] Could not clear findings: {e}", file=sys.stderr)
 
-    rows = [
-        {
-            "image_version_id": version_id,
-            "cve_id":           f["cve_id"],
-            "severity":         f["severity"],
-            "package_name":     f["package_name"],
-            "package_version":  f["package_version"],
-            "fixed_version":    f.get("fixed_version"),
-            "description":      f.get("description", ""),
-            "mitigation":       f.get("mitigation", "fixed"),
-            "layer":            f.get("layer", "base_image"),
-            "component":        f.get("component", "os-pkg"),
-            "cvss_score":       f.get("cvss_score"),
-            "primary_url":      f.get("primary_url"),
+    written = 0
+    for f in findings:
+        row = {
+            "image_version_id":  version_id,
+            "cve_id":            f["cve_id"],
+            "severity":          f["severity"],
+            "package_name":      f["package_name"],
+            "package_version":   f["package_version"],
+            "fixed_version":     f.get("fixed_version"),
+            "description":       f.get("description", ""),
+            "mitigation_type":   f.get("mitigation_type", "not_applicable"),
+            "mitigation_detail": f.get("mitigation_detail"),
+            "layer":             f.get("layer", "base_image"),
+            "component":         f.get("component", "other"),
         }
-        for f in findings
-    ]
+        db.upsert("cve_findings", row, on_conflict="image_version_id,cve_id")
+        written += 1
 
-    db.insert_many("cve_findings", rows)
-    print(f"  Wrote {len(rows)} CVE finding(s) to cve_findings")
-    return len(rows)
+    print(f"  Wrote {written} CVE finding(s) to cve_findings")
+    return written
 
 
 # ---------------------------------------------------------------------------
