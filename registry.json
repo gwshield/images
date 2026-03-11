@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-11T17:58:39Z",
+  "last_updated": "2026-03-11T17:58:41Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -671,6 +671,28 @@
         "high": 0,
         "scanner": "trivy",
         "scanned_at": "2026-03-11T17:58:33Z"
+      }
+    },
+    "caddy:v2.11.2-security": {
+      "name": "caddy",
+      "version": "v2.11.2-security",
+      "base_version": "v2.11.2",
+      "profile": "security",
+      "category": "runtime",
+      "public_image": "ghcr.io/gwshield/caddy",
+      "tags": [
+        "ghcr.io/gwshield/caddy:v2.11.2-security"
+      ],
+      "digest": "sha256:07466bd7b1c34f9a23e3d3e4076edf360cc547d0bde99caabddfc20674b8ac97",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "promoted_at": "2026-03-11T17:58:40Z",
+      "scan": {
+        "status": "clean",
+        "total": 0,
+        "critical": 0,
+        "high": 0,
+        "scanner": "trivy",
+        "scanned_at": "2026-03-11T17:58:40Z"
       }
     }
   }
