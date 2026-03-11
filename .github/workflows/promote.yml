@@ -27,37 +27,9 @@ name: promote
 on:
   repository_dispatch:
     types: [promote-image]
-  workflow_dispatch:
-    inputs:
-      name:
-        description: 'Image name (e.g. rust-builder)'
-        required: true
-      version:
-        description: 'Image version tag (e.g. v1.87)'
-        required: true
-      base_version:
-        description: 'Base version (e.g. v1.87)'
-        required: true
-      profile:
-        description: 'Profile (e.g. tls, dev — empty for standard)'
-        required: false
-        default: ''
-      category:
-        description: 'Category: runtime or builder'
-        required: false
-        default: 'runtime'
-      src_digest:
-        description: 'Source digest (sha256:...)'
-        required: true
-      src_tag:
-        description: 'Source tag (e.g. v1.87)'
-        required: true
-      src_image:
-        description: 'Source image (e.g. ghcr.io/relicfrog/gwshield-rust-builder)'
-        required: true
 
 concurrency:
-  group: promote-${{ github.event.client_payload.name || inputs.name }}-${{ github.event.client_payload.version || inputs.version }}
+  group: promote-${{ github.event.client_payload.name }}-${{ github.event.client_payload.version }}
   cancel-in-progress: false
 
 permissions:
@@ -73,7 +45,7 @@ env:
 
 jobs:
   promote:
-    name: Promote ${{ steps.inputs.outputs.name }}:${{ steps.inputs.outputs.version }}
+    name: Promote ${{ github.event.client_payload.name }}:${{ github.event.client_payload.version }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -88,26 +60,13 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Normalize inputs (dispatch vs workflow_dispatch)
-        id: inputs
-        run: |
-          set -euo pipefail
-          echo "name=${{ github.event.client_payload.name || inputs.name }}" >> "$GITHUB_OUTPUT"
-          echo "version=${{ github.event.client_payload.version || inputs.version }}" >> "$GITHUB_OUTPUT"
-          echo "base_version=${{ github.event.client_payload.base_version || inputs.base_version }}" >> "$GITHUB_OUTPUT"
-          echo "profile=${{ github.event.client_payload.profile || inputs.profile }}" >> "$GITHUB_OUTPUT"
-          echo "category=${{ github.event.client_payload.category || inputs.category }}" >> "$GITHUB_OUTPUT"
-          echo "src_digest=${{ github.event.client_payload.src_digest || inputs.src_digest }}" >> "$GITHUB_OUTPUT"
-          echo "src_tag=${{ github.event.client_payload.src_tag || inputs.src_tag }}" >> "$GITHUB_OUTPUT"
-          echo "src_image=${{ github.event.client_payload.src_image || inputs.src_image }}" >> "$GITHUB_OUTPUT"
-
       - name: Validate payload
         run: |
           set -euo pipefail
-          NAME="${{ steps.inputs.outputs.name }}"
-          VERSION="${{ steps.inputs.outputs.version }}"
-          SRC_DIGEST="${{ steps.inputs.outputs.src_digest }}"
-          SRC_TAG="${{ steps.inputs.outputs.src_tag }}"
+          NAME="${{ github.event.client_payload.name }}"
+          VERSION="${{ github.event.client_payload.version }}"
+          SRC_DIGEST="${{ github.event.client_payload.src_digest }}"
+          SRC_TAG="${{ github.event.client_payload.src_tag }}"
           if [[ -z "${NAME}" || -z "${VERSION}" || -z "${SRC_DIGEST}" || -z "${SRC_TAG}" ]]; then
             echo "ERROR: missing required payload fields (name, version, src_digest, src_tag)" >&2
             exit 1
@@ -140,9 +99,9 @@ jobs:
         id: tags
         run: |
           set -euo pipefail
-          DST="${{ env.DST_REGISTRY }}/${{ env.DST_ORG }}/${{ steps.inputs.outputs.name }}"
-          BASE="${{ steps.inputs.outputs.base_version }}"
-          PROFILE="${{ steps.inputs.outputs.profile }}"
+          DST="${{ env.DST_REGISTRY }}/${{ env.DST_ORG }}/${{ github.event.client_payload.name }}"
+          BASE="${{ github.event.client_payload.base_version }}"
+          PROFILE="${{ github.event.client_payload.profile }}"
 
           if [[ -n "${PROFILE}" ]]; then
             TAGS="${DST}:${BASE}-${PROFILE}"
@@ -168,8 +127,8 @@ jobs:
           DST_CREDS: x-access-token:${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          SRC_IMAGE="${{ steps.inputs.outputs.src_image }}"
-          SRC_TAG="${{ steps.inputs.outputs.src_tag }}"
+          SRC_IMAGE="${{ github.event.client_payload.src_image }}"
+          SRC_TAG="${{ github.event.client_payload.src_tag }}"
           SRC_REF="docker://${SRC_IMAGE}:${SRC_TAG}"
           FIRST_TAG=""
 
@@ -226,8 +185,8 @@ jobs:
           set -euo pipefail
           DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
           DIGEST="${{ steps.push.outputs.digest }}"
-          NAME="${{ steps.inputs.outputs.name }}"
-          VERSION="${{ steps.inputs.outputs.version }}"
+          NAME="${{ github.event.client_payload.name }}"
+          VERSION="${{ github.event.client_payload.version }}"
           [[ -z "${DIGEST}" ]] && { echo "No digest -- skip SBOM"; exit 0; }
           mkdir -p sbom-out
 
@@ -250,7 +209,7 @@ jobs:
       - name: Upload SBOM artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: sbom-${{ steps.inputs.outputs.name }}-${{ steps.inputs.outputs.version }}
+          name: sbom-${{ github.event.client_payload.name }}-${{ github.event.client_payload.version }}
           path: sbom-out/
           retention-days: 365
           if-no-files-found: warn
@@ -314,7 +273,7 @@ jobs:
         if: always() && steps.push.outputs.digest != ''
         uses: actions/upload-artifact@v4
         with:
-          name: trivy-${{ steps.inputs.outputs.name }}-${{ steps.inputs.outputs.version }}-${{ github.run_id }}
+          name: trivy-${{ github.event.client_payload.name }}-${{ github.event.client_payload.version }}-${{ github.run_id }}
           path: trivy-results.json
           retention-days: 90
           if-no-files-found: ignore
@@ -333,11 +292,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          NAME="${{ steps.inputs.outputs.name }}"
-          VERSION="${{ steps.inputs.outputs.version }}"
-          BASE_VERSION="${{ steps.inputs.outputs.base_version }}"
-          PROFILE="${{ steps.inputs.outputs.profile }}"
-          CATEGORY="${{ steps.inputs.outputs.category }}"
+          NAME="${{ github.event.client_payload.name }}"
+          VERSION="${{ github.event.client_payload.version }}"
+          BASE_VERSION="${{ github.event.client_payload.base_version }}"
+          PROFILE="${{ github.event.client_payload.profile }}"
+          CATEGORY="${{ github.event.client_payload.category }}"
           DIGEST="${{ steps.push.outputs.digest }}"
           TAGS="${{ steps.tags.outputs.tags }}"
           PROMOTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -423,10 +382,10 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           python3 scripts/supabase_ingress.py promote \
-            --name            "${{ steps.inputs.outputs.name }}" \
-            --version         "${{ steps.inputs.outputs.version }}" \
-            --base-version    "${{ steps.inputs.outputs.base_version }}" \
-            --profile         "${{ steps.inputs.outputs.profile }}" \
+            --name            "${{ github.event.client_payload.name }}" \
+            --version         "${{ github.event.client_payload.version }}" \
+            --base-version    "${{ github.event.client_payload.base_version }}" \
+            --profile         "${{ github.event.client_payload.profile }}" \
             --digest          "${{ steps.push.outputs.digest }}" \
             --tags            "${{ steps.tags.outputs.tags }}" \
             --cosign-identity "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main" \
@@ -443,7 +402,7 @@ jobs:
           gh api /repos/gwshield/images/dispatches \
             --method POST \
             --field event_type=registry-updated \
-            --field "client_payload[reason]=promote:${{ steps.inputs.outputs.name }}:${{ steps.inputs.outputs.version }}"
+            --field "client_payload[reason]=promote:${{ github.event.client_payload.name }}:${{ github.event.client_payload.version }}"
           echo "readme-update dispatch sent"
 
       # -----------------------------------------------------------------------
@@ -453,12 +412,12 @@ jobs:
         if: always()
         run: |
           {
-            echo "## Promoted: ${{ steps.inputs.outputs.name }} ${{ steps.inputs.outputs.version }}"
+            echo "## Promoted: ${{ github.event.client_payload.name }} ${{ github.event.client_payload.version }}"
             echo ""
             echo "| Item | Value |"
             echo "|---|---|"
-            echo "| Source | \`${{ steps.inputs.outputs.src_image }}:${{ steps.inputs.outputs.src_tag }}\` |"
-            echo "| Source digest | \`${{ steps.inputs.outputs.src_digest }}\` |"
+            echo "| Source | \`${{ github.event.client_payload.src_image }}:${{ github.event.client_payload.src_tag }}\` |"
+            echo "| Source digest | \`${{ github.event.client_payload.src_digest }}\` |"
             echo "| Public tags | \`${{ steps.tags.outputs.tags }}\` |"
             echo "| Pushed digest | \`${{ steps.push.outputs.digest }}\` |"
             echo "| Signed | cosign keyless (Sigstore / gwshield OIDC) |"
