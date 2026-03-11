@@ -60,7 +60,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `fa0246094eac` | 0 CVEs | 2026-03-09 |
 | `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `12eff00273c4` | 0 CVEs | 2026-03-11 |
-| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `00558bebcf98` | 0 CVEs | 2026-03-09 |
+| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `00558bebcf98` | 0 CVEs | 2026-03-11 |
 | `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `56d8f5ce427d` | 0 CVEs | 2026-03-11 |
 
 ### Traefik — cloud-native edge router
@@ -99,7 +99,7 @@ ENTRYPOINT ["/myapp"]
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `4076d56bfcf1` | 0 CVEs | 2026-03-09 |
-| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `85e5213c24ad` | 0 CVEs | 2026-03-09 |
+| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `85e5213c24ad` | 0 CVEs | 2026-03-11 |
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `12d462e5aa8a` | 0 CVEs | 2026-03-11 |
 | `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `b8aa19c21e07` | 0 CVEs | 2026-03-11 |
 
