@@ -35,7 +35,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `—` | 0 CVEs | 2026-03-11 |
+| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `3bafd9e03053` | 0 CVEs | 2026-03-11 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `05ad1b49c5cf` | 0 CVEs | 2026-03-11 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `b225f6e15c60` | 0 CVEs | 2026-03-11 |
 
@@ -140,7 +140,7 @@ ENTRYPOINT ["/myapp"]
 ```bash
 # Runtime image — pull and verify
 docker pull ghcr.io/gwshield/nginx:v1.28.2
-docker pull ghcr.io/gwshield/nginx@
+docker pull ghcr.io/gwshield/nginx@sha256:3bafd9e03053bbcc5be2e96ed0858f25e5153dbf6a8b5a42474fe42cddd8f52f
 
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
