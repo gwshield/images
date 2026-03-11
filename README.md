@@ -47,7 +47,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `fffb0c752363` | 0 CVEs | 2026-03-11 |
-| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `—` | 0 CVEs | 2026-03-11 |
+| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `ca70e186b740` | 0 CVEs | 2026-03-11 |
 
 ### nginx — HTTP server / reverse proxy
 
