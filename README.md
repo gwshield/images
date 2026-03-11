@@ -65,7 +65,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `3ba14eaec711` | 0 CVEs | 2026-03-11 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `870a667a2a69` | 0 CVEs | 2026-03-11 |
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `1d865c97285a` | 0 CVEs | 2026-03-11 |
-| `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `—` | 0 CVEs | 2026-03-11 |
+| `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `ddfec19bc167` | 0 CVEs | 2026-03-11 |
 
 ### Redis — in-memory data store
 
@@ -112,7 +112,7 @@ ENTRYPOINT ["/myapp"]
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `4076d56bfcf1` | 0 CVEs | 2026-03-11 |
-| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `—` | 0 CVEs | 2026-03-11 |
+| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `85e5213c24ad` | 0 CVEs | 2026-03-11 |
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `12d462e5aa8a` | 0 CVEs | 2026-03-11 |
 | `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `b8aa19c21e07` | 0 CVEs | 2026-03-11 |
 
