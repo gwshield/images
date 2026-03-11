@@ -15,9 +15,6 @@ a collection of hardened, zero-CVE OCI images built from source and published to
 - [x] **Auto-discovery CI matrix** — `find images -name Dockerfile`; no manual entries
 - [x] **Renovate integration** — automated PRs for Go toolchain, Alpine base image, service versions
 - [x] **Weekly scheduled re-scan** — Trivy + Grype; GitHub issue opened on new findings
-- [x] **Makefile** — local dev shortcuts (`build`, `scan`, `smoke`, `all`, `list`)
-- [x] **Shared base-layers** — reusable Dockerfile patterns for nonroot user, ca-certs, tzdata
-- [x] **Shared C/autoconf builder** — `shared/builders/c-autoconf/` snippet for C/make targets
 
 ### v0.1.1-alpha — nginx + Redis + PostgreSQL
 
@@ -38,7 +35,7 @@ a collection of hardened, zero-CVE OCI images built from source and published to
 - [x] **PostgreSQL v15.17 (timescale)** — TimescaleDB v2.25.1 + pg_partman + pg_cron, 0 CVEs
 - [x] **cosign keyless signing** — Sigstore OIDC, Rekor transparency log
 - [x] **SBOM attestation** — CycloneDX + SPDX via syft, attached to OCI manifest
-- [x] **Public GHCR registry** at `ghcr.io/gwshield` — no login required; 13 images promoted
+- [x] **Public GHCR registry** at `ghcr.io/gwshield` — no login required; 13 images at launch
 - [x] **registry.json processing engine** — single source of truth for all public image metadata
 - [x] **Auto-generated README** — rendered from `registry.json`; updated after every promote and scan
 
@@ -50,17 +47,32 @@ a collection of hardened, zero-CVE OCI images built from source and published to
 - [x] **Python builder v3.12-dev + v3.13-dev** — adds ruff, mypy, pytest, pip-audit, black, isort
 - [x] **PostgreSQL v17.9 (standard, TLS, cli, vector, timescale)** — full 5-profile stack, 0 CVEs
 - [x] **Functional test suite** — Level 1 functional tests for all image groups; daily CI cron
-- [x] **Public README improvements** — Version column; WIP / landing-page banner; MCP server announcement
+- [x] **Public README improvements** — Version column; WIP / landing-page banner
+
+### v0.1.4-alpha — Rust builder images + CVE findings + hub catalog (2026-03-11)
+
+- [x] **Rust builder v1.87 (compile-only)** — `rust:1.87.0-alpine3.22`, musl static linking,
+      nonroot UID 65532; 0 CVEs; published to `ghcr.io/gwshield/rust-builder:v1.87`
+- [x] **Rust builder v1.87-dev** — extends v1.87 with `clippy`, `rustfmt`, `cargo-audit`,
+      `cargo-deny`; 0 CVEs; published to `ghcr.io/gwshield/rust-builder:v1.87-dev`
+- [x] **Rust functional tests** — static binary, musl target, clippy, rustfmt, cargo-audit,
+      cargo-deny; fixture in `tests/functional/fixtures/rust-app/`
+- [x] **Structured CVE findings** — per-CVE upstream history stored in hub for all 23 images;
+      132 findings backfilled; 0 CRITICAL across all images
+- [x] **gwshield-hub community catalog** — `hub.gwshield.io` launched; image request system;
+      all 23 images in catalog with live CVE status
 
 ---
 
 ## Active / Next
 
-### v0.1.4-alpha — Supply chain + PHP + landing page foundations
+### v0.1.5-alpha — Supply chain + PHP + hub CVE detail page
 
-- [ ] **PHP** — hardened FPM image (target version TBD); strip unused extensions from runtime layer
+- [ ] **PHP** — hardened FPM image (target version TBD); strip unused extensions from runtime
 - [ ] **OCI provenance attestation** — SLSA Level 3 (`cosign attest --type slsaprovenance`)
-- [ ] **gwshield.io landing page** — static site from `registry.json`; searchable catalogue
+- [ ] **Hub CVE detail page** — per-image upstream CVE history rendered from structured findings;
+      data already available (132 rows from backfill)
+- [ ] **Hub → pipeline request workflow** — vote threshold definition + issue template
 
 ---
 
@@ -68,25 +80,21 @@ a collection of hardened, zero-CVE OCI images built from source and published to
 
 ### Public presence
 
-- [ ] **Netlify-hosted landing page** — static site auto-generated from `registry.json`;
-      refreshes on every promote/scan event; searchable image catalogue
-- [ ] **gwshield.io domain** (or similar) — linked from public GHCR and landing page
+- [ ] **gwshield.io apex domain** — redirect or dedicated landing page at the apex
 
 ### Community and contributor tooling
 
-- [ ] **Image request system** — GitHub Discussions or lightweight form; community voting
-      to prioritize next hardened targets
+- [ ] **Hub → pipeline request promotion workflow** — formal threshold + issue template for
+      converting a hub community request into a pipeline PR
 - [ ] **Contributor onboarding guide** — step-by-step: pick a target, build locally, open PR;
       includes pre-checked Dockerfile template
-- [ ] **MCP server** — exposes container hardening patterns, CVE allowlist queries,
-      and image metadata to AI coding tools (Claude Code, Copilot, etc.)
+- [ ] **MCP server** — exposes container hardening patterns, CVE allowlist queries, and image
+      metadata to AI coding tools (Claude Code, Copilot, etc.)
 
 ### Enterprise features
 
 - [ ] **Compliance-ready build notes** — per-image PDF/Markdown export of scan evidence,
       SBOM, and risk decisions; suitable for SOC 2 / ISO 27001 artifact packages
-- [ ] **Private hardened image pipeline** — self-hosted version of the build stack
-      for organizations with air-gapped or regulated environments
 - [ ] **Supply-chain verification tooling** — CLI helper to `cosign verify` + SBOM inspect
       any gwshield image in one command
 
@@ -101,7 +109,6 @@ a collection of hardened, zero-CVE OCI images built from source and published to
 ## Long-term ideas (not committed)
 
 - Hardened JVM image (GraalVM native — eliminates JDK from runtime layer)
-- Hardened Rust service image template (zero-dep static binary baseline)
 - Container signing verification step inside smoke tests (`cosign verify` as CI gate)
 - `gwshield` CLI tool — pull, verify, and inspect hardened images in a single workflow
 
@@ -109,8 +116,9 @@ a collection of hardened, zero-CVE OCI images built from source and published to
 
 ## How to propose a new target
 
-Open a GitHub issue with:
+Open an image request at [hub.gwshield.io/requests](https://hub.gwshield.io/requests) or
+open a GitHub issue with:
 1. Image name and target version
-2. Upstream source repo and build method (Go / C/make / other)
-3. Known CVE surface (check upstream Trivy report)
+2. Upstream source repo and build method
+3. Known CVE surface (check upstream trivy report)
 4. Desired profiles (standard / TLS / cluster / etc.)
