@@ -35,7 +35,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `12cb7326d52d` | 0 CVEs | 2026-03-11 |
+| `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `0b9a83c23558` | 0 CVEs | 2026-03-11 |
 
 ### haproxy
 
@@ -153,7 +153,7 @@ ENTRYPOINT ["/myapp"]
 ```bash
 # Runtime image — pull and verify
 docker pull ghcr.io/gwshield/caddy:v2.11.2
-docker pull ghcr.io/gwshield/caddy@sha256:12cb7326d52d3068a7e124970fd07ae85835ce6e5f8191ea9b2c9a56adaa881a
+docker pull ghcr.io/gwshield/caddy@sha256:0b9a83c23558b87374a3adb50ee0624cf3412adaef1743e4256fe824a1fdc45c
 
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
