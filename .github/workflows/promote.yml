@@ -346,8 +346,7 @@ jobs:
               --scanner      trivy \
               --scanned-at   "${SCANNED_AT}"
 
-            NEW_CONTENT=$(base64 < registry.json | tr -d '
-')
+            NEW_CONTENT=$(base64 < registry.json | tr -d '\n')
 
             PAYLOAD=$(python3 -c "import json,sys; d={'message':sys.argv[1],'content':sys.argv[2],'branch':'main'}; d.update({'sha':sys.argv[3]} if sys.argv[3] else {}); print(json.dumps(d))" "${COMMIT_MSG}" "${NEW_CONTENT}" "${FILE_SHA}")
 
@@ -427,9 +426,6 @@ jobs:
             echo ""
             echo "### Verify"
             echo '```bash'
-            echo "cosign verify \"
-            echo "  --certificate-identity-regexp='https://github.com/gwshield/images.*' \"
-            echo "  --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \"
-            echo "  ${{ steps.tags.outputs.dst_image }}@${{ steps.push.outputs.digest }}"
+            echo "cosign verify --certificate-identity-regexp='https://github.com/gwshield/images.*' --certificate-oidc-issuer='https://token.actions.githubusercontent.com' ${{ steps.tags.outputs.dst_image }}@${{ steps.push.outputs.digest }}"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
