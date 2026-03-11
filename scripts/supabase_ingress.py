@@ -8,7 +8,9 @@
 #
 # Subcommands:
 #   promote   — upsert image/version/snapshot after a successful promote
-#   scan      — update CVE counts on the latest snapshot after a scan run
+#   scan      — update CVE counts + write cve_findings on the latest snapshot
+#   findings  — write structured CVE findings for a specific image version
+#               (used by rescan-origin pipeline and manual backfill)
 #
 # Usage:
 #   python3 scripts/supabase_ingress.py promote \
@@ -22,7 +24,13 @@
 #   python3 scripts/supabase_ingress.py scan \
 #     --name postgres --version v15.17-tls \
 #     --cve-total 0 --cve-critical 0 --cve-high 0 \
-#     --scanner trivy --scanned-at "2026-03-09T12:00:00Z"
+#     --scanner trivy --scanned-at "2026-03-09T12:00:00Z" \
+#     --findings-json '[{"cve_id":"CVE-2025-5244","severity":"HIGH",...}]'
+#
+#   python3 scripts/supabase_ingress.py findings \
+#     --name rust-builder --version v1.87 \
+#     --findings-json /path/to/trivy-results.json \
+#     --findings-format trivy
 #
 # Environment variables (set as GitHub Actions secrets):
 #   SUPABASE_URL                https://bgxstxpcfrvdvlbzmiek.supabase.co
@@ -45,11 +53,14 @@
 #   python-builder/v3.12-dev → python-builder-v312-dev
 #   python-builder/v3.13     → python-builder-v313
 #   python-builder/v3.13-dev → python-builder-v313-dev
+#   rust-builder / ""  → rust-builder
+#   rust-builder / dev → rust-builder-dev
 # =============================================================================
 
 import argparse
 import json
 import os
+import re
 import sys
 import urllib.request
 import urllib.error
@@ -74,25 +85,19 @@ def derive_slug(name: str, profile: str, base_version: str) -> str:
         return f"nginx-{p}"
 
     if name == "postgres":
-        # Derive major version from base_version (e.g. "v15.17" → "v15")
-        major = ""
         bv = base_version.lstrip("v")
         if "." in bv:
             major_num = bv.split(".")[0]
             major = f"-v{major_num}"
+        else:
+            major = ""
         if p == "":
             return f"postgres{major}"
         return f"postgres{major}-{p}"
 
     if name == "python-builder":
-        # Strip 'v' and dots from profile version prefix: v3.12 → v312
-        # profile is e.g. "v3.12", "v3.12-dev", "v3.13", "v3.13-dev"
         if p == "":
             return "python-builder"
-        # normalise: v3.12-dev → v312-dev
-        normalised = p.replace("v", "v").replace(".", "")
-        # "v312" not "v3.12" — replace only the version dots, not the dash suffix
-        import re
         normalised = re.sub(r"v(\d+)\.(\d+)", r"v\1\2", p)
         return f"python-builder-{normalised}"
 
@@ -100,6 +105,11 @@ def derive_slug(name: str, profile: str, base_version: str) -> str:
         if p == "" or p == "compile":
             return "go-builder"
         return f"go-builder-{p}"
+
+    if name == "rust-builder":
+        if p == "" or p == "compile":
+            return "rust-builder"
+        return f"rust-builder-{p}"
 
     # Default: name + optional profile suffix
     if p == "":
@@ -118,6 +128,127 @@ def derive_summary(name: str, profile: str, base_version: str) -> str:
     p = profile.strip()
     label = f"{name} {bv}" + (f" ({p})" if p else "")
     return f"Hardened {label} image — 0 CVEs"
+
+
+# ---------------------------------------------------------------------------
+# CVE findings extraction from Trivy JSON output
+# ---------------------------------------------------------------------------
+
+def _build_layer_index(diff_ids: list[str], history: list) -> dict[str, str]:
+    """
+    Build a mapping from DiffID → 'base_image' | 'builder_stage'.
+
+    Strategy: walk the image history in order, assigning each non-empty layer
+    to a DiffID. Layers whose created_by command contains our gwshield build
+    markers (GWS_SERVICE, addgroup nonroot, apk upgrade with our cache id) are
+    'builder_stage'. Everything before the first gwshield marker is 'base_image'.
+    """
+    _GWSHIELD_MARKERS = (
+        "GWS_SERVICE",
+        "GWS_VERSION",
+        "GWS_PROFILE",
+        "addgroup",
+        "nonroot",
+        "apk-rust-builder",
+        "apk-go-builder",
+        "apk-python-builder",
+        "apk-nginx",
+        "apk-redis",
+        "apk-postgres",
+    )
+
+    result = {}
+    non_empty = [h for h in history if not h.get("empty_layer")]
+
+    for idx, diff_id in enumerate(diff_ids):
+        if idx >= len(non_empty):
+            result[diff_id] = "base_image"
+            continue
+        cmd = non_empty[idx].get("created_by", "")
+        if any(m in cmd for m in _GWSHIELD_MARKERS):
+            result[diff_id] = "builder_stage"
+        else:
+            result[diff_id] = "base_image"
+
+    return result
+
+
+def _component_type(pkg_id: str, vuln_type: str) -> str:
+    """Map trivy vuln type / pkg identifier to our component taxonomy."""
+    if vuln_type in ("alpine", "apk") or "pkg:apk" in pkg_id:
+        return "alpine-pkg"
+    if "pkg:cargo" in pkg_id or vuln_type == "cargo":
+        return "rust-crate"
+    if "pkg:golang" in pkg_id or vuln_type == "gomod":
+        return "go-module"
+    if "pkg:pypi" in pkg_id or vuln_type in ("pip", "poetry"):
+        return "python-pkg"
+    return "os-pkg"
+
+
+def extract_findings_from_trivy(trivy_json: dict) -> list[dict]:
+    """
+    Parse a Trivy JSON report and return a list of cve_findings rows ready
+    for Supabase insertion.
+
+    Each finding captures:
+      - cve_id, severity, package_name, package_version, fixed_version
+      - description (Trivy Title field — concise, scanner-provided)
+      - mitigation: 'fixed' if FixedVersion exists, else 'no_fix_available'
+      - layer: 'base_image' | 'builder_stage'  (derived from DiffID index)
+      - component: 'alpine-pkg' | 'rust-crate' | 'go-module' | etc.
+      - cvss_score: NVD V3 score if available
+      - primary_url: NVD link or first reference URL
+    """
+    metadata = trivy_json.get("Metadata", {})
+    history  = metadata.get("ImageConfig", {}).get("history", [])
+    diff_ids = metadata.get("DiffIDs", [])
+    layer_index = _build_layer_index(diff_ids, history)
+
+    findings = []
+    for result in trivy_json.get("Results", []):
+        vuln_type = result.get("Type", "")
+        for v in result.get("Vulnerabilities") or []:
+            layer_info  = v.get("Layer", {})
+            layer_diff  = layer_info.get("DiffID", "")
+
+            # Classify layer using index; fall back to base_image if unknown
+            layer = layer_index.get(layer_diff, "base_image")
+
+            fixed_ver  = v.get("FixedVersion") or None
+            mitigation = "fixed" if fixed_ver else "no_fix_available"
+
+            # CVSS score — prefer NVD V3, fall back to redhat, then None
+            cvss_score = None
+            for source in ("nvd", "redhat"):
+                score = v.get("CVSS", {}).get(source, {}).get("V3Score")
+                if score:
+                    cvss_score = float(score)
+                    break
+
+            # Primary reference URL — NVD preferred
+            refs = v.get("References") or []
+            primary_url = v.get("PrimaryURL") or next(
+                (r for r in refs if "nvd.nist.gov" in r), None
+            ) or (refs[0] if refs else None)
+
+            pkg_id = v.get("PkgID", "") or v.get("PkgIdentifier", {}).get("PURL", "")
+
+            findings.append({
+                "cve_id":          v["VulnerabilityID"],
+                "severity":        v.get("Severity", "UNKNOWN"),
+                "package_name":    v.get("PkgName", ""),
+                "package_version": v.get("InstalledVersion", ""),
+                "fixed_version":   fixed_ver,
+                "description":     (v.get("Title") or v.get("Description", ""))[:500],
+                "mitigation":      mitigation,
+                "layer":           layer,
+                "component":       _component_type(pkg_id, vuln_type),
+                "cvss_score":      cvss_score,
+                "primary_url":     primary_url,
+            })
+
+    return findings
 
 
 # ---------------------------------------------------------------------------
@@ -153,7 +284,7 @@ class SupabaseClient:
             raise
 
     def upsert(self, table: str, row: dict, on_conflict: str) -> dict:
-        headers_extra = {"Prefer": f"return=representation,resolution=merge-duplicates"}
+        headers_extra = {"Prefer": "return=representation,resolution=merge-duplicates"}
         url = f"{self.base}/{table}?on_conflict={on_conflict}"
         data = json.dumps([row]).encode()
         req = urllib.request.Request(url, data=data, headers={**self.headers, **headers_extra}, method="POST")
@@ -168,6 +299,15 @@ class SupabaseClient:
         with urllib.request.urlopen(req) as resp:
             result = json.loads(resp.read())
             return result[0] if isinstance(result, list) else result
+
+    def insert_many(self, table: str, rows: list[dict]) -> list[dict]:
+        if not rows:
+            return []
+        url = f"{self.base}/{table}"
+        data = json.dumps(rows).encode()
+        req = urllib.request.Request(url, data=data, headers=self.headers, method="POST")
+        with urllib.request.urlopen(req) as resp:
+            return json.loads(resp.read())
 
     def select(self, table: str, filters: dict) -> list:
         params = {k: f"eq.{v}" for k, v in filters.items()}
@@ -184,9 +324,31 @@ class SupabaseClient:
         with urllib.request.urlopen(req) as resp:
             resp.read()
 
-    def update_latest_snapshot(self, version_id: str, patch: dict) -> None:
-        """Update the most recent snapshot row for a given version_id."""
-        # Select snapshot ordered by created_at desc, take first
+    def delete(self, table: str, filters: dict) -> None:
+        params = {k: f"eq.{v}" for k, v in filters.items()}
+        url = f"{self.base}/{table}?" + "&".join(f"{k}={v}" for k, v in params.items())
+        req = urllib.request.Request(url, headers={**self.headers, "Prefer": "return=minimal"}, method="DELETE")
+        with urllib.request.urlopen(req) as resp:
+            resp.read()
+
+    def table_exists(self, table: str) -> bool:
+        """Check if a table is accessible (migration applied)."""
+        url = f"{self.base}/{table}?limit=0"
+        req = urllib.request.Request(url, headers=self.headers, method="GET")
+        try:
+            with urllib.request.urlopen(req) as resp:
+                resp.read()
+                return True
+        except urllib.error.HTTPError as e:
+            if e.code == 404 or b"PGRST205" in e.read():
+                return False
+            return False
+        except Exception:
+            return False
+
+    def update_latest_snapshot(self, version_id: str, patch: dict) -> str | None:
+        """Update the most recent snapshot row for a given version_id.
+        Returns the snapshot id, or None if not found."""
         url = (f"{self.base}/image_metadata_snapshots"
                f"?version_id=eq.{version_id}&order=created_at.desc&limit=1")
         req = urllib.request.Request(url, headers=self.headers, method="GET")
@@ -195,11 +357,75 @@ class SupabaseClient:
 
         if not rows:
             print(f"[WARN] No snapshot found for version_id={version_id} — skipping CVE update")
-            return
+            return None
 
         snap_id = rows[0]["id"]
         self.update("image_metadata_snapshots", {"id": snap_id}, patch)
         print(f"  snapshot {snap_id[:8]}… updated")
+        return snap_id
+
+    def resolve_version_id(self, name: str, version: str) -> str | None:
+        """Resolve image_version.id from name + tag. Returns None if not found."""
+        version_rows = self.select("image_versions", {"tag": version})
+        for vr in version_rows:
+            img_rows = self.select("images", {"id": vr["image_id"]})
+            if img_rows and name.replace("-", "") in img_rows[0]["slug"].replace("-", ""):
+                return vr["id"]
+        return None
+
+
+# ---------------------------------------------------------------------------
+# CVE findings persistence
+# ---------------------------------------------------------------------------
+
+def write_findings(db: SupabaseClient, version_id: str, findings: list[dict],
+                   replace: bool = True) -> int:
+    """
+    Write cve_findings rows for a given image_version_id.
+
+    If replace=True (default), deletes existing findings for this version first
+    (idempotent re-runs). If the cve_findings table doesn't exist yet (migration
+    pending), logs a warning and returns 0 without error.
+
+    Returns the number of rows written.
+    """
+    if not findings:
+        print("  No CVE findings to write (clean image)")
+        return 0
+
+    if not db.table_exists("cve_findings"):
+        print("[WARN] cve_findings table not found — migration pending. "
+              "Findings will be written once the schema is applied.", file=sys.stderr)
+        return 0
+
+    if replace:
+        try:
+            db.delete("cve_findings", {"image_version_id": version_id})
+            print(f"  Cleared existing findings for version {version_id[:8]}…")
+        except Exception as e:
+            print(f"[WARN] Could not clear findings: {e}", file=sys.stderr)
+
+    rows = [
+        {
+            "image_version_id": version_id,
+            "cve_id":           f["cve_id"],
+            "severity":         f["severity"],
+            "package_name":     f["package_name"],
+            "package_version":  f["package_version"],
+            "fixed_version":    f.get("fixed_version"),
+            "description":      f.get("description", ""),
+            "mitigation":       f.get("mitigation", "fixed"),
+            "layer":            f.get("layer", "base_image"),
+            "component":        f.get("component", "os-pkg"),
+            "cvss_score":       f.get("cvss_score"),
+            "primary_url":      f.get("primary_url"),
+        }
+        for f in findings
+    ]
+
+    db.insert_many("cve_findings", rows)
+    print(f"  Wrote {len(rows)} CVE finding(s) to cve_findings")
+    return len(rows)
 
 
 # ---------------------------------------------------------------------------
@@ -207,24 +433,23 @@ class SupabaseClient:
 # ---------------------------------------------------------------------------
 
 def cmd_promote(args, db: SupabaseClient):
-    name        = args.name
-    version     = args.version
+    name         = args.name
+    version      = args.version
     base_version = args.base_version
-    profile     = args.profile or ""
-    digest      = args.digest or None
-    tags        = args.tags or ""
-    cosign_id   = args.cosign_identity or None
-    promoted_at = args.promoted_at or datetime.now(timezone.utc).isoformat()
+    profile      = args.profile or ""
+    digest       = args.digest or None
+    tags         = args.tags or ""
+    cosign_id    = args.cosign_identity or None
+    promoted_at  = args.promoted_at or datetime.now(timezone.utc).isoformat()
 
     slug         = derive_slug(name, profile, base_version)
     source_type  = derive_source_type(name)
     summary      = derive_summary(name, profile, base_version)
-    is_latest    = any("latest" in t for t in tags.split())
     sbom_ref     = f"ghcr.io/gwshield/{name}:{version}" if version else None
 
     print(f"[promote] {name}:{version}  slug={slug}  profile={profile!r}")
 
-    # 1. Upsert image (insert-only for name/summary — never overwrite on re-promote)
+    # 1. Upsert image
     image_row = db.upsert("images", {
         "slug":        slug,
         "name":        f"{name.replace('-', ' ').title()} {base_version}" if base_version else name,
@@ -246,14 +471,14 @@ def cmd_promote(args, db: SupabaseClient):
 
     # 3. Upsert image_version
     version_row = db.upsert("image_versions", {
-        "image_id":       image_id,
-        "tag":            version,
-        "digest":         digest,
-        "promoted_at":    promoted_at,
-        "is_latest":      True,
+        "image_id":        image_id,
+        "tag":             version,
+        "digest":          digest,
+        "promoted_at":     promoted_at,
+        "is_latest":       True,
         "cosign_identity": cosign_id,
-        "base_version":   base_version,
-        "profile":        profile,
+        "base_version":    base_version,
+        "profile":         profile,
     }, on_conflict="image_id,tag")
 
     version_id = version_row["id"]
@@ -261,22 +486,22 @@ def cmd_promote(args, db: SupabaseClient):
 
     # 4. Insert metadata snapshot (always new row — snapshots are immutable)
     snapshot_row = db.insert("image_metadata_snapshots", {
-        "image_id":      image_id,
-        "version_id":    version_id,
-        "cve_count":     None,
-        "scan_status":   "unknown",
-        "scanner":       None,
-        "sbom_ref":      sbom_ref,
+        "image_id":       image_id,
+        "version_id":     version_id,
+        "cve_count":      None,
+        "scan_status":    "unknown",
+        "scanner":        None,
+        "sbom_ref":       sbom_ref,
         "provenance_ref": cosign_id,
-        "raw_payload":   {
-            "name":        name,
-            "version":     version,
-            "base_version": base_version,
-            "profile":     profile,
-            "digest":      digest,
-            "tags":        tags.split(),
+        "raw_payload":    {
+            "name":            name,
+            "version":         version,
+            "base_version":    base_version,
+            "profile":         profile,
+            "digest":          digest,
+            "tags":            tags.split(),
             "cosign_identity": cosign_id,
-            "promoted_at": promoted_at,
+            "promoted_at":     promoted_at,
         },
         "snapshotted_at": promoted_at,
     })
@@ -303,38 +528,20 @@ def cmd_promote(args, db: SupabaseClient):
 # ---------------------------------------------------------------------------
 
 def cmd_scan(args, db: SupabaseClient):
-    name       = args.name
-    version    = args.version
-    cve_total  = int(args.cve_total)
-    cve_crit   = int(args.cve_critical)
-    cve_high   = int(args.cve_high)
-    scanner    = args.scanner or "trivy"
-    scanned_at = args.scanned_at or datetime.now(timezone.utc).isoformat()
+    name         = args.name
+    version      = args.version
+    cve_total    = int(args.cve_total)
+    cve_crit     = int(args.cve_critical)
+    cve_high     = int(args.cve_high)
+    scanner      = args.scanner or "trivy"
+    scanned_at   = args.scanned_at or datetime.now(timezone.utc).isoformat()
+    findings_arg = getattr(args, "findings_json", None)
 
     scan_status = "clean" if (cve_crit == 0 and cve_high == 0) else "findings"
 
     print(f"[scan] {name}:{version}  total={cve_total} crit={cve_crit} high={cve_high}  status={scan_status}")
 
-    # Resolve version_id via slug pattern
-    # We query image_versions joined through images by checking all versions with this tag
-    url = (f"{db.base}/image_versions"
-           f"?tag=eq.{version}&select=id,image_id,images(slug)")
-    req = urllib.request.Request(
-        url + "&images=not.is.null",
-        headers={**db.headers, "Accept": "application/json"},
-        method="GET"
-    )
-    # Simpler: select by tag directly and filter by name match
-    version_rows = db.select("image_versions", {"tag": version})
-
-    version_id = None
-    for vr in version_rows:
-        # Cross-check via image name (slug contains the name)
-        img_rows = db.select("images", {"id": vr["image_id"]})
-        if img_rows and name.replace("-", "") in img_rows[0]["slug"].replace("-", ""):
-            version_id = vr["id"]
-            break
-
+    version_id = db.resolve_version_id(name, version)
     if not version_id:
         print(f"[ERROR] Could not resolve version_id for {name}:{version}", file=sys.stderr)
         sys.exit(1)
@@ -342,15 +549,93 @@ def cmd_scan(args, db: SupabaseClient):
     print(f"  resolved version_id={version_id[:8]}…")
 
     db.update_latest_snapshot(version_id, {
-        "cve_count":    cve_total,
-        "cve_critical": cve_crit,
-        "cve_high":     cve_high,
-        "scan_status":  scan_status,
-        "scanner":      scanner,
+        "cve_count":      cve_total,
+        "cve_critical":   cve_crit,
+        "cve_high":       cve_high,
+        "scan_status":    scan_status,
+        "scanner":        scanner,
         "snapshotted_at": scanned_at,
     })
 
+    # Write structured findings if provided
+    if findings_arg:
+        findings = _parse_findings_arg(findings_arg)
+        write_findings(db, version_id, findings, replace=True)
+
     print(f"[scan] done — {name}:{version} → {scan_status}")
+
+
+# ---------------------------------------------------------------------------
+# findings subcommand  (standalone — used by rescan-origin pipeline)
+# ---------------------------------------------------------------------------
+
+def cmd_findings(args, db: SupabaseClient):
+    """
+    Write structured CVE findings for a specific image version.
+
+    Accepts either:
+      --findings-json <inline-json-string>   — pre-parsed findings array
+      --findings-json @/path/to/file.json    — path to trivy JSON report
+      --findings-format trivy                — parse as raw trivy output (default)
+      --findings-format findings             — parse as pre-formatted findings array
+    """
+    name     = args.name
+    version  = args.version
+    fmt      = getattr(args, "findings_format", "trivy")
+    raw_arg  = args.findings_json
+
+    print(f"[findings] {name}:{version}  format={fmt}")
+
+    version_id = db.resolve_version_id(name, version)
+    if not version_id:
+        print(f"[ERROR] Could not resolve version_id for {name}:{version}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"  resolved version_id={version_id[:8]}…")
+
+    findings = _parse_findings_arg(raw_arg, fmt)
+    count = write_findings(db, version_id, findings, replace=True)
+    print(f"[findings] done — {count} finding(s) written for {name}:{version}")
+
+
+def _parse_findings_arg(raw_arg: str, fmt: str = "trivy") -> list[dict]:
+    """
+    Parse the --findings-json argument.
+    Supports:
+      - inline JSON string (starts with '[' or '{')
+      - @/path/to/file  — load from file path
+      - fmt="trivy"     — parse as raw Trivy JSON output (extract + normalise)
+      - fmt="findings"  — parse as pre-formatted findings array
+    """
+    if not raw_arg:
+        return []
+
+    # Load raw content
+    if raw_arg.startswith("@"):
+        path = raw_arg[1:]
+        with open(path) as f:
+            content = f.read()
+    else:
+        content = raw_arg
+
+    data = json.loads(content)
+
+    if fmt == "trivy":
+        # data is a Trivy JSON report — extract and normalise
+        if isinstance(data, dict) and "Results" in data:
+            return extract_findings_from_trivy(data)
+        # Already an array of pre-normalised findings
+        if isinstance(data, list):
+            return data
+        raise ValueError(f"Unexpected trivy format: {type(data)}")
+
+    if fmt == "findings":
+        # Already a structured findings array
+        if isinstance(data, list):
+            return data
+        raise ValueError(f"findings format expects a JSON array, got {type(data)}")
+
+    raise ValueError(f"Unknown findings format: {fmt}")
 
 
 # ---------------------------------------------------------------------------
@@ -370,6 +655,7 @@ def main():
     parser = argparse.ArgumentParser(description="gwshield pipeline → Supabase writeback")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
+    # --- promote ---
     p_promote = sub.add_parser("promote")
     p_promote.add_argument("--name",             required=True)
     p_promote.add_argument("--version",          required=True)
@@ -380,14 +666,27 @@ def main():
     p_promote.add_argument("--cosign-identity",  default=None, dest="cosign_identity")
     p_promote.add_argument("--promoted-at",      default=None, dest="promoted_at")
 
+    # --- scan ---
     p_scan = sub.add_parser("scan")
-    p_scan.add_argument("--name",        required=True)
-    p_scan.add_argument("--version",     required=True)
-    p_scan.add_argument("--cve-total",   default="0", dest="cve_total")
-    p_scan.add_argument("--cve-critical",default="0", dest="cve_critical")
-    p_scan.add_argument("--cve-high",    default="0", dest="cve_high")
-    p_scan.add_argument("--scanner",     default="trivy")
-    p_scan.add_argument("--scanned-at",  default=None, dest="scanned_at")
+    p_scan.add_argument("--name",          required=True)
+    p_scan.add_argument("--version",       required=True)
+    p_scan.add_argument("--cve-total",     default="0", dest="cve_total")
+    p_scan.add_argument("--cve-critical",  default="0", dest="cve_critical")
+    p_scan.add_argument("--cve-high",      default="0", dest="cve_high")
+    p_scan.add_argument("--scanner",       default="trivy")
+    p_scan.add_argument("--scanned-at",    default=None, dest="scanned_at")
+    p_scan.add_argument("--findings-json", default=None, dest="findings_json",
+                        help="Inline JSON array of findings, or @/path/to/trivy.json")
+
+    # --- findings ---
+    p_findings = sub.add_parser("findings")
+    p_findings.add_argument("--name",            required=True)
+    p_findings.add_argument("--version",         required=True)
+    p_findings.add_argument("--findings-json",   required=True, dest="findings_json",
+                             help="Inline JSON array, or @/path/to/trivy.json")
+    p_findings.add_argument("--findings-format", default="trivy", dest="findings_format",
+                             choices=["trivy", "findings"],
+                             help="trivy = raw Trivy JSON output; findings = pre-formatted array")
 
     args = parser.parse_args()
 
@@ -395,6 +694,8 @@ def main():
         cmd_promote(args, db)
     elif args.cmd == "scan":
         cmd_scan(args, db)
+    elif args.cmd == "findings":
+        cmd_findings(args, db)
 
 
 if __name__ == "__main__":
