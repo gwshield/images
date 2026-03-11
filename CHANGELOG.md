@@ -12,9 +12,45 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Planned
 - PHP hardened image (FPM profile — target version TBD)
 - OCI provenance attestation (SLSA Level 3)
-- gwshield.io landing page (static site from `registry.json`, searchable catalogue)
-- Image request / voting system
+- Hub CVE detail page — per-image upstream CVE history visible in `hub.gwshield.io`
+- Image request → pipeline promotion workflow (vote threshold + issue template)
 - MCP server exposing container hardening patterns to AI tools
+
+---
+
+## [v0.1.4-alpha] — 2026-03-11
+
+### Added
+
+#### Rust builder images
+- **Rust builder v1.87 (compile-only)** — based on `rust:1.87.0-alpine3.22`; musl static
+  linking via `RUSTFLAGS="-C target-feature=+crt-static"`; `x86_64-unknown-linux-musl` and
+  `aarch64-unknown-linux-musl` targets pre-installed; nonroot UID 65532; 0 CVEs; published to
+  `ghcr.io/gwshield/rust-builder:v1.87`.
+- **Rust builder v1.87-dev** — extends v1.87 with `clippy` and `rustfmt` (rustup components),
+  `cargo-audit v0.21.2`, `cargo-deny v0.18.2` (compiled from source via `cargo install --locked`);
+  0 CVEs; published to `ghcr.io/gwshield/rust-builder:v1.87-dev`.
+- **Rust functional tests** — `rust-builder.sh` and `rust-builder-dev.sh` covering static binary
+  compilation, musl target verification, clippy, rustfmt, cargo-audit, cargo-deny;
+  `tests/functional/fixtures/rust-app/` fixture; daily CI matrix entry.
+
+#### Structured CVE findings
+- **Per-CVE findings now stored** in `hub.gwshield.io` — each promoted image's upstream CVE
+  history (pre-hardening) is captured with severity, affected package, fixed version, and
+  layer classification. All 23 images backfilled (132 findings total); 0 CRITICAL across all
+  images confirms the hard CVE gate is working.
+
+#### gwshield-hub community catalog
+- **`hub.gwshield.io`** launched — full image catalog, changelog, image request system, admin
+  area; all 23 images visible with CVE status sourced from the pipeline after every promote
+  and scan run.
+
+### Fixed
+
+#### CVE remediation — Rust v1.87 base
+- `rust:1.87.0-alpine3.22` shipped with 8 HIGH/CRITICAL CVEs in `binutils` and `libssl3`/`libcrypto3`.
+  Fixed via targeted `apk upgrade --no-cache binutils libssl3 libcrypto3` in the builder stage.
+  Post-fix scan: 0 CVEs. Historical pre-fix findings documented in hub for reference.
 
 ---
 
@@ -40,22 +76,11 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   5 profiles. All 5 profiles published to `ghcr.io/gwshield/postgres:v17.9[-profile]`.
 
 #### Functional test suite
-- **`tests/functional/`** — Level 1 functional tests for every image group:
-  - `go-builder.sh` — multi-package compile, `go test`, static binary check
-  - `go-builder-dev.sh` — golangci-lint, gofumpt, govulncheck, staticcheck, goimports
-  - `python-builder.sh` — `pip install`, module execution, output verification
-  - `python-builder-dev.sh` — ruff, mypy, pytest, black, pip-audit on fixture
-  - `postgres.sh` — initdb, `pg_isready`, SQL round-trip, extension-load check
-  - `redis.sh` — PING, `SET`/`GET`, TTL, `INFO server`, cluster-enabled check
-  - `nginx.sh` — HTTP 200 on `/healthz`, static file content, `server_tokens off` check
-  - `traefik.sh` — `/ping` 200, API `/api/rawdata`, web entrypoint, `/api/version` JSON
-- Daily CI cron at 03:00 UTC against published `ghcr.io/gwshield` images; manual dispatch
-  with `image_group` filter.
+- Level 1 functional tests for every image group; daily CI cron at 03:00 UTC against
+  published `ghcr.io/gwshield` images; manual dispatch with `image_group` filter.
 
 #### Public README improvements
-- **Version column** added to all image tables (makes software version explicit alongside tag).
-- **WIP / early-access banner** added — announces alpha status, upcoming gwshield.io landing
-  page, MCP server, and extended tooling.
+- Version column added to all image tables; WIP / early-access banner.
 
 ---
 
@@ -63,34 +88,16 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-#### Cross-org public promotion pipeline
-- **Public GHCR registry** at `ghcr.io/gwshield` — no login required; 13 images promoted.
-- **cosign keyless signing** — Sigstore OIDC, Rekor transparency log; identity anchored to
-  `gwshield/images` workflow.
-- **SBOM attestation** — CycloneDX + SPDX via syft, attached to OCI manifest via
-  `cosign attest`.
-- **GHCR cleanup workflow** — weekly orphaned manifest pruning; auto-discovery; dry-run mode.
+#### Public registry + supply chain
+- **cosign keyless signing** — Sigstore OIDC, Rekor transparency log.
+- **SBOM attestation** — CycloneDX + SPDX via syft, attached to OCI manifest.
+- **Public GHCR registry** at `ghcr.io/gwshield` — no login required; 13 images at launch.
+- **registry.json** — machine-readable metadata; auto-updated after every promote and scan.
+- **Auto-generated README** — rendered from `registry.json`; updated on every promote / scan.
 
-#### registry.json processing engine
-- **`scripts/update-registry.py`** — single source of truth for all public image metadata;
-  `promote` subcommand (upsert after each promote), `scan` subcommand (CVE status update);
-  idempotent upsert keyed by `name:version`; schema version `"1"`.
-- **`registry.json`** — auto-generated, never edited manually; fields per image entry:
-  `name`, `version`, `base_version`, `profile`, `public_image`, `tags`, `digest`,
-  `cosign_identity`, `promoted_at`, `scan.{status,total,critical,high,scanner,scanned_at}`.
-- **`scripts/generate-readme.py`** — renders `README.md` from `registry.json`; groups images
-  by service; per-image table with tag, profile, short digest, CVE status, promote date;
-  `cosign verify` section per image.
-
-#### PostgreSQL v15.17 — two new flavor profiles
-- **vector** — PostgreSQL 15.17 + pgvector v0.8.2 + pg_partman v5.4.2 + pg_cron v1.6.7;
-  same distroless/cc-debian12 runtime; 0 CVEs.
-- **timescale** — PostgreSQL 15.17 + TimescaleDB v2.25.1 + pg_partman v5.4.2 + pg_cron v1.6.7;
-  TimescaleDB MUST be first in `shared_preload_libraries`; 0 CVEs.
-
-### Changed
-- PostgreSQL v15.17 standard profile — added pg_partman v5.4.2 and pg_cron v1.6.7.
-- PostgreSQL v15.13 → v15.17 patch update — bumped source tarball; renamed image directories.
+#### PostgreSQL v15.17 — vector + timescale profiles
+- **vector** — pgvector v0.8.2 + pg_partman + pg_cron; 0 CVEs.
+- **timescale** — TimescaleDB v2.25.1 + pg_partman + pg_cron; 0 CVEs.
 
 ---
 
@@ -98,24 +105,21 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-#### Redis v7.4.8 — three hardened profiles
-- **standard** — Redis built from source; `libm` statically linked; FROM scratch runtime;
-  dangerous commands renamed; 0 CVEs.
-- **TLS** — OpenSSL statically linked; TLS-only listener on port 6380; 0 CVEs.
-- **cluster-mode** — same binary as standard; cluster mode via config; `cluster-enabled yes`;
-  0 CVEs.
-- **cli** — redis-cli only; no server binary; FROM scratch; 0 CVEs.
-
 #### nginx v1.28.2 — three hardened profiles
-- **http** — nginx built from source; pcre2, zlib statically linked; FROM scratch runtime; 0 CVEs.
-- **http2** — same as http with `--with-http_v2_module`; 0 CVEs.
-- **http3 / QUIC** — built against **QuicTLS** (`openssl-3.3.0-quic1`); pcre2 and zlib
-  statically linked; 0 CVEs.
+- **http** — built from source, pcre2+zlib static, FROM scratch, 0 CVEs.
+- **http2** — same as http with `--with-http_v2_module`, 0 CVEs.
+- **http3/QUIC** — QuicTLS (`openssl-3.3.0-quic1`), pcre2+zlib static, 0 CVEs.
 
-#### PostgreSQL v15.17 baseline
-- **standard** — distroless/cc-debian12; pg_partman + pg_cron; 0 CVEs.
-- **TLS** — OpenSSL static; 0 CVEs.
-- **cli** — psql-only; no server binary; 0 CVEs.
+#### Redis v7.4.8 — four hardened profiles
+- **standard** — source build, libm static, DISABLE_SCRIPTING, FROM scratch, 0 CVEs.
+- **TLS** — OpenSSL statically linked, TLS-only listener, 0 CVEs.
+- **cluster-mode** — `cluster-enabled yes`, 0 CVEs.
+- **cli** — redis-cli only, no server binary, FROM scratch.
+
+#### PostgreSQL v15.17 — three hardened profiles
+- **standard** — distroless/cc-debian12, pg_partman + pg_cron, 0 CVEs.
+- **TLS** — OpenSSL static, 0 CVEs.
+- **cli** — psql-only, no server binary, 0 CVEs.
 
 ---
 
@@ -124,20 +128,17 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 #### Traefik v3.6.9 — initial hardened image
-- Multi-stage Dockerfile: builder stage (Go 1.25.7-alpine3.23), runtime stage (FROM scratch).
-- Binary rebuilt from source with `CGO_ENABLED=0`; verified statically linked.
-- Non-root runtime: UID/GID 65532 (`nonroot`).
-- Smoke tests: startup, `--help`, non-root assertion, no-shell assertion, `/ping` endpoint.
+- Multi-stage Dockerfile; binary rebuilt from source with `CGO_ENABLED=0`; FROM scratch runtime;
+  non-root UID 65532; 0 CVEs; smoke tested.
 
-#### Mono-repo MVP architecture
-- `images/<name>/<version>/` layout — self-contained per image target.
-- CI matrix with auto-discovery via `find images -name Dockerfile`.
-- Weekly scheduled re-scan (Trivy + Grype); opens GitHub issue on new findings.
-- Renovate integration for automated version bump PRs.
+#### Mono-repo architecture
+- `images/<name>/<version>/` self-contained layout; auto-discovery CI matrix;
+  Renovate integration; weekly scheduled re-scan (Trivy + Grype); Makefile.
 
 ---
 
-[Unreleased]: https://github.com/gwshield/images/compare/v0.1.3-alpha...HEAD
+[Unreleased]: https://github.com/gwshield/images/compare/v0.1.4-alpha...HEAD
+[v0.1.4-alpha]: https://github.com/gwshield/images/compare/v0.1.3-alpha...v0.1.4-alpha
 [v0.1.3-alpha]: https://github.com/gwshield/images/compare/v0.1.2-alpha...v0.1.3-alpha
 [v0.1.2-alpha]: https://github.com/gwshield/images/compare/v0.1.1-alpha...v0.1.2-alpha
 [v0.1.1-alpha]: https://github.com/gwshield/images/compare/v0.1.0-alpha...v0.1.1-alpha
