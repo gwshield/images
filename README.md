@@ -59,7 +59,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `fa0246094eac` | 0 CVEs | 2026-03-11 |
-| `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `12eff00273c4` | 0 CVEs | 2026-03-11 |
+| `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `—` | 0 CVEs | 2026-03-11 |
 | `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `00558bebcf98` | 0 CVEs | 2026-03-11 |
 | `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `56d8f5ce427d` | 0 CVEs | 2026-03-11 |
 
