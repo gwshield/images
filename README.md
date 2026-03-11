@@ -31,6 +31,12 @@ manager, and no network utilities in the runtime layer.
 
 Production-hardened service images. Each image is compiled from upstream source with a patched toolchain, runs from a minimal `scratch` or distroless base, and ships with a cosign signature and SBOM.
 
+### caddy
+
+| Tag | Version | Profile | Digest | CVE status | Promoted |
+|---|---|---|---|---|---|
+| `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `12cb7326d52d` | 0 CVEs | 2026-03-11 |
+
 ### haproxy
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
@@ -146,13 +152,13 @@ ENTRYPOINT ["/myapp"]
 
 ```bash
 # Runtime image — pull and verify
-docker pull ghcr.io/gwshield/haproxy:v3.1.16
-docker pull ghcr.io/gwshield/haproxy@sha256:d7f2de4870b7734e2cf9d5717ad6513bfe13d5691797f5f55a3986ac0fd11377
+docker pull ghcr.io/gwshield/caddy:v2.11.2
+docker pull ghcr.io/gwshield/caddy@sha256:12cb7326d52d3068a7e124970fd07ae85835ce6e5f8191ea9b2c9a56adaa881a
 
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
   --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
-  ghcr.io/gwshield/haproxy:v3.1.16
+  ghcr.io/gwshield/caddy:v2.11.2
 
 # Builder image — pull and verify
 docker pull ghcr.io/gwshield/go-builder:v1.24
@@ -163,7 +169,7 @@ cosign verify \
   ghcr.io/gwshield/go-builder:v1.24
 
 # Inspect attached SBOM
-cosign download sbom ghcr.io/gwshield/haproxy:v3.1.16
+cosign download sbom ghcr.io/gwshield/caddy:v2.11.2
 ```
 
 ---
@@ -172,6 +178,7 @@ cosign download sbom ghcr.io/gwshield/haproxy:v3.1.16
 
 | Category | Image | Tag | Verify command |
 |---|---|---|---|
+| runtime | `ghcr.io/gwshield/caddy` | `v2.11.2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/caddy:v2.11.2` |
 | runtime | `ghcr.io/gwshield/haproxy` | `v3.1.16` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/haproxy:v3.1.16` |
 | runtime | `ghcr.io/gwshield/haproxy` | `v3.1.16-ssl` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/haproxy:v3.1.16-ssl` |
 | runtime | `ghcr.io/gwshield/nginx` | `v1.28.2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2` |
