@@ -35,11 +35,11 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `0b9a83c23558` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `23beb4a661d4` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `b9253e41ce07` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `bfa527606ce6` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `bc37a3892453` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `9eb05dd1a632` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `17c88656844e` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `20b9ff42811f` | 0 CVEs | 2026-03-12 |
 
 ### haproxy
@@ -53,7 +53,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `3bafd9e03053` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `6e18df432a23` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `98eea42dee2a` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `91c0fa5a163c` | 0 CVEs | 2026-03-12 |
 
@@ -69,7 +69,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `b1eedce0d9a7` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `77c4a1567def` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `870a667a2a69` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `1d865c97285a` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `1cdd7ae049fa` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `b9e88703aeba` | 0 CVEs | 2026-03-12 |
 
 ### Redis — in-memory data store
@@ -160,7 +160,7 @@ ENTRYPOINT ["/myapp"]
 ```bash
 # Runtime image — pull and verify
 docker pull ghcr.io/gwshield/caddy:v2.11.2
-docker pull ghcr.io/gwshield/caddy@sha256:0b9a83c23558b87374a3adb50ee0624cf3412adaef1743e4256fe824a1fdc45c
+docker pull ghcr.io/gwshield/caddy@sha256:23beb4a661d48ba6908dd92439528cc7f7d3a8c56609abe308576c0b7f393996
 
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
