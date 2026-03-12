@@ -115,17 +115,28 @@ def derive_slug(name: str, profile: str, base_version: str) -> str:
         return f"postgres{major}-{p}"
 
     if name == "python-builder":
-        # profile is empty when release-public.yml dispatches the canonical
-        # profile (e.g. images/builders/python-builder/v3.12/ → profile="").
-        # Fall back to base_version so the slug matches the Hub CATALOG:
-        #   python-builder / ""    + bv=v3.12 → python-builder-v312
-        #   python-builder / v3.12            → python-builder-v312  (same)
-        #   python-builder / v3.12-dev        → python-builder-v312-dev
-        effective_p = p if p else base_version
-        if not effective_p:
-            return "python-builder"
-        normalised = re.sub(r"v(\d+)\.(\d+)", r"v\1\2", effective_p)
-        return f"python-builder-{normalised}"
+        # Hub slugs for python-builder always embed the version number:
+        #   python-builder-v312        python-builder-v312-dev
+        #   python-builder-v313        python-builder-v313-dev
+        #
+        # release-public.yml dispatches one of two shapes:
+        #   profile=""      base_version="v3.12"    (canonical build)
+        #   profile="dev"   base_version="v3.12"    (dev build)
+        #   profile="v3.12" base_version="v3.12"    (explicit, legacy)
+        #   profile="v3.12-dev" base_version="v3.12" (explicit, legacy)
+        #
+        # Strategy: always build slug from base_version + optional non-version suffix.
+        #   1. Normalise base_version → "v312"
+        #   2. Strip any version-like prefix from profile to get the pure suffix
+        #      (e.g. "dev" stays "dev"; "v3.12" → ""; "v3.12-dev" → "dev")
+        #   3. Combine: "python-builder-v312" or "python-builder-v312-dev"
+        bv_norm = re.sub(r"v(\d+)\.(\d+)", r"v\1\2", base_version) if base_version else ""
+        # Strip version prefix from profile (handles legacy explicit profiles)
+        suffix = re.sub(r"^v\d+\.\d+", "", p).lstrip("-")
+        if not bv_norm:
+            # No base_version at all — bare name or bare suffix
+            return f"python-builder-{suffix}" if suffix else "python-builder"
+        return f"python-builder-{bv_norm}-{suffix}" if suffix else f"python-builder-{bv_norm}"
 
     if name == "go-builder":
         if p == "" or p == "compile":
