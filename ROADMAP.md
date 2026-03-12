@@ -129,10 +129,6 @@ The project has two audiences with overlapping interests — see
 - [x] **HAProxy CI fixes** — `maxconn 4096`, broken pipe fixes in `haproxy.sh` + `haproxy-ssl.sh`.
 - [x] **Supabase service role key rotated** — `sb_secret_...` format in both repos.
 
----
-
-## Active / Next
-
 ### v0.2.0-alpha — CI pipeline full stabilisation (2026-03-12)
 
 - [x] **Sprint 1** — `scan.yml` concurrency guard; `useblacksmith/*` removed; Trivy version pinned;
@@ -146,7 +142,27 @@ The project has two audiences with overlapping interests — see
       added; HAProxy SIGPIPE + `maxconn` fixes; AGENTS.md + CLAUDE.md updated; architecture docs
       rewritten (17 sections, DE + EN).
 
-### Next targets (after v0.2.0-alpha)
+---
+
+## Active / Next
+
+### v0.2.1-alpha — Supabase version tags + test suite + slug fixes (2026-03-12)
+
+- [x] **`version` image tag on every promote** — `derive_version_group(base_version)` →
+      `major >= 10` = major only; `major < 10` = `major.minor`; delete-first write pattern;
+      Hub catalog sub-grouping now driven by DB tag instead of client-side name parsing.
+- [x] **`supabase_ingress.py` unit test suite** — 99 stdlib-only tests in
+      `scripts/tests/test_supabase_ingress.py`; covers all pure helpers; pre-flight step in
+      `promote.yml` before any DB write; hard-stops on failure (no `continue-on-error`).
+- [x] **python-builder slug fix (canonical)** — `profile=""` dispatch shape falls back to
+      `base_version` for slug construction; `python-builder / "" / v3.12` → `python-builder-v312`.
+- [x] **python-builder slug fix (dev)** — `profile="dev"` dispatch shape combines `bv_norm` +
+      suffix; `python-builder / "dev" / v3.12` → `python-builder-v312-dev`.
+- [x] **Phantom row cleanup** — `python-builder` + `python-builder-dev` rows cascade-deleted
+      from Supabase (174 rows); real images in `ghcr.io/gwshield` unaffected; final state:
+      34 active images, 34 version-tags, 0 missing.
+
+### Next targets (after v0.2.1-alpha)
 
 - [ ] **PHP** — hardened FPM image, target version TBD; strip unused extensions; profiles: FPM + CLI
 - [ ] **OCI provenance attestation** — SLSA Level 3 (`cosign attest --type slsaprovenance`)
