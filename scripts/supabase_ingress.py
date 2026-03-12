@@ -115,9 +115,16 @@ def derive_slug(name: str, profile: str, base_version: str) -> str:
         return f"postgres{major}-{p}"
 
     if name == "python-builder":
-        if p == "":
+        # profile is empty when release-public.yml dispatches the canonical
+        # profile (e.g. images/builders/python-builder/v3.12/ → profile="").
+        # Fall back to base_version so the slug matches the Hub CATALOG:
+        #   python-builder / ""    + bv=v3.12 → python-builder-v312
+        #   python-builder / v3.12            → python-builder-v312  (same)
+        #   python-builder / v3.12-dev        → python-builder-v312-dev
+        effective_p = p if p else base_version
+        if not effective_p:
             return "python-builder"
-        normalised = re.sub(r"v(\d+)\.(\d+)", r"v\1\2", p)
+        normalised = re.sub(r"v(\d+)\.(\d+)", r"v\1\2", effective_p)
         return f"python-builder-{normalised}"
 
     if name == "go-builder":
