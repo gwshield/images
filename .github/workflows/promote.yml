@@ -388,7 +388,8 @@ jobs:
             --digest          "${{ steps.push.outputs.digest }}" \
             --tags            "${{ steps.tags.outputs.tags }}" \
             --cosign-identity "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main" \
-            --promoted-at     "${{ steps.registry.outputs.promoted_at }}"
+            --promoted-at     "${{ steps.registry.outputs.promoted_at }}" \
+            --image-type      "${{ github.event.client_payload.image_type }}"
 
       # Write structured CVE findings into cve_findings table.
       # Passes the raw trivy-results.json so the ingress script can extract
