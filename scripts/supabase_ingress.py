@@ -205,6 +205,38 @@ def derive_os_tag(name: str) -> str:
     return "alpine"
 
 
+def derive_version_group(version_string: str) -> str:
+    """
+    Derive the version group tag value from a full version string.
+
+    The version group is used as tag_key='version' in image_tags and drives
+    sub-grouping in the Hub catalog list view.
+
+    Heuristic (matches Hub's extractVersionGroup() convention):
+      Major >= 10 → only Major          (e.g. postgres v15.17 → "15")
+      Major <  10 → Major.Minor         (e.g. python  v3.12.4 → "3.12")
+
+    Examples:
+      'v15.17'   → '15'
+      'v7.4.8'   → '7.4'
+      'v3.12.4'  → '3.12'
+      '1.28.2'   → '1.28'
+      'v3.6.9'   → '3.6'
+      'v2.11.2'  → '2.11'
+      'v3.1.16'  → '3.1'
+      'v1.87'    → '1.87'
+    """
+    s = version_string.lstrip("v")
+    parts = s.split(".")
+    major = int(parts[0])
+    minor = int(parts[1]) if len(parts) > 1 else None
+    if major >= 10:
+        return str(major)
+    if minor is not None:
+        return f"{major}.{minor}"
+    return str(major)
+
+
 # ---------------------------------------------------------------------------
 # CVE findings extraction from Trivy JSON output
 # ---------------------------------------------------------------------------
@@ -646,7 +678,21 @@ def cmd_promote(args, db: SupabaseClient):
 
     print(f"  wrote {len(tags_to_write)} tag(s): "
           f"{', '.join(t['tag_key'] + '=' + t['tag_value'] for t in tags_to_write)}")
-    print(f"[promote] done — slug={slug}  image_type={image_type}")
+
+    # 7. Write version group tag
+    #    tag_key='version' — Major or Major.Minor depending on heuristic.
+    #    The UNIQUE constraint includes tag_value, so a version bump (e.g. v15→v17)
+    #    requires delete-first to replace the old value cleanly.
+    #    Same-version re-promotes (v15.16→v15.17, both → "15") are no-ops after delete+insert.
+    version_group = derive_version_group(base_version)
+    try:
+        db.delete("image_tags", {"image_id": image_id, "tag_key": "version"})
+        db.insert("image_tags", {"image_id": image_id, "tag_key": "version", "tag_value": version_group})
+        print(f"  version tag set: version={version_group}")
+    except Exception as e:
+        print(f"[WARN] Could not write version tag: {e}", file=sys.stderr)
+
+    print(f"[promote] done — slug={slug}  image_type={image_type}  version={version_group}")
 
 
 # ---------------------------------------------------------------------------
