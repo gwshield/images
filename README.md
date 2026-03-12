@@ -61,7 +61,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `74ec19a9fb41` | 0 CVEs | 2026-03-11 |
+| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `74ec19a9fb41` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `818e8af501b0` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `699b5fc00339` | 0 CVEs | 2026-03-11 |
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `6ab602ca4ed7` | 0 CVEs | 2026-03-12 |
@@ -85,7 +85,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `5e4a68394b13` | 0 CVEs | 2026-03-11 |
+| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `5e4a68394b13` | 0 CVEs | 2026-03-12 |
 
 ---
 
@@ -119,7 +119,7 @@ ENTRYPOINT ["/myapp"]
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `4076d56bfcf1` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `85e5213c24ad` | 0 CVEs | 2026-03-11 |
-| `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `12d462e5aa8a` | 0 CVEs | 2026-03-11 |
+| `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `12d462e5aa8a` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `b8aa19c21e07` | 0 CVEs | 2026-03-12 |
 
 ### rust-builder
