@@ -55,6 +55,15 @@
 #   python-builder/v3.13-dev → python-builder-v313-dev
 #   rust-builder / ""  → rust-builder
 #   rust-builder / dev → rust-builder-dev
+#   caddy / ""         → caddy
+#   caddy / cloudflare → caddy-cloudflare
+#   haproxy / ""       → haproxy
+#   haproxy / ssl      → haproxy-ssl
+#
+# image_type derivation (matches migration 0033):
+#   'builder'  — go-builder, python-builder, rust-builder (any profile)
+#   'tooling'  — redis-cli, postgres-cli (profile == 'cli')
+#   'service'  — everything else (default)
 # =============================================================================
 
 import argparse
@@ -117,6 +126,28 @@ def derive_slug(name: str, profile: str, base_version: str) -> str:
     return f"{name}-{p}"
 
 
+def derive_image_type(name: str, profile: str) -> str:
+    """
+    Derive the image_type for migration 0033.
+
+    Values (enforced by DB CHECK constraint):
+      'builder'  — build-time base images used in multi-stage pipelines
+      'tooling'  — CLI utilities and admin/ops tooling images
+      'service'  — production-ready application/service images (default)
+    """
+    # Builder images — identified by family name
+    _BUILDER_FAMILIES = {"go-builder", "python-builder", "rust-builder"}
+    if name in _BUILDER_FAMILIES:
+        return "builder"
+
+    # Tooling images — identified by 'cli' profile
+    # Covers redis-cli, postgres-cli (and any future cli profile)
+    if profile.strip() == "cli":
+        return "tooling"
+
+    return "service"
+
+
 def derive_source_type(name: str) -> str:
     if "builder" in name:
         return "base"
@@ -128,6 +159,28 @@ def derive_summary(name: str, profile: str, base_version: str) -> str:
     p = profile.strip()
     label = f"{name} {bv}" + (f" ({p})" if p else "")
     return f"Hardened {label} image — 0 CVEs"
+
+
+def derive_os_tag(name: str) -> str:
+    """
+    Derive the base OS for image_tags.
+
+    - Builder images based on golang/rust/python alpine → 'alpine'
+    - Runtime images built on Alpine musl → 'alpine'
+    - Distroless-based images (postgres, caddy scratch) → 'distroless'
+    - Scratch-based images (caddy, traefik) → 'scratch'
+
+    Conservative: default to 'alpine' as most images are Alpine-based.
+    Distroless is only postgres family; scratch is caddy + traefik.
+    """
+    _DISTROLESS = {"postgres"}
+    _SCRATCH    = {"caddy", "traefik"}
+
+    if name in _DISTROLESS:
+        return "distroless"
+    if name in _SCRATCH:
+        return "scratch"
+    return "alpine"
 
 
 # ---------------------------------------------------------------------------
@@ -421,13 +474,17 @@ def cmd_promote(args, db: SupabaseClient):
     promoted_at  = args.promoted_at or datetime.now(timezone.utc).isoformat()
 
     slug         = derive_slug(name, profile, base_version)
+    image_type   = derive_image_type(name, profile)
     source_type  = derive_source_type(name)
     summary      = derive_summary(name, profile, base_version)
     sbom_ref     = f"ghcr.io/gwshield/{name}:{version}" if version else None
+    os_tag       = derive_os_tag(name)
 
-    print(f"[promote] {name}:{version}  slug={slug}  profile={profile!r}")
+    print(f"[promote] {name}:{version}  slug={slug}  profile={profile!r}  image_type={image_type}")
 
-    # 1. Upsert image
+    # 1. Upsert image — includes image_type (migration 0033)
+    #    title_override and featured_promo_text (migration 0032) are admin-only;
+    #    pipeline never touches them — omit from upsert so existing values survive.
     image_row = db.upsert("images", {
         "slug":        slug,
         "name":        f"{name.replace('-', ' ').title()} {base_version}" if base_version else name,
@@ -436,10 +493,11 @@ def cmd_promote(args, db: SupabaseClient):
         "visibility":  "public",
         "status":      "active",
         "featured":    False,
+        "image_type":  image_type,
     }, on_conflict="slug")
 
     image_id = image_row["id"]
-    print(f"  image {image_id[:8]}… upserted")
+    print(f"  image {image_id[:8]}… upserted  (image_type={image_type})")
 
     # 2. Set all existing versions for this image to is_latest=false
     existing_versions = db.select("image_versions", {"image_id": image_id})
@@ -480,6 +538,7 @@ def cmd_promote(args, db: SupabaseClient):
             "tags":            tags.split(),
             "cosign_identity": cosign_id,
             "promoted_at":     promoted_at,
+            "image_type":      image_type,
         },
         "snapshotted_at": promoted_at,
     })
@@ -490,15 +549,40 @@ def cmd_promote(args, db: SupabaseClient):
     # 5. Link snapshot back to version
     db.update("image_versions", {"id": version_id}, {"metadata_snapshot_id": snapshot_id})
 
-    # 6. Upsert image_tags: profile + family
-    tags_to_write = [{"image_id": image_id, "tag_key": "family", "tag_value": name}]
+    # 6. Upsert image_tags
+    #    Standard tags written by pipeline for every image:
+    #      family      — image family name (e.g. "go-builder", "postgres", "nginx")
+    #      image_type  — mirrors images.image_type for tag-based filtering
+    #      os          — base OS layer (alpine / distroless / scratch)
+    #      arch        — multi-arch support declaration
+    #    Optional (profile-specific):
+    #      profile     — profile name when non-empty (e.g. "dev", "tls", "cli")
+    #      category    — "tooling" for cli-profile images (used by migration backfill)
+    tags_to_write: list[dict] = [
+        {"image_id": image_id, "tag_key": "family",     "tag_value": name},
+        {"image_id": image_id, "tag_key": "image_type", "tag_value": image_type},
+        {"image_id": image_id, "tag_key": "os",         "tag_value": os_tag},
+        {"image_id": image_id, "tag_key": "arch",       "tag_value": "linux/amd64,linux/arm64"},
+    ]
+
     if profile:
-        tags_to_write.append({"image_id": image_id, "tag_key": "profile", "tag_value": profile})
+        tags_to_write.append(
+            {"image_id": image_id, "tag_key": "profile", "tag_value": profile}
+        )
+
+    # Tooling images get an explicit category=tooling tag
+    # (mirrors the tag the DB migration uses for backfill identification)
+    if image_type == "tooling":
+        tags_to_write.append(
+            {"image_id": image_id, "tag_key": "category", "tag_value": "tooling"}
+        )
 
     for t in tags_to_write:
         db.upsert("image_tags", t, on_conflict="image_id,tag_key,tag_value")
 
-    print(f"[promote] done — slug={slug}")
+    print(f"  wrote {len(tags_to_write)} tag(s): "
+          f"{', '.join(t['tag_key'] + '=' + t['tag_value'] for t in tags_to_write)}")
+    print(f"[promote] done — slug={slug}  image_type={image_type}")
 
 
 # ---------------------------------------------------------------------------
