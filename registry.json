@@ -169,14 +169,14 @@
       ],
       "digest": "sha256:33e6c7a36d0578872e0e37ea1d7d311eac9255ec7adea6dc3025dce9a0ca5f67",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-12T11:29:38Z",
+      "promoted_at": "2026-03-12T11:58:55Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-12T11:29:38Z"
+        "scanned_at": "2026-03-12T11:58:55Z"
       }
     },
     "redis:v7.4.8-cluster": {
