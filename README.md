@@ -40,7 +40,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `02158b6ed7cb` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `bc37a3892453` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `9eb05dd1a632` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `—` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `07466bd7b1c3` | 0 CVEs | 2026-03-12 |
 
 ### haproxy
 
@@ -111,7 +111,7 @@ ENTRYPOINT ["/myapp"]
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `4cb4f323e76f` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `c9c40de1bac8` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `54967b6a5508` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `8d082020749d` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `76654f2c317c` | 0 CVEs | 2026-03-12 |
 
 ### Python — reproducible wheel builds
