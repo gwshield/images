@@ -199,32 +199,44 @@ class TestDeriveSlug(unittest.TestCase):
         self.assertEqual(self._s("postgres", "vector", "v17.9"), "postgres-v17-vector")
 
     # --- python-builder ---
+    # Hub slugs always embed the version: python-builder-v312, python-builder-v312-dev etc.
+    #
+    # release-public.yml dispatches one of two real shapes:
+    #   profile=""    base_version="v3.12"   (canonical build — dir v3.12)
+    #   profile="dev" base_version="v3.12"   (dev build     — dir v3.12-dev, stripped to "dev")
+    # Legacy explicit shapes (profile contains the full version string) also supported.
 
-    def test_python_builder_empty_profile_falls_back_to_base_version(self):
-        # profile="" + base_version="v3.12" → python-builder-v312
-        # Matches the real dispatch shape from release-public.yml:
-        # images/builders/python-builder/v3.12/ strips profile to "".
+    def test_python_builder_canonical_v312(self):
+        # Real dispatch: profile="" base_version="v3.12" → python-builder-v312
         self.assertEqual(self._s("python-builder", "", "v3.12"), "python-builder-v312")
 
-    def test_python_builder_empty_profile_v313(self):
+    def test_python_builder_canonical_v313(self):
         self.assertEqual(self._s("python-builder", "", "v3.13"), "python-builder-v313")
 
+    def test_python_builder_dev_v312(self):
+        # Real dispatch: profile="dev" base_version="v3.12" → python-builder-v312-dev
+        self.assertEqual(self._s("python-builder", "dev", "v3.12"), "python-builder-v312-dev")
+
+    def test_python_builder_dev_v313(self):
+        self.assertEqual(self._s("python-builder", "dev", "v3.13"), "python-builder-v313-dev")
+
     def test_python_builder_empty_profile_no_base_version(self):
-        # Truly no base_version — defensive fallback to bare name
+        # Defensive: no base_version at all → bare name
         self.assertEqual(self._s("python-builder", "", ""), "python-builder")
 
-    def test_python_builder_v312(self):
-        # Dot in profile must be stripped: v3.12 → v312
-        self.assertEqual(self._s("python-builder", "v3.12"), "python-builder-v312")
+    def test_python_builder_legacy_explicit_v312(self):
+        # Legacy: profile="v3.12" (explicit) → same result
+        self.assertEqual(self._s("python-builder", "v3.12", "v3.12"), "python-builder-v312")
 
-    def test_python_builder_v312_dev(self):
-        self.assertEqual(self._s("python-builder", "v3.12-dev"), "python-builder-v312-dev")
+    def test_python_builder_legacy_explicit_v312_dev(self):
+        # Legacy: profile="v3.12-dev" → python-builder-v312-dev
+        self.assertEqual(self._s("python-builder", "v3.12-dev", "v3.12"), "python-builder-v312-dev")
 
-    def test_python_builder_v313(self):
-        self.assertEqual(self._s("python-builder", "v3.13"), "python-builder-v313")
+    def test_python_builder_legacy_explicit_v313(self):
+        self.assertEqual(self._s("python-builder", "v3.13", "v3.13"), "python-builder-v313")
 
-    def test_python_builder_v313_dev(self):
-        self.assertEqual(self._s("python-builder", "v3.13-dev"), "python-builder-v313-dev")
+    def test_python_builder_legacy_explicit_v313_dev(self):
+        self.assertEqual(self._s("python-builder", "v3.13-dev", "v3.13"), "python-builder-v313-dev")
 
     # --- go-builder ---
 
