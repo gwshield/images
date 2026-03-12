@@ -60,6 +60,15 @@ jobs:
         with:
           python-version: '3.12'
 
+      # -----------------------------------------------------------------------
+      # Unit-test supabase_ingress.py pure helpers before any DB write.
+      # Tests cover slug derivation, image_type detection, version group
+      # heuristic, OS tag, Trivy findings parsing, and env-guard behaviour.
+      # A test failure hard-stops the promote (no continue-on-error).
+      # -----------------------------------------------------------------------
+      - name: Test supabase_ingress.py
+        run: python3 scripts/tests/test_supabase_ingress.py
+
       - name: Validate payload
         run: |
           set -euo pipefail
