@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-12T05:08:04Z",
+  "last_updated": "2026-03-12T05:11:24Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -528,14 +528,14 @@
       ],
       "digest": "sha256:ddfec19bc167bb26fbd8b84fae0294d3b63fa2f08c21bc7a2b8e838091218728",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-12T05:07:49Z",
+      "promoted_at": "2026-03-12T05:11:23Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-12T05:07:49Z"
+        "scanned_at": "2026-03-12T05:11:23Z"
       }
     },
     "rust-builder:v1.87": {
