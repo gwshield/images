@@ -16,6 +16,7 @@
 #   python3 scripts/supabase_ingress.py promote \
 #     --name postgres --version v15.17-tls \
 #     --base-version v15.17 --profile tls \
+#     --image-type service \
 #     --digest sha256:abc123 \
 #     --tags "ghcr.io/gwshield/postgres:v15.17-tls" \
 #     --cosign-identity "https://github.com/gwshield/images/..." \
@@ -60,10 +61,16 @@
 #   haproxy / ""       → haproxy
 #   haproxy / ssl      → haproxy-ssl
 #
-# image_type derivation (matches migration 0033):
-#   'builder'  — go-builder, python-builder, rust-builder (any profile)
-#   'tooling'  — redis-cli, postgres-cli (profile == 'cli')
-#   'service'  — everything else (default)
+# image_type (migration 0033) — valid values + authority:
+#   'service'  — production-ready application/service images (default)
+#   'builder'  — build-time base images used in multi-stage pipelines
+#   'tooling'  — CLI utilities and admin/ops tooling images
+#
+#   Priority: --image-type CLI arg > derive_image_type() auto-detection
+#   Insert-only: image_type is written ONLY on first insert. On conflict
+#   (slug already exists) image_type is NEVER overwritten — admin overrides
+#   in the Hub remain the authority. All other non-protected fields are
+#   updated normally (name, summary, source_type, visibility, status).
 # =============================================================================
 
 import argparse
@@ -74,6 +81,9 @@ import sys
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone
+
+# Valid image_type values — must match DB CHECK constraint (migration 0033)
+_VALID_IMAGE_TYPES = {"service", "builder", "tooling"}
 
 
 # ---------------------------------------------------------------------------
@@ -128,14 +138,16 @@ def derive_slug(name: str, profile: str, base_version: str) -> str:
 
 def derive_image_type(name: str, profile: str) -> str:
     """
-    Derive the image_type for migration 0033.
+    Auto-detect image_type from name + profile (migration 0033 fallback).
+
+    Used when --image-type is not passed explicitly. The CLI arg always
+    takes priority over this function.
 
     Values (enforced by DB CHECK constraint):
       'builder'  — build-time base images used in multi-stage pipelines
       'tooling'  — CLI utilities and admin/ops tooling images
       'service'  — production-ready application/service images (default)
     """
-    # Builder images — identified by family name
     _BUILDER_FAMILIES = {"go-builder", "python-builder", "rust-builder"}
     if name in _BUILDER_FAMILIES:
         return "builder"
@@ -146,6 +158,19 @@ def derive_image_type(name: str, profile: str) -> str:
         return "tooling"
 
     return "service"
+
+
+def resolve_image_type(cli_arg: str | None, name: str, profile: str) -> str:
+    """
+    Resolve the final image_type to use.
+
+    Priority:
+      1. --image-type CLI argument (explicit, validated upstream)
+      2. derive_image_type() auto-detection (fallback)
+    """
+    if cli_arg:
+        return cli_arg
+    return derive_image_type(name, profile)
 
 
 def derive_source_type(name: str) -> str:
@@ -167,11 +192,8 @@ def derive_os_tag(name: str) -> str:
 
     - Builder images based on golang/rust/python alpine → 'alpine'
     - Runtime images built on Alpine musl → 'alpine'
-    - Distroless-based images (postgres, caddy scratch) → 'distroless'
+    - Distroless-based images (postgres) → 'distroless'
     - Scratch-based images (caddy, traefik) → 'scratch'
-
-    Conservative: default to 'alpine' as most images are Alpine-based.
-    Distroless is only postgres family; scratch is caddy + traefik.
     """
     _DISTROLESS = {"postgres"}
     _SCRATCH    = {"caddy", "traefik"}
@@ -268,7 +290,6 @@ def extract_findings_from_trivy(trivy_json: dict) -> list[dict]:
             layer_info  = v.get("Layer", {})
             layer_diff  = layer_info.get("DiffID", "")
 
-            # Classify layer using index; fall back to base_image if unknown
             layer = layer_index.get(layer_diff, "base_image")
 
             fixed_ver       = v.get("FixedVersion") or None
@@ -405,6 +426,41 @@ class SupabaseClient:
                 return vr["id"]
         return None
 
+    def upsert_image(self, slug: str, insert_fields: dict, update_fields: dict) -> dict:
+        """
+        Insert-or-selective-update for the images table.
+
+        On INSERT (new slug): writes both insert_fields and update_fields.
+        On CONFLICT (slug exists): writes only update_fields — insert_fields
+        (specifically image_type) are NEVER overwritten so admin overrides survive.
+
+        This implements the requirement from migration 0033:
+          image_type is insert-only — the Hub admin owns it after first write.
+
+        Args:
+            slug:          unique key for ON CONFLICT detection
+            insert_fields: fields written only on first insert (e.g. image_type)
+            update_fields: fields always written / updated (e.g. name, summary)
+        """
+        # Check if the row already exists
+        existing = self.select("images", {"slug": slug})
+
+        if existing:
+            # Row exists — update only the non-protected fields
+            row_id = existing[0]["id"]
+            self.update("images", {"id": row_id}, update_fields)
+            print(f"  image {row_id[:8]}… updated (image_type preserved: "
+                  f"{existing[0].get('image_type', '?')})")
+            return existing[0] | update_fields | {"id": row_id}
+        else:
+            # New row — write everything including insert_fields
+            full_row = {"slug": slug, **insert_fields, **update_fields}
+            result = self.insert("images", full_row)
+            image_id = result["id"]
+            print(f"  image {image_id[:8]}… inserted  "
+                  f"(image_type={insert_fields.get('image_type', '?')})")
+            return result
+
 
 # ---------------------------------------------------------------------------
 # CVE findings persistence
@@ -474,7 +530,7 @@ def cmd_promote(args, db: SupabaseClient):
     promoted_at  = args.promoted_at or datetime.now(timezone.utc).isoformat()
 
     slug         = derive_slug(name, profile, base_version)
-    image_type   = derive_image_type(name, profile)
+    image_type   = resolve_image_type(getattr(args, "image_type", None), name, profile)
     source_type  = derive_source_type(name)
     summary      = derive_summary(name, profile, base_version)
     sbom_ref     = f"ghcr.io/gwshield/{name}:{version}" if version else None
@@ -482,22 +538,32 @@ def cmd_promote(args, db: SupabaseClient):
 
     print(f"[promote] {name}:{version}  slug={slug}  profile={profile!r}  image_type={image_type}")
 
-    # 1. Upsert image — includes image_type (migration 0033)
-    #    title_override and featured_promo_text (migration 0032) are admin-only;
-    #    pipeline never touches them — omit from upsert so existing values survive.
-    image_row = db.upsert("images", {
-        "slug":        slug,
-        "name":        f"{name.replace('-', ' ').title()} {base_version}" if base_version else name,
-        "summary":     summary,
-        "source_type": source_type,
-        "visibility":  "public",
-        "status":      "active",
-        "featured":    False,
-        "image_type":  image_type,
-    }, on_conflict="slug")
+    # 1. Insert-or-selective-update images table
+    #
+    #    insert_fields  — written ONLY on first insert, never overwritten:
+    #      image_type   ← admin override in Hub is authoritative after first write
+    #
+    #    update_fields  — always written (pipeline is authoritative for these):
+    #      name, summary, source_type, visibility, status, featured
+    #
+    #    Never touched (admin-only, migration 0032):
+    #      title_override, featured_promo_text
+    image_row = db.upsert_image(
+        slug=slug,
+        insert_fields={
+            "image_type": image_type,
+        },
+        update_fields={
+            "name":        f"{name.replace('-', ' ').title()} {base_version}" if base_version else name,
+            "summary":     summary,
+            "source_type": source_type,
+            "visibility":  "public",
+            "status":      "active",
+            "featured":    False,
+        },
+    )
 
     image_id = image_row["id"]
-    print(f"  image {image_id[:8]}… upserted  (image_type={image_type})")
 
     # 2. Set all existing versions for this image to is_latest=false
     existing_versions = db.select("image_versions", {"image_id": image_id})
@@ -550,14 +616,14 @@ def cmd_promote(args, db: SupabaseClient):
     db.update("image_versions", {"id": version_id}, {"metadata_snapshot_id": snapshot_id})
 
     # 6. Upsert image_tags
-    #    Standard tags written by pipeline for every image:
+    #    Standard tags written for every image:
     #      family      — image family name (e.g. "go-builder", "postgres", "nginx")
     #      image_type  — mirrors images.image_type for tag-based filtering
     #      os          — base OS layer (alpine / distroless / scratch)
     #      arch        — multi-arch support declaration
     #    Optional (profile-specific):
     #      profile     — profile name when non-empty (e.g. "dev", "tls", "cli")
-    #      category    — "tooling" for cli-profile images (used by migration backfill)
+    #      category    — "tooling" for cli-profile images
     tags_to_write: list[dict] = [
         {"image_id": image_id, "tag_key": "family",     "tag_value": name},
         {"image_id": image_id, "tag_key": "image_type", "tag_value": image_type},
@@ -570,8 +636,6 @@ def cmd_promote(args, db: SupabaseClient):
             {"image_id": image_id, "tag_key": "profile", "tag_value": profile}
         )
 
-    # Tooling images get an explicit category=tooling tag
-    # (mirrors the tag the DB migration uses for backfill identification)
     if image_type == "tooling":
         tags_to_write.append(
             {"image_id": image_id, "tag_key": "category", "tag_value": "tooling"}
@@ -619,7 +683,6 @@ def cmd_scan(args, db: SupabaseClient):
         "snapshotted_at": scanned_at,
     })
 
-    # Write structured findings if provided
     if findings_arg:
         findings = _parse_findings_arg(findings_arg)
         write_findings(db, version_id, findings, replace=True)
@@ -672,7 +735,6 @@ def _parse_findings_arg(raw_arg: str, fmt: str = "trivy") -> list[dict]:
     if not raw_arg:
         return []
 
-    # Load raw content
     if raw_arg.startswith("@"):
         path = raw_arg[1:]
         with open(path) as f:
@@ -683,16 +745,13 @@ def _parse_findings_arg(raw_arg: str, fmt: str = "trivy") -> list[dict]:
     data = json.loads(content)
 
     if fmt == "trivy":
-        # data is a Trivy JSON report — extract and normalise
         if isinstance(data, dict) and "Results" in data:
             return extract_findings_from_trivy(data)
-        # Already an array of pre-normalised findings
         if isinstance(data, list):
             return data
         raise ValueError(f"Unexpected trivy format: {type(data)}")
 
     if fmt == "findings":
-        # Already a structured findings array
         if isinstance(data, list):
             return data
         raise ValueError(f"findings format expects a JSON array, got {type(data)}")
@@ -703,6 +762,16 @@ def _parse_findings_arg(raw_arg: str, fmt: str = "trivy") -> list[dict]:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+def _validate_image_type(value: str) -> str:
+    """argparse type validator for --image-type."""
+    if value not in _VALID_IMAGE_TYPES:
+        raise argparse.ArgumentTypeError(
+            f"invalid image_type {value!r} — must be one of: "
+            + ", ".join(sorted(_VALID_IMAGE_TYPES))
+        )
+    return value
+
 
 def main():
     supabase_url = os.environ.get("SUPABASE_URL", "").rstrip("/")
@@ -723,6 +792,14 @@ def main():
     p_promote.add_argument("--version",          required=True)
     p_promote.add_argument("--base-version",     required=True, dest="base_version")
     p_promote.add_argument("--profile",          default="")
+    p_promote.add_argument("--image-type",       default=None,  dest="image_type",
+                            type=_validate_image_type,
+                            help=(
+                                "Structural image classification written on first insert only. "
+                                "Admin overrides in the Hub are preserved on subsequent promotes. "
+                                f"Allowed: {', '.join(sorted(_VALID_IMAGE_TYPES))}. "
+                                "Default: auto-detected from --name/--profile."
+                            ))
     p_promote.add_argument("--digest",           default=None)
     p_promote.add_argument("--tags",             default="")
     p_promote.add_argument("--cosign-identity",  default=None, dest="cosign_identity")
