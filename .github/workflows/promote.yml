@@ -202,12 +202,12 @@ jobs:
           syft "${DST_IMAGE}@${DIGEST}" \
             --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
 
-          cosign attest --yes \
+          cosign attest --yes --replace \
             --predicate sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json \
             --type cyclonedx \
             "${DST_IMAGE}@${DIGEST}"
 
-          cosign attest --yes \
+          cosign attest --yes --replace \
             --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
             --type spdx \
             "${DST_IMAGE}@${DIGEST}"
