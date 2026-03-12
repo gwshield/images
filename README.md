@@ -65,10 +65,10 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `0a117e507148` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `e5c059bc9ecd` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `6ab602ca4ed7` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `1546a4aebcd4` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `33e6c7a36d05` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `b1eedce0d9a7` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `77c4a1567def` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `870a667a2a69` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `5b1f6bcb4f18` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `1cdd7ae049fa` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `b9e88703aeba` | 0 CVEs | 2026-03-12 |
 
@@ -76,9 +76,9 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `fa0246094eac` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `4aa85cb8bfc9` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `f8c51c41b756` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `00558bebcf98` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `c555dbf23415` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `56d8f5ce427d` | 0 CVEs | 2026-03-12 |
 
 ### Traefik — cloud-native edge router
@@ -119,7 +119,7 @@ ENTRYPOINT ["/myapp"]
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `655f6770871e` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `85e5213c24ad` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `f6f5fafe0401` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `31408ebfbfaf` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `dbe869b87df1` | 0 CVEs | 2026-03-12 |
 
