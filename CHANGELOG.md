@@ -20,6 +20,68 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
 ---
 
+## [v0.2.1-alpha] — 2026-03-12
+
+### Added
+
+#### Supabase `version` tag + `supabase_ingress.py` unit tests (`feat(supabase)`, `test(supabase)`)
+
+- **`version` image tag** written on every promote run — `tag_key='version'`, `tag_value` derived from
+  `base_version` via `derive_version_group()`:
+  - `major >= 10` → major only (e.g. `v15.17` → `"15"`, `v17.9` → `"17"`)
+  - `major < 10`  → `major.minor` (e.g. `v3.12.4` → `"3.12"`, `v1.28.2` → `"1.28"`)
+  - Written as delete-first + insert (UNIQUE constraint includes `tag_value` — safe version bump)
+  - Wrapped in try/except — Supabase outage never blocks a promote
+- **Hub use**: `tag_key='version'` drives sub-grouping in the Hub catalog list view;
+  `extractVersionGroup()` in `images-catalog-view.tsx` replaced by direct tag lookup.
+- **`scripts/tests/test_supabase_ingress.py`** — new unit test suite for all pure helpers in
+  `supabase_ingress.py`; 99 tests, stdlib `unittest` only (no external deps):
+  - `TestDeriveVersionGroup` — 18 cases covering all image families + boundary (major 9/10) + no-v-prefix
+  - `TestDeriveSlug` — 35 cases covering all slug derivations incl. python-builder dispatch shapes
+  - `TestDeriveImageType` / `TestResolveImageType` — 15 cases
+  - `TestDeriveOsTag` — 10 cases
+  - `TestExtractFindingsFromTrivy` — 6 cases (empty results, None vulns, fixed/unfixed, truncation, PURL)
+  - `TestComponentType` — 10 cases
+  - `TestMainEnvGuard` — env-var guard exit-code check
+- **`promote.yml` pre-flight test step** — `python3 scripts/tests/test_supabase_ingress.py` runs
+  immediately after `Set up Python`, before any DB or registry write; no `continue-on-error` — test
+  failure hard-stops the promote.
+
+### Fixed
+
+#### `supabase_ingress.py` — python-builder slug derivation (`fix(supabase)`)
+
+Two slug bugs uncovered by the new tests and confirmed in the DB:
+
+1. **`python-builder` canonical profile**: `release-public.yml` dispatches `python-builder:v3.12`
+   with `profile=""` (directory name `v3.12` → `base_version=v3.12`, profile stripped to `""`).
+   `derive_slug("python-builder", "")` previously returned `"python-builder"` — wrong Hub slug.
+   **Fix**: when `profile=""` for `python-builder`, fall back to `base_version` for slug construction:
+   `python-builder / "" / v3.12` → `python-builder-v312`.
+
+2. **`python-builder` dev profile**: `release-public.yml` dispatches `python-builder:v3.12-dev`
+   with `profile="dev"` (suffix after `base_version` strip). `derive_slug("python-builder", "dev")`
+   previously returned `"python-builder-dev"` — missing version segment.
+   **Fix**: slug always built from `base_version + optional suffix`:
+   `python-builder / "dev" / v3.12` → `python-builder-v312-dev`.
+
+   New derivation logic for python-builder:
+   - Normalise `base_version` → `bv_norm` (e.g. `v3.12` → `v312`)
+   - Strip any version prefix from `profile` to get pure suffix (`"dev"` stays `"dev"`, `"v3.12"` → `""`)
+   - Combine: `python-builder-{bv_norm}` or `python-builder-{bv_norm}-{suffix}`
+
+#### Supabase phantom row cleanup (`fix(supabase)`)
+
+Two phantom image rows accumulated in Supabase from pre-fix promote runs:
+- `slug=python-builder` (UUID `a7179fed`) — held versions `v3.12` + `v3.13`, 78 snapshots
+- `slug=python-builder-dev` (UUID `2456bdd6`) — held versions `v3.12-dev` + `v3.13-dev`, 79 snapshots
+
+Both rows cascade-deleted (174 rows total across `images`, `image_versions`,
+`image_metadata_snapshots`, `image_tags`). The actual OCI images in `ghcr.io/gwshield` are
+unaffected — only DB metadata was removed. Final state: 34 active images, 34 version-tags, 0 missing.
+
+---
+
 ## [v0.2.0-alpha] — 2026-03-12
 
 ### Changed
