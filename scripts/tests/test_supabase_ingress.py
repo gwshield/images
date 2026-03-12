@@ -200,8 +200,18 @@ class TestDeriveSlug(unittest.TestCase):
 
     # --- python-builder ---
 
-    def test_python_builder_empty_profile(self):
-        self.assertEqual(self._s("python-builder", ""), "python-builder")
+    def test_python_builder_empty_profile_falls_back_to_base_version(self):
+        # profile="" + base_version="v3.12" → python-builder-v312
+        # Matches the real dispatch shape from release-public.yml:
+        # images/builders/python-builder/v3.12/ strips profile to "".
+        self.assertEqual(self._s("python-builder", "", "v3.12"), "python-builder-v312")
+
+    def test_python_builder_empty_profile_v313(self):
+        self.assertEqual(self._s("python-builder", "", "v3.13"), "python-builder-v313")
+
+    def test_python_builder_empty_profile_no_base_version(self):
+        # Truly no base_version — defensive fallback to bare name
+        self.assertEqual(self._s("python-builder", "", ""), "python-builder")
 
     def test_python_builder_v312(self):
         # Dot in profile must be stripped: v3.12 → v312
