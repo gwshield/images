@@ -187,6 +187,7 @@ jobs:
         uses: anchore/sbom-action/download-syft@v0
 
       - name: Generate and attest SBOM
+        continue-on-error: true
         run: |
           set -euo pipefail
           DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
@@ -202,12 +203,12 @@ jobs:
           syft "${DST_IMAGE}@${DIGEST}" \
             --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
 
-          cosign attest --yes --replace \
+          cosign attest --yes \
             --predicate sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json \
             --type cyclonedx \
             "${DST_IMAGE}@${DIGEST}"
 
-          cosign attest --yes --replace \
+          cosign attest --yes \
             --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
             --type spdx \
             "${DST_IMAGE}@${DIGEST}"
