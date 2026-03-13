@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-13T05:31:50Z",
+  "last_updated": "2026-03-13T05:31:53Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -848,6 +848,28 @@
         "high": 0,
         "scanner": "trivy",
         "scanned_at": "2026-03-13T05:31:48Z"
+      }
+    },
+    "valkey:v8.1.6-cluster": {
+      "name": "valkey",
+      "version": "v8.1.6-cluster",
+      "base_version": "v8.1.6",
+      "profile": "cluster",
+      "category": "runtime",
+      "public_image": "ghcr.io/gwshield/valkey",
+      "tags": [
+        "ghcr.io/gwshield/valkey:v8.1.6-cluster"
+      ],
+      "digest": "sha256:a42ac59d3419ff3c0b41e229b0daad22a168605fea1d7ef97da8c2549829d168",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "promoted_at": "2026-03-13T05:31:53Z",
+      "scan": {
+        "status": "clean",
+        "total": 0,
+        "critical": 0,
+        "high": 0,
+        "scanner": "trivy",
+        "scanned_at": "2026-03-13T05:31:53Z"
       }
     }
   }
