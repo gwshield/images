@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-13T15:27:05Z",
+  "last_updated": "2026-03-13T15:27:06Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -149,17 +149,19 @@
       "profile": "vector",
       "category": "runtime",
       "public_image": "ghcr.io/gwshield/postgres",
-      "tags": [],
-      "digest": "",
+      "tags": [
+        "ghcr.io/gwshield/postgres:v15.17-vector"
+      ],
+      "digest": "sha256:46f33da87239f59d4f98c754992608991cd0a50a4681ea1b2bae504010c212ef",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-13T13:23:11Z",
+      "promoted_at": "2026-03-13T15:26:50Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-13T13:23:11Z"
+        "scanned_at": "2026-03-13T15:26:50Z"
       }
     },
     "redis:v7.4.8-cluster": {
