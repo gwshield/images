@@ -119,7 +119,7 @@ ENTRYPOINT ["/myapp"]
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `d48c7ff3a571` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `c9c40de1bac8` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `722a89c56c67` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `8900d95bd67d` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `3830aef1b456` | 0 CVEs | 2026-03-13 |
 
