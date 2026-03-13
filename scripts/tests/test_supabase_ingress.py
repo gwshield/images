@@ -150,7 +150,8 @@ class TestDeriveSlug(unittest.TestCase):
       CATALOG key is 'nginx-http'; using 'nginx' would create a dangling row.
     - python-builder profiles like 'v3.12' contain dots — they must be
       normalised to 'v312' to match the Hub slug 'python-builder-v312'.
-    - go-builder with profile='' or profile='compile' both map to 'go-builder'.
+    - go-builder / rust-builder slugs embed the version (go-builder-v124,
+      rust-builder-v187) to prevent multi-version slug collisions in the DB.
     - postgres slug depends on major from base_version, not profile.
     """
 
@@ -239,24 +240,53 @@ class TestDeriveSlug(unittest.TestCase):
         self.assertEqual(self._s("python-builder", "v3.13-dev", "v3.13"), "python-builder-v313-dev")
 
     # --- go-builder ---
+    # Versioned slugs: go-builder-v124, go-builder-v124-dev, go-builder-v125, …
+    # Same pattern as python-builder — version always embedded to prevent
+    # v1.24 and v1.25 from collapsing onto the same DB row.
 
-    def test_go_builder_empty_profile(self):
-        self.assertEqual(self._s("go-builder", ""), "go-builder")
+    def test_go_builder_v124_empty_profile(self):
+        self.assertEqual(self._s("go-builder", "", "v1.24"), "go-builder-v124")
 
-    def test_go_builder_compile_profile(self):
-        # 'compile' is treated same as empty
-        self.assertEqual(self._s("go-builder", "compile"), "go-builder")
+    def test_go_builder_v124_compile_profile(self):
+        # 'compile' is the internal canonical name → no suffix in slug
+        self.assertEqual(self._s("go-builder", "compile", "v1.24"), "go-builder-v124")
 
-    def test_go_builder_dev(self):
-        self.assertEqual(self._s("go-builder", "dev"), "go-builder-dev")
+    def test_go_builder_v124_dev(self):
+        self.assertEqual(self._s("go-builder", "dev", "v1.24"), "go-builder-v124-dev")
+
+    def test_go_builder_v125_empty_profile(self):
+        self.assertEqual(self._s("go-builder", "", "v1.25"), "go-builder-v125")
+
+    def test_go_builder_v125_compile_profile(self):
+        self.assertEqual(self._s("go-builder", "compile", "v1.25"), "go-builder-v125")
+
+    def test_go_builder_v125_dev(self):
+        self.assertEqual(self._s("go-builder", "dev", "v1.25"), "go-builder-v125-dev")
+
+    def test_go_builder_no_base_version_empty(self):
+        # Fallback when base_version is absent
+        self.assertEqual(self._s("go-builder", "", ""), "go-builder")
+
+    def test_go_builder_no_base_version_dev(self):
+        self.assertEqual(self._s("go-builder", "dev", ""), "go-builder-dev")
 
     # --- rust-builder ---
+    # Same versioned-slug pattern: rust-builder-v187, rust-builder-v187-dev
 
-    def test_rust_builder_empty(self):
-        self.assertEqual(self._s("rust-builder", ""), "rust-builder")
+    def test_rust_builder_v187_empty(self):
+        self.assertEqual(self._s("rust-builder", "", "v1.87"), "rust-builder-v187")
 
-    def test_rust_builder_dev(self):
-        self.assertEqual(self._s("rust-builder", "dev"), "rust-builder-dev")
+    def test_rust_builder_v187_compile(self):
+        self.assertEqual(self._s("rust-builder", "compile", "v1.87"), "rust-builder-v187")
+
+    def test_rust_builder_v187_dev(self):
+        self.assertEqual(self._s("rust-builder", "dev", "v1.87"), "rust-builder-v187-dev")
+
+    def test_rust_builder_no_base_version_empty(self):
+        self.assertEqual(self._s("rust-builder", "", ""), "rust-builder")
+
+    def test_rust_builder_no_base_version_dev(self):
+        self.assertEqual(self._s("rust-builder", "dev", ""), "rust-builder-dev")
 
     # --- redis ---
 
