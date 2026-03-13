@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-13T15:19:05Z",
+  "last_updated": "2026-03-13T15:19:06Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -809,17 +809,19 @@
       "profile": "tls",
       "category": "runtime",
       "public_image": "ghcr.io/gwshield/varnish",
-      "tags": [],
-      "digest": "",
+      "tags": [
+        "ghcr.io/gwshield/varnish:v7.7.3-tls"
+      ],
+      "digest": "sha256:8822a5c879e96b6e8de97169b8ef9b074f32c24a04f0f51e6bd3798c1f7e5ac6",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-13T13:23:32Z",
+      "promoted_at": "2026-03-13T15:19:06Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-13T13:23:32Z"
+        "scanned_at": "2026-03-13T15:19:06Z"
       }
     },
     "varnish:v7.7.3": {
