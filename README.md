@@ -130,7 +130,7 @@ ENTRYPOINT ["/myapp"]
 | `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `—` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `6de3587b5caa` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `—` | 0 CVEs | 2026-03-13 |
 
 ### rust-builder
 
