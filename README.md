@@ -91,7 +91,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `d89de34bb03d` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `a9cdb564eda0` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `3e8580c74399` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `96dd8d7f4f75` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `d4f55e9306c9` | 0 CVEs | 2026-03-13 |
