@@ -35,10 +35,10 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `38d0a46d51e6` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `c209b5ee8426` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `4fe429c63401` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `6fb782bfa5e6` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `301322b81a2f` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `0e098330be8f` | 0 CVEs | 2026-03-13 |
 
@@ -46,55 +46,55 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `607870478a8e` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `a1ac33df3696` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `—` | 0 CVEs | 2026-03-13 |
 
 ### nginx — HTTP server / reverse proxy
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `ce51b92666ca` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `530f5bbbca4f` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `836fc0f8b32c` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `—` | 0 CVEs | 2026-03-13 |
 
 ### PostgreSQL — relational database
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `88f58b61a96e` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `5de8d713cbb5` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `c466c1aefb13` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `e4ec1b03efd3` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `22635171c029` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `66c3cb7bf501` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `a4f6200d2af7` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `1404093e7af6` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `8a9cc585fe34` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `0d0d808709ec` | 0 CVEs | 2026-03-13 |
 
 ### Redis — in-memory data store
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `edd67233b3f3` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `ab6b43fad4ac` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `d8e0f6cde22c` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `d45bc4c21fe7` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `—` | 0 CVEs | 2026-03-13 |
 
 ### Traefik — cloud-native edge router
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `b62cbee3253f` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `—` | 0 CVEs | 2026-03-13 |
 
 ### valkey
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `a9cdb564eda0` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `3e8580c74399` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `96dd8d7f4f75` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `d4f55e9306c9` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `—` | 0 CVEs | 2026-03-13 |
 
 ---
 
@@ -118,26 +118,26 @@ ENTRYPOINT ["/myapp"]
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `d48c7ff3a571` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `920977ec2352` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `8900d95bd67d` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `d3c7e144799b` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `—` | 0 CVEs | 2026-03-13 |
 
 ### Python — reproducible wheel builds
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `0eb2af0e9eaf` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `ec1141f1bd02` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `69c097b94861` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `6de3587b5caa` | 0 CVEs | 2026-03-13 |
 
 ### rust-builder
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `4c92ceccb7e5` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `5801267e5162` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `—` | 0 CVEs | 2026-03-13 |
 
 ---
 
@@ -234,7 +234,7 @@ Kubernetes lifecycle hooks behave exactly as with a direct entrypoint.
 ```bash
 # Runtime image — pull and verify
 docker pull ghcr.io/gwshield/caddy:v2.11.2
-docker pull ghcr.io/gwshield/caddy@sha256:38d0a46d51e69ea3f7e401cd740f993f01f68dba28391f43b2fd0b4f1eae4cf0
+docker pull ghcr.io/gwshield/caddy@
 
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
