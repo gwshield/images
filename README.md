@@ -78,7 +78,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `58cea14c80d7` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `7c00bda0ffb8` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `116fc17587df` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `1d47d7dc3a25` | 0 CVEs | 2026-03-13 |
 
 ### Traefik — cloud-native edge router
