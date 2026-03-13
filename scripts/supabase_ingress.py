@@ -139,14 +139,30 @@ def derive_slug(name: str, profile: str, base_version: str) -> str:
         return f"python-builder-{bv_norm}-{suffix}" if suffix else f"python-builder-{bv_norm}"
 
     if name == "go-builder":
-        if p == "" or p == "compile":
-            return "go-builder"
-        return f"go-builder-{p}"
+        # Hub slugs always embed the version number — same pattern as python-builder:
+        #   go-builder-v124        go-builder-v124-dev
+        #   go-builder-v125        go-builder-v125-dev
+        # Without versioned slugs, v1.24 and v1.25 collapse onto the same DB row
+        # and the Hub cannot render them as separate version groups.
+        bv_norm = re.sub(r"v(\d+)\.(\d+)", r"v\1\2", base_version) if base_version else ""
+        suffix = re.sub(r"^v\d+\.\d+", "", p).lstrip("-")
+        # "compile" is the internal canonical name → no suffix in slug
+        if suffix == "compile":
+            suffix = ""
+        if not bv_norm:
+            return f"go-builder-{suffix}" if suffix else "go-builder"
+        return f"go-builder-{bv_norm}-{suffix}" if suffix else f"go-builder-{bv_norm}"
 
     if name == "rust-builder":
-        if p == "" or p == "compile":
-            return "rust-builder"
-        return f"rust-builder-{p}"
+        # Same versioned-slug pattern as go-builder / python-builder:
+        #   rust-builder-v187        rust-builder-v187-dev
+        bv_norm = re.sub(r"v(\d+)\.(\d+)", r"v\1\2", base_version) if base_version else ""
+        suffix = re.sub(r"^v\d+\.\d+", "", p).lstrip("-")
+        if suffix == "compile":
+            suffix = ""
+        if not bv_norm:
+            return f"rust-builder-{suffix}" if suffix else "rust-builder"
+        return f"rust-builder-{bv_norm}-{suffix}" if suffix else f"rust-builder-{bv_norm}"
 
     # Default: name + optional profile suffix
     if p == "":
