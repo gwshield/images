@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-13T08:53:18Z",
+  "last_updated": "2026-03-13T09:09:19Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -483,14 +483,14 @@
       ],
       "digest": "sha256:d8b4d7853ee0536527d3d427cac24af48ca172c508a711a6623bc01447165ddd",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-13T08:51:32Z",
+      "promoted_at": "2026-03-13T09:09:18Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-13T08:51:32Z"
+        "scanned_at": "2026-03-13T09:09:18Z"
       }
     },
     "postgres:v17.9": {
