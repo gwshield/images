@@ -53,7 +53,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `6e18df432a23` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `ce51b92666ca` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `530f5bbbca4f` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `836fc0f8b32c` | 0 CVEs | 2026-03-13 |
 
@@ -93,7 +93,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `d89de34bb03d` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `c770bc9dccb3` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `a42ac59d3419` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `96dd8d7f4f75` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `d4f55e9306c9` | 0 CVEs | 2026-03-13 |
 
 ---
@@ -120,7 +120,7 @@ ENTRYPOINT ["/myapp"]
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `fbcd53458c87` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `c9c40de1bac8` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `17a8cf38ed77` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `8900d95bd67d` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `cc6634dca569` | 0 CVEs | 2026-03-13 |
 
 ### Python — reproducible wheel builds
