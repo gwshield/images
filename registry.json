@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-13T15:27:15Z",
+  "last_updated": "2026-03-13T15:27:16Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -503,17 +503,20 @@
       "profile": "",
       "category": "builder",
       "public_image": "ghcr.io/gwshield/rust-builder",
-      "tags": [],
-      "digest": "",
+      "tags": [
+        "ghcr.io/gwshield/rust-builder:v1.87",
+        "ghcr.io/gwshield/rust-builder:latest"
+      ],
+      "digest": "sha256:816ff3648acbb4f554fd175d4a04673cbc7f08794b6aa94914cf101bdc0348eb",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-13T13:23:04Z",
+      "promoted_at": "2026-03-13T15:27:16Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-13T13:23:04Z"
+        "scanned_at": "2026-03-13T15:27:16Z"
       }
     },
     "rust-builder:v1.87-dev": {
