@@ -132,6 +132,71 @@ ENTRYPOINT ["/myapp"]
 
 ---
 
+## Build philosophy
+
+### From source, from scratch — no vendor base images
+
+Every image in this registry is compiled **directly from the upstream source tarball** (SHA-256
+verified, pinned to a specific release tag). We do not start from a vendor-supplied image and
+patch over it. Starting from a vendor base inherits its full CVE surface — including
+vulnerabilities in compiled binaries that OS package upgrades can never reach.
+
+The build follows a strict multi-stage pattern:
+
+```
+Stage 1 — builder (Alpine)   compile from source with hardening flags
+Stage 2 — deps               /etc/passwd, CA bundle, runtime directories
+Stage 3 — banner             startup shim (exec-and-disappear, see below)
+Stage 4 — runtime            FROM scratch or distroless — binary only
+```
+
+### Runtime base: scratch or distroless
+
+| Family | Runtime base | Reason |
+|---|---|---|
+| Traefik, Caddy | `FROM scratch` | Go + `CGO_ENABLED=0` → fully static, zero loader needed |
+| nginx, Redis, HAProxy | `FROM scratch` + musl loader | C binary, dynamically linked against musl only |
+| PostgreSQL | `FROM gcr.io/distroless/cc-debian12` | glibc dependency; distroless supplies the minimal runtime |
+
+### Static linking
+
+Third-party libraries (OpenSSL, PCRE2, zlib, …) are linked **statically** where the build
+system allows it, so they cannot be replaced at runtime and do not appear as separate OS packages
+for scanners to report. Verification: `readelf -d <binary> | grep NEEDED` — only the musl loader
+(C images) or empty output (Go images) should appear.
+
+### Specialised profiles are independent images
+
+When a service has meaningful variants (TLS, extension sets, client-only), each variant is a
+**fully independent image build** — not a layer on top of a standard image. Every profile has
+its own CVE baseline, SBOM, and smoke test.
+
+### What we deliberately do not provide
+
+Images in this registry are **security-first, not convenience-first**:
+
+| Feature | Status |
+|---|---|
+| Environment-variable driven init (`POSTGRES_PASSWORD`, …) | not provided |
+| Automatic database / service initialisation on first start | not provided |
+| `entrypoint.sh` wrapper with branching logic | not provided |
+| Shell in runtime image | never |
+| Package manager in runtime image | never |
+| Root start + privilege drop | never — UID 65532 from the start |
+
+Configuration is the operator's responsibility: mount a config file or rely on the service
+binary's own environment-variable support where it exists.
+
+### Startup shim
+
+The only addition to every runtime image (excluding builder images) is a small C binary that
+prints a startup banner and immediately calls `execve()` on the service binary. After `exec()`,
+there is no extra process running. **PID 1 is the service itself.** Signal handling and
+Kubernetes lifecycle hooks behave exactly as with a direct entrypoint.
+
+---
+
+
 ## Hardening principles
 
 **Runtime images**
