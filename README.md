@@ -61,7 +61,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `1d77e266cc62` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `824b2b34f020` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `27ae10767730` | 0 CVEs | 2026-03-13 |
@@ -92,7 +92,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `—` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `5c0f15546f51` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `9428ce048fd7` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `f07dc5034bb5` | 0 CVEs | 2026-03-13 |
 
@@ -136,7 +136,7 @@ ENTRYPOINT ["/myapp"]
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `f5a00ac6308d` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `8e1e4bbc3b9c` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `bbcc7abad875` | 0 CVEs | 2026-03-13 |
 
 ### rust-builder
