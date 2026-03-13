@@ -47,7 +47,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `a0e34419c719` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `bc6a1250299c` | 0 CVEs | 2026-03-13 |
 
 ### nginx — HTTP server / reverse proxy
 
@@ -77,7 +77,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `58cea14c80d7` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `7c00bda0ffb8` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `1d47d7dc3a25` | 0 CVEs | 2026-03-13 |
 
@@ -128,7 +128,7 @@ ENTRYPOINT ["/myapp"]
 | `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `a770148665d2` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `42ac94dfa89f` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `2386cafab05e` | 0 CVEs | 2026-03-13 |
 
 ### Python — reproducible wheel builds
 
