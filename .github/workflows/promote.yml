@@ -407,9 +407,97 @@ jobs:
             --promoted-at     "${{ steps.registry.outputs.promoted_at }}" \
             --image-type      "${{ github.event.client_payload.image_type }}"
 
+      # Fetch allowlist for this image from RelicFrog/gwshield-images so suppressed
+      # CVEs can be written transparently alongside real Trivy findings.
+      # gen-trivyignore.py + all allowlist.yaml files are fetched via API.
+      # Gracefully skipped if RELICFROG_READ_PAT is unavailable or fetch fails.
+      - name: Generate allowlist-findings.json
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.RELICFROG_READ_PAT }}
+        run: |
+          set -euo pipefail
+          NAME="${{ github.event.client_payload.name }}"
+          VERSION="${{ github.event.client_payload.version }}"
+
+          # Fetch gen-trivyignore.py from source repo
+          curl -sSfL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github.v3.raw" \
+            "https://api.github.com/repos/RelicFrog/gwshield-images/contents/shared/scripts/gen-trivyignore.py" \
+            -o /tmp/gen-trivyignore.py
+
+          # Fetch all allowlist.yaml files and reconstruct the images/ tree locally
+          mkdir -p allowlist-src
+          python3 - <<'PYEOF'
+          import json, os, base64, urllib.request, urllib.error
+
+          token = os.environ["GH_TOKEN"]
+          name  = os.environ["NAME"]
+
+          def gh_get(path):
+              url = f"https://api.github.com/repos/RelicFrog/gwshield-images/contents/{path}"
+              req = urllib.request.Request(url, headers={
+                  "Authorization": f"Bearer {token}",
+                  "Accept": "application/vnd.github.v3+json",
+              })
+              with urllib.request.urlopen(req) as r:
+                  return json.loads(r.read())
+
+          def fetch_file(api_path, local_path):
+              data = gh_get(api_path)
+              content = base64.b64decode(data["content"])
+              os.makedirs(os.path.dirname(local_path), exist_ok=True)
+              with open(local_path, "wb") as f:
+                  f.write(content)
+              print(f"  fetched {api_path} -> {local_path}")
+
+          # Discover all allowlist.yaml under images/<name>*/
+          try:
+              top = gh_get("images")
+          except Exception as e:
+              print(f"Could not list images/: {e}")
+              raise
+
+          for entry in top:
+              img_name = entry["name"]
+              if not img_name.startswith(name):
+                  continue
+              # List versions under this image dir
+              try:
+                  versions = gh_get(f"images/{img_name}")
+              except Exception:
+                  continue
+              for ver_entry in versions:
+                  ver = ver_entry["name"]
+                  allowlist_path = f"images/{img_name}/{ver}/scan/allowlist.yaml"
+                  local_path     = f"allowlist-src/{allowlist_path}"
+                  try:
+                      fetch_file(allowlist_path, local_path)
+                  except Exception:
+                      pass  # no allowlist for this version — skip silently
+          PYEOF
+
+          # Run gen-trivyignore.py against the fetched allowlist tree
+          if ls allowlist-src/images/ 2>/dev/null | grep -q .; then
+            python3 /tmp/gen-trivyignore.py \
+              --images-dir     allowlist-src/images \
+              --output         .trivyignore-promote \
+              --emit-findings-json allowlist-findings.json \
+              --target-name    "${NAME}" \
+              --target-version "${VERSION}"
+            echo "allowlist-findings.json generated:"
+            python3 -c "import json; d=json.load(open('allowlist-findings.json')); print(f'  {len(d)} suppressed entries')" 2>/dev/null || true
+          else
+            echo "No allowlist files fetched — writing empty allowlist-findings.json"
+            echo '[]' > allowlist-findings.json
+          fi
+
       # Write structured CVE findings into cve_findings table.
       # Passes the raw trivy-results.json so the ingress script can extract
       # full per-CVE detail (severity, package, fixed_version, cvss, layer).
+      # Suppressed CVEs from allowlist are merged in via --allowlist-json.
       # Gracefully skipped if cve_findings table migration is not yet applied.
       - name: Write CVE findings to Supabase
         if: always()
@@ -422,6 +510,10 @@ jobs:
           if [[ -f trivy-results.json ]]; then
             FINDINGS_ARG="@trivy-results.json"
           fi
+          ALLOWLIST_ARG=""
+          if [[ -f allowlist-findings.json ]]; then
+            ALLOWLIST_ARG="--allowlist-json @allowlist-findings.json"
+          fi
           python3 scripts/supabase_ingress.py scan \
             --name          "${{ github.event.client_payload.name }}" \
             --version       "${{ github.event.client_payload.version }}" \
@@ -430,7 +522,8 @@ jobs:
             --cve-high      "${{ steps.trivy.outputs.high }}" \
             --scanner       trivy \
             --scanned-at    "${{ steps.registry.outputs.promoted_at }}" \
-            ${FINDINGS_ARG:+--findings-json "${FINDINGS_ARG}"}
+            ${FINDINGS_ARG:+--findings-json "${FINDINGS_ARG}"} \
+            ${ALLOWLIST_ARG}
 
       # -----------------------------------------------------------------------
       # Trigger readme-update workflow (via repository_dispatch to self)
