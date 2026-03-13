@@ -65,10 +65,10 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `d514d0f8896d` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `884f2fb89990` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `89a1c44181fa` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `33e6c7a36d05` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `4bb65f6c4dbe` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `a39e54bf3c92` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `77dbdbc5f385` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `5b1f6bcb4f18` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `074a7fd10169` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `d8b4d7853ee0` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `7a50b9c0d189` | 0 CVEs | 2026-03-13 |
 
@@ -118,7 +118,7 @@ ENTRYPOINT ["/myapp"]
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `fbcd53458c87` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `d48c7ff3a571` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `c9c40de1bac8` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `8900d95bd67d` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `3830aef1b456` | 0 CVEs | 2026-03-13 |
@@ -130,14 +130,14 @@ ENTRYPOINT ["/myapp"]
 | `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `0eb2af0e9eaf` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `ec1141f1bd02` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `69c097b94861` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `dbe869b87df1` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `6de3587b5caa` | 0 CVEs | 2026-03-13 |
 
 ### rust-builder
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `4c92ceccb7e5` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `68c01e2dd3e7` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `5801267e5162` | 0 CVEs | 2026-03-13 |
 
 ---
 
