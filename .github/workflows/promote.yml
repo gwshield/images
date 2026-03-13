@@ -69,6 +69,41 @@ jobs:
       - name: Test supabase_ingress.py
         run: python3 scripts/tests/test_supabase_ingress.py
 
+
+      # -----------------------------------------------------------------------
+      # Unit-test gwshield-init argv protocol (v1.1) before any image promote.
+      # Fetches gwshield-init-test.c from RelicFrog/gwshield-images via API,
+      # compiles it with musl-gcc in Alpine, and runs 26 test cases covering
+      # parse_gws_args() -- --gws-version, --gws-exec, passthrough, edge-cases.
+      # A test failure hard-stops the promote (no continue-on-error).
+      # -----------------------------------------------------------------------
+      - name: Test gwshield-init (C unit tests)
+        env:
+          GH_TOKEN: ${{ secrets.RELICFROG_READ_PAT }}
+        run: |
+          set -euo pipefail
+          curl -sSfL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github.v3.raw" \
+            "https://api.github.com/repos/RelicFrog/gwshield-images/contents/shared/banner/gwshield-init-test.c" \
+            -o /tmp/gwshield-init-test.c
+          docker run --rm \
+            -v /tmp/gwshield-init-test.c:/src/gwshield-init-test.c:ro \
+            alpine:3.21 sh -c '
+              apk add --no-cache musl-dev gcc >/dev/null 2>&1
+              gcc -static \
+                -DGWS_SERVICE=\"testsvc\" \
+                -DGWS_VERSION=\"v1.1.0\" \
+                -DGWS_PROFILE=\"standard\" \
+                -DGWS_BUILD_TS=\"1970-01-01T00:00:00Z\" \
+                -DGWS_GIT_COMMIT=\"testcommit\" \
+                -DGWS_GIT_BRANCH=\"testbranch\" \
+                -DGWS_EXEC=\"/bin/true\" \
+                -o /tmp/gwshield-init-test \
+                /src/gwshield-init-test.c
+              /tmp/gwshield-init-test
+            '
+
       - name: Validate payload
         run: |
           set -euo pipefail
