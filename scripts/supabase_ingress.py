@@ -154,6 +154,40 @@ def derive_slug(name: str, profile: str, base_version: str) -> str:
     return f"{name}-{p}"
 
 
+def derive_profile_tag(name: str, profile: str) -> str:
+    """
+    Map the raw pipeline profile to the Hub-facing profile tag value.
+
+    The pipeline uses short names like "http" (nginx canonical) and "compile"
+    (go-builder canonical) internally.  The Hub's isPrimaryProfile() treats
+    profile=null and profile="standard" as the primary/parent row.  This
+    function normalises canonical profiles to "standard" so that the Hub
+    renders them correctly as parent rows without any Hub-side code changes.
+
+    Canonical → standard mappings:
+      nginx       "" or "http"    → "standard"   (HTTP is the base nginx profile)
+      go-builder  "" or "compile" → "standard"   (compile is the base go-builder profile)
+      rust-builder "" or "compile"→ "standard"   (compile is the base rust-builder profile)
+      All others: profile passed through unchanged.
+
+    Returns "" (falsy) when the raw profile is empty and there is no canonical
+    mapping, so callers can use `if profile_tag:` to skip writing the tag.
+    """
+    p = profile.strip()
+
+    if name == "nginx":
+        if p == "" or p == "http":
+            return "standard"
+        return p
+
+    if name in ("go-builder", "rust-builder"):
+        if p == "" or p == "compile":
+            return "standard"
+        return p
+
+    return p
+
+
 def derive_image_type(name: str, profile: str) -> str:
     """
     Auto-detect image_type from name + profile (migration 0033 fallback).
@@ -672,7 +706,10 @@ def cmd_promote(args, db: SupabaseClient):
     #      os          — base OS layer (alpine / distroless / scratch)
     #      arch        — multi-arch support declaration
     #    Optional (profile-specific):
-    #      profile     — profile name when non-empty (e.g. "dev", "tls", "cli")
+    #      profile     — Hub-facing profile tag; canonical profiles (nginx:http,
+    #                    go-builder/rust-builder:compile) are mapped to "standard"
+    #                    via derive_profile_tag() so the Hub renders them as primary
+    #                    parent rows.  Empty string → tag omitted.
     #      category    — "tooling" for cli-profile images
     tags_to_write: list[dict] = [
         {"image_id": image_id, "tag_key": "family",     "tag_value": name},
@@ -681,9 +718,10 @@ def cmd_promote(args, db: SupabaseClient):
         {"image_id": image_id, "tag_key": "arch",       "tag_value": "linux/amd64,linux/arm64"},
     ]
 
-    if profile:
+    profile_tag = derive_profile_tag(name, profile)
+    if profile_tag:
         tags_to_write.append(
-            {"image_id": image_id, "tag_key": "profile", "tag_value": profile}
+            {"image_id": image_id, "tag_key": "profile", "tag_value": profile_tag}
         )
 
     if image_type == "tooling":
