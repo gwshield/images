@@ -20,6 +20,36 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
 ---
 
+## [v0.2.2-alpha] — 2026-03-13
+
+### Fixed
+
+#### Hub primary-row rendering for nginx and go-builder (`fix(supabase)`)
+
+The Hub list view groups images by family and renders one image as the "primary" parent row
+per version group.  `isPrimaryProfile()` in `images-catalog-view.tsx` recognises `profile=null`
+or `profile=standard` as primary.  Three images had canonical profiles that did not match:
+
+| Image slug   | Old profile tag | New profile tag | Effect                              |
+| ------------ | --------------- | --------------- | ----------------------------------- |
+| `nginx-http`  | `http`          | `standard`      | nginx family now shows parent row   |
+| `go-builder`  | `compile`       | `standard`      | v1.25 group now shows parent row    |
+
+`rust-builder` (compile profile) was already correct — no DB change needed.
+
+- **DB patched directly** (delete-first + insert) — takes effect immediately in Hub without
+  a re-promote.
+- **`supabase_ingress.py` — new `derive_profile_tag()` helper** ensures future re-promotes
+  write the correct Hub-facing tag:
+  - `nginx` + `""` or `"http"` → `"standard"`
+  - `go-builder` / `rust-builder` + `""` or `"compile"` → `"standard"`
+  - All other name+profile combinations pass through unchanged.
+- **`test_supabase_ingress.py` — new `TestDeriveProfileTag`** — 17 cases covering all
+  canonical mappings and passthrough cases; total test count: 116 (was 99).
+- No Hub-side code change required — `images-catalog-view.tsx` unchanged.
+
+---
+
 ## [v0.2.1-alpha] — 2026-03-12
 
 ### Added
