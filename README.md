@@ -100,8 +100,8 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/varnish:v7.7.3` | `v7.7.3` | standard | `—` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/varnish:v7.7.3-tls` | `v7.7.3-tls` | TLS | `—` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/varnish:v7.7.3` | `v7.7.3` | standard | `7da45b889571` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/varnish:v7.7.3-tls` | `v7.7.3-tls` | TLS | `8822a5c879e9` | 0 CVEs | 2026-03-13 |
 
 ---
 
