@@ -12,6 +12,19 @@
 #   findings  — write structured CVE findings for a specific image version
 #               (used by rescan-origin pipeline and manual backfill)
 #
+# Suppressed CVE transparency:
+#   The scan and findings subcommands accept an optional --allowlist-json
+#   argument. When provided, suppressed CVE entries (produced by
+#   gen-trivyignore.py --emit-findings-json) are merged with the real Trivy
+#   findings before the Supabase write. Suppressed entries carry
+#   is_suppressed=true and the full allowlist rationale.
+#
+#   The suppression_* columns (is_suppressed, suppression_reason,
+#   suppression_detail, suppression_evidence, review_date) are written
+#   conditionally — write_findings() probes for column existence and falls
+#   back silently to the current schema if migration 0034 is not yet applied.
+#   This keeps the pipeline forward-compatible with the Hub migration schedule.
+#
 # Usage:
 #   python3 scripts/supabase_ingress.py promote \
 #     --name postgres --version v15.17-tls \
@@ -566,10 +579,97 @@ class SupabaseClient:
 # CVE findings persistence
 # ---------------------------------------------------------------------------
 
+# Suppression columns added by Hub migration 0034.
+# We probe for their existence once per process run and cache the result.
+_suppression_columns_available: bool | None = None
+
+
+def _suppression_cols_exist(db: SupabaseClient) -> bool:
+    """
+    Return True if the cve_findings table has the migration-0034 suppression
+    columns (is_suppressed, suppression_reason, …).
+
+    Result is cached for the lifetime of the process — one probe per run.
+    Falls back to False on any error so older pipelines stay functional.
+    """
+    global _suppression_columns_available
+    if _suppression_columns_available is not None:
+        return _suppression_columns_available
+
+    # Probe by requesting a single row and checking column keys.
+    # If the table is empty we can't introspect columns this way, so we fall
+    # back to a known-safe approach: attempt a dry PATCH with limit=0.
+    try:
+        url = (db.base + "/cve_findings"
+               "?select=is_suppressed&limit=1")
+        import urllib.request as _ur
+        req = _ur.Request(url, headers=db.headers, method="GET")
+        with _ur.urlopen(req) as resp:
+            resp.read()
+        _suppression_columns_available = True
+    except Exception:
+        _suppression_columns_available = False
+
+    status = "available" if _suppression_columns_available else "not yet available (migration 0034 pending)"
+    print(f"  [suppress-probe] suppression columns: {status}")
+    return _suppression_columns_available
+
+
+def _merge_with_allowlist(trivy_findings: list[dict],
+                          allowlist_findings: list[dict]) -> list[dict]:
+    """
+    Merge real Trivy findings with suppressed allowlist findings.
+
+    Strategy:
+    - Build a set of CVE IDs already present in the Trivy findings.
+    - For each allowlist entry whose CVE ID is NOT already in the Trivy set,
+      append it (it was completely suppressed by .trivyignore — Trivy never
+      emitted it). These entries always have is_suppressed=True.
+    - For any CVE ID that appears in BOTH lists (should not happen normally —
+      would mean Trivy reported it despite being in .trivyignore), the Trivy
+      finding takes precedence and the allowlist entry is skipped.
+
+    The merge is intentionally additive-only — it never modifies the real
+    Trivy findings, only appends the suppressed ones.
+    """
+    trivy_cve_ids = {f["cve_id"] for f in trivy_findings}
+    merged = list(trivy_findings)
+
+    skipped = 0
+    appended = 0
+    for entry in allowlist_findings:
+        cve_id = entry.get("cve_id", "")
+        if not cve_id:
+            continue
+        if cve_id in trivy_cve_ids:
+            # Trivy reported it despite .trivyignore — real finding wins
+            skipped += 1
+            print(f"  [merge] {cve_id} — Trivy finding takes precedence over allowlist entry")
+            continue
+        merged.append(entry)
+        appended += 1
+
+    if allowlist_findings:
+        print(f"  [merge] +{appended} suppressed / {skipped} skipped (Trivy precedence) "
+              f"/ {len(trivy_findings)} real → {len(merged)} total findings")
+
+    return merged
+
+
 def write_findings(db: SupabaseClient, version_id: str, findings: list[dict],
                    replace: bool = True) -> int:
     """
     Write cve_findings rows for a given image_version_id.
+
+    Handles both real findings (is_suppressed absent or False) and suppressed
+    findings (is_suppressed=True, produced by gen-trivyignore.py
+    --emit-findings-json + _merge_with_allowlist).
+
+    Suppression columns (is_suppressed, suppression_reason, suppression_detail,
+    suppression_evidence, review_date) are written only when migration 0034 is
+    applied. If the columns don't exist yet the row is written without them —
+    the suppressed entry is still stored, just without the rich metadata until
+    the migration runs.
 
     If replace=True (default), deletes existing findings for this version first
     (idempotent re-runs). If the cve_findings table doesn't exist yet (migration
@@ -578,7 +678,7 @@ def write_findings(db: SupabaseClient, version_id: str, findings: list[dict],
     Returns the number of rows written.
     """
     if not findings:
-        print("  No CVE findings to write (clean image)")
+        print("  No CVE findings to write (clean image — no real or suppressed findings)")
         return 0
 
     if not db.table_exists("cve_findings"):
@@ -593,14 +693,21 @@ def write_findings(db: SupabaseClient, version_id: str, findings: list[dict],
         except Exception as e:
             print(f"[WARN] Could not clear findings: {e}", file=sys.stderr)
 
+    suppress_cols = _suppression_cols_exist(db)
+
+    real_count = sum(1 for f in findings if not f.get("is_suppressed", False))
+    supp_count = len(findings) - real_count
+    print(f"  Writing {real_count} real + {supp_count} suppressed finding(s)…")
+
     written = 0
     for f in findings:
-        row = {
+        # --- core columns (always present in current schema) ---
+        row: dict = {
             "image_version_id":  version_id,
             "cve_id":            f["cve_id"],
             "severity":          f["severity"],
             "package_name":      f["package_name"],
-            "package_version":   f["package_version"],
+            "package_version":   f.get("package_version", ""),
             "fixed_version":     f.get("fixed_version"),
             "description":       f.get("description", ""),
             "mitigation_type":   f.get("mitigation_type", "not_applicable"),
@@ -608,10 +715,20 @@ def write_findings(db: SupabaseClient, version_id: str, findings: list[dict],
             "layer":             f.get("layer", "base_image"),
             "component":         f.get("component", "other"),
         }
+
+        # --- suppression columns (migration 0034 — written only when available) ---
+        if suppress_cols:
+            row["is_suppressed"]        = f.get("is_suppressed", False)
+            row["suppression_reason"]   = f.get("suppression_reason")
+            row["suppression_detail"]   = f.get("suppression_detail")
+            row["suppression_evidence"] = f.get("suppression_evidence")
+            row["review_date"]          = f.get("review_date")
+
         db.upsert("cve_findings", row, on_conflict="image_version_id,cve_id")
         written += 1
 
-    print(f"  Wrote {written} CVE finding(s) to cve_findings")
+    print(f"  Wrote {written} CVE finding(s) to cve_findings "
+          f"(suppression metadata: {'yes' if suppress_cols else 'no — migration 0034 pending'})")
     return written
 
 
@@ -772,14 +889,15 @@ def cmd_promote(args, db: SupabaseClient):
 # ---------------------------------------------------------------------------
 
 def cmd_scan(args, db: SupabaseClient):
-    name         = args.name
-    version      = args.version
-    cve_total    = int(args.cve_total)
-    cve_crit     = int(args.cve_critical)
-    cve_high     = int(args.cve_high)
-    scanner      = args.scanner or "trivy"
-    scanned_at   = args.scanned_at or datetime.now(timezone.utc).isoformat()
-    findings_arg = getattr(args, "findings_json", None)
+    name          = args.name
+    version       = args.version
+    cve_total     = int(args.cve_total)
+    cve_crit      = int(args.cve_critical)
+    cve_high      = int(args.cve_high)
+    scanner       = args.scanner or "trivy"
+    scanned_at    = args.scanned_at or datetime.now(timezone.utc).isoformat()
+    findings_arg  = getattr(args, "findings_json", None)
+    allowlist_arg = getattr(args, "allowlist_json", None)
 
     scan_status = "clean" if (cve_crit == 0 and cve_high == 0) else "findings"
 
@@ -801,8 +919,10 @@ def cmd_scan(args, db: SupabaseClient):
         "snapshotted_at": scanned_at,
     })
 
-    if findings_arg:
-        findings = _parse_findings_arg(findings_arg)
+    if findings_arg or allowlist_arg:
+        trivy_findings    = _parse_findings_arg(findings_arg) if findings_arg else []
+        allowlist_entries = _parse_findings_arg(allowlist_arg, fmt="findings") if allowlist_arg else []
+        findings          = _merge_with_allowlist(trivy_findings, allowlist_entries)
         write_findings(db, version_id, findings, replace=True)
 
     print(f"[scan] done — {name}:{version} → {scan_status}")
@@ -821,11 +941,15 @@ def cmd_findings(args, db: SupabaseClient):
       --findings-json @/path/to/file.json    — path to trivy JSON report
       --findings-format trivy                — parse as raw trivy output (default)
       --findings-format findings             — parse as pre-formatted findings array
+
+    Optionally merge with suppressed entries from allowlist.yaml:
+      --allowlist-json @/path/to/allowlist-findings.json
     """
-    name     = args.name
-    version  = args.version
-    fmt      = getattr(args, "findings_format", "trivy")
-    raw_arg  = args.findings_json
+    name          = args.name
+    version       = args.version
+    fmt           = getattr(args, "findings_format", "trivy")
+    raw_arg       = args.findings_json
+    allowlist_arg = getattr(args, "allowlist_json", None)
 
     print(f"[findings] {name}:{version}  format={fmt}")
 
@@ -836,7 +960,10 @@ def cmd_findings(args, db: SupabaseClient):
 
     print(f"  resolved version_id={version_id[:8]}…")
 
-    findings = _parse_findings_arg(raw_arg, fmt)
+    trivy_findings    = _parse_findings_arg(raw_arg, fmt)
+    allowlist_entries = _parse_findings_arg(allowlist_arg, fmt="findings") if allowlist_arg else []
+    findings          = _merge_with_allowlist(trivy_findings, allowlist_entries)
+
     count = write_findings(db, version_id, findings, replace=True)
     print(f"[findings] done — {count} finding(s) written for {name}:{version}")
 
@@ -934,6 +1061,13 @@ def main():
     p_scan.add_argument("--scanned-at",    default=None, dest="scanned_at")
     p_scan.add_argument("--findings-json", default=None, dest="findings_json",
                         help="Inline JSON array of findings, or @/path/to/trivy.json")
+    p_scan.add_argument("--allowlist-json", default=None, dest="allowlist_json",
+                        help=(
+                            "Pre-formatted suppressed findings from gen-trivyignore.py "
+                            "--emit-findings-json, or @/path/to/allowlist-findings.json. "
+                            "Merged with --findings-json before the Supabase write so "
+                            "suppressed CVEs are stored transparently with is_suppressed=true."
+                        ))
 
     # --- findings ---
     p_findings = sub.add_parser("findings")
@@ -944,6 +1078,12 @@ def main():
     p_findings.add_argument("--findings-format", default="trivy", dest="findings_format",
                              choices=["trivy", "findings"],
                              help="trivy = raw Trivy JSON output; findings = pre-formatted array")
+    p_findings.add_argument("--allowlist-json",  default=None, dest="allowlist_json",
+                             help=(
+                                 "Pre-formatted suppressed findings from gen-trivyignore.py "
+                                 "--emit-findings-json, or @/path/to/allowlist-findings.json. "
+                                 "Merged with --findings-json before the Supabase write."
+                             ))
 
     args = parser.parse_args()
 
