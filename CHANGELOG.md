@@ -20,6 +20,55 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
 ---
 
+## [v0.2.3-alpha] — 2026-03-13
+
+### Fixed
+
+#### Builder slug collision: go-builder and rust-builder now use versioned slugs (`fix(supabase)`)
+
+`go-builder` (v1.24 and v1.25) and `rust-builder` (v1.87) previously used unversioned slugs
+(`go-builder`, `go-builder-dev`, `rust-builder`, `rust-builder-dev`), causing all versions of
+each family to collapse onto a single DB row. The Hub could not render them as separate version
+groups in the catalog list view.
+
+**Fix:** versioned slug scheme — same pattern as `python-builder`:
+- `go-builder / "" / v1.24` → `go-builder-v124`
+- `go-builder / "dev" / v1.24` → `go-builder-v124-dev`
+- `go-builder / "" / v1.25` → `go-builder-v125`
+- `go-builder / "dev" / v1.25` → `go-builder-v125-dev`
+- `rust-builder / "" / v1.87` → `rust-builder-v187`
+- `rust-builder / "dev" / v1.87` → `rust-builder-v187-dev`
+
+`compile` profile suffix is always stripped (maps to no suffix in slug).
+Unversioned phantom rows cascade-deleted from Supabase (2026-03-13).
+6 re-promote runs confirmed new slugs live in DB and registry.
+
+### Added
+
+#### Pipeline build philosophy documented (`docs(vault)`)
+
+`IMAGE_BUILD_PHILOSOPHY.md` added to `.vault/claude/` — comprehensive English-language
+reference covering the from-scratch build approach, runtime base selection, static linking
+strategy, specialised profiles as independent images, gwshield-init shim behaviour, and the
+deliberate absence of Bitnami-style convenience features.
+
+#### `generate-readme.py`: static sections support (`feat(readme)`)
+
+New `--static` CLI argument and `render_pipeline_philosophy()` function in `generate-readme.py`.
+Reads an optional `static_sections.json` file from the repo root; injects a **Build philosophy**
+section between the builder images table and the hardening principles. Content is authored in
+`static_sections.json` — `generate-readme.py` never interpolates dynamic data into it.
+Keeps public-facing READMEs in sync with internal philosophy documentation without manual edits.
+
+### Changed
+
+- `scripts/tests/test_supabase_ingress.py`: updated go-builder / rust-builder slug tests for
+  versioned scheme; test count: 124 (was 116)
+- `CLAUDE.md` / `AGENTS.md`: slug table expanded, golden rule (no AI attribution in public
+  content) formally documented
+
+---
+
 ## [v0.2.2-alpha] — 2026-03-13
 
 ### Fixed
