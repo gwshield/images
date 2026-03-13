@@ -146,7 +146,21 @@ The project has two audiences with overlapping interests — see
 
 ## Active / Next
 
-### v0.2.1-alpha — Supabase version tags + test suite + slug fixes (2026-03-12)
+### v0.2.2-alpha — Hub primary-row fix: nginx + go-builder profile tags (2026-03-13)
+
+- [x] **`derive_profile_tag()` helper in `supabase_ingress.py`** — maps canonical pipeline
+      profiles to Hub-facing `"standard"` tag value so `isPrimaryProfile()` renders correct
+      parent rows without any Hub-side code change.
+      Mappings: `nginx:""|"http"→standard`, `go-builder/rust-builder:""|"compile"→standard`;
+      all other profiles pass through unchanged.
+- [x] **DB patched: `nginx-http` `profile=http` → `standard`** — Hub now renders nginx family
+      with a primary parent row (standard) and two variants (http2, http3).
+- [x] **DB patched: `go-builder` `profile=compile` → `standard`** — v1.25 version group now
+      renders with a primary parent row; v1.24 group (go-builder-dev) remains a variant.
+- [x] **`TestDeriveProfileTag` test class** — 17 cases added to
+      `scripts/tests/test_supabase_ingress.py`; total test count: 116 (was 99).
+
+### v0.2.1-alpha — Supabase version tags + test suite + slug fixes (2026-03-12) ✓
 
 - [x] **`version` image tag on every promote** — `derive_version_group(base_version)` →
       `major >= 10` = major only; `major < 10` = `major.minor`; delete-first write pattern;
@@ -162,7 +176,7 @@ The project has two audiences with overlapping interests — see
       from Supabase (174 rows); real images in `ghcr.io/gwshield` unaffected; final state:
       34 active images, 34 version-tags, 0 missing.
 
-### Next targets (after v0.2.1-alpha)
+### Next targets (after v0.2.2-alpha)
 
 - [ ] **PHP** — hardened FPM image, target version TBD; strip unused extensions; profiles: FPM + CLI
 - [ ] **OCI provenance attestation** — SLSA Level 3 (`cosign attest --type slsaprovenance`)
