@@ -78,7 +78,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `4aa85cb8bfc9` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `f8c51c41b756` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `c555dbf23415` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `c555dbf23415` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `70486c2bf1a7` | 0 CVEs | 2026-03-13 |
 
 ### Traefik — cloud-native edge router
@@ -111,14 +111,14 @@ ENTRYPOINT ["/myapp"]
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `fbcd53458c87` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `c9c40de1bac8` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `17a8cf38ed77` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `17a8cf38ed77` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `cc6634dca569` | 0 CVEs | 2026-03-13 |
 
 ### Python — reproducible wheel builds
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `655f6770871e` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `655f6770871e` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `f6f5fafe0401` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `31408ebfbfaf` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `dbe869b87df1` | 0 CVEs | 2026-03-12 |
