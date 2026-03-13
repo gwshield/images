@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-13T10:34:40Z",
+  "last_updated": "2026-03-13T10:34:41Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -789,19 +789,17 @@
       "profile": "dev",
       "category": "builder",
       "public_image": "ghcr.io/gwshield/go-builder",
-      "tags": [
-        "ghcr.io/gwshield/go-builder:v1.25-dev"
-      ],
-      "digest": "sha256:d3c7e144799bd7fdcf42de2508bedf8ba5227a607d36d02a77116ba136302741",
+      "tags": [],
+      "digest": "",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-13T09:23:47Z",
+      "promoted_at": "2026-03-13T10:34:41Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-13T09:23:47Z"
+        "scanned_at": "2026-03-13T10:34:41Z"
       }
     },
     "valkey:v8.1.6-tls": {
