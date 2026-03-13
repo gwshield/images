@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-13T15:27:00Z",
+  "last_updated": "2026-03-13T15:27:01Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -659,17 +659,19 @@
       "profile": "crowdsec",
       "category": "runtime",
       "public_image": "ghcr.io/gwshield/caddy",
-      "tags": [],
-      "digest": "",
+      "tags": [
+        "ghcr.io/gwshield/caddy:v2.11.2-crowdsec"
+      ],
+      "digest": "sha256:d39dda02bb04ca6615d963618bdda86678a9e9a88603043c410baa5f33d8f59e",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-13T13:23:11Z",
+      "promoted_at": "2026-03-13T15:26:55Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-13T13:23:11Z"
+        "scanned_at": "2026-03-13T15:26:55Z"
       }
     },
     "caddy:v2.11.2-l4": {
