@@ -586,6 +586,81 @@ class TestComponentType(unittest.TestCase):
 
 
 # =============================================================================
+# derive_profile_tag
+# =============================================================================
+
+class TestDeriveProfileTag(unittest.TestCase):
+    """
+    Canonical profiles must be normalised to "standard" so the Hub renders
+    them as primary/parent rows.
+
+    Mappings:
+      nginx        "" or "http"    → "standard"
+      go-builder   "" or "compile" → "standard"
+      rust-builder "" or "compile" → "standard"
+      All other name+profile combinations pass through unchanged.
+    """
+
+    def _tag(self, name: str, profile: str) -> str:
+        return _si.derive_profile_tag(name, profile)
+
+    # nginx ---------------------------------------------------------------
+    def test_nginx_empty_is_standard(self):
+        self.assertEqual(self._tag("nginx", ""), "standard")
+
+    def test_nginx_http_is_standard(self):
+        self.assertEqual(self._tag("nginx", "http"), "standard")
+
+    def test_nginx_http2_passthrough(self):
+        self.assertEqual(self._tag("nginx", "http2"), "http2")
+
+    def test_nginx_http3_passthrough(self):
+        self.assertEqual(self._tag("nginx", "http3"), "http3")
+
+    # go-builder ----------------------------------------------------------
+    def test_go_builder_empty_is_standard(self):
+        self.assertEqual(self._tag("go-builder", ""), "standard")
+
+    def test_go_builder_compile_is_standard(self):
+        self.assertEqual(self._tag("go-builder", "compile"), "standard")
+
+    def test_go_builder_dev_passthrough(self):
+        self.assertEqual(self._tag("go-builder", "dev"), "dev")
+
+    # rust-builder --------------------------------------------------------
+    def test_rust_builder_empty_is_standard(self):
+        self.assertEqual(self._tag("rust-builder", ""), "standard")
+
+    def test_rust_builder_compile_is_standard(self):
+        self.assertEqual(self._tag("rust-builder", "compile"), "standard")
+
+    def test_rust_builder_dev_passthrough(self):
+        self.assertEqual(self._tag("rust-builder", "dev"), "dev")
+
+    # other families — passthrough ----------------------------------------
+    def test_postgres_tls_passthrough(self):
+        self.assertEqual(self._tag("postgres", "tls"), "tls")
+
+    def test_postgres_standard_passthrough(self):
+        self.assertEqual(self._tag("postgres", "standard"), "standard")
+
+    def test_redis_tls_passthrough(self):
+        self.assertEqual(self._tag("redis", "tls"), "tls")
+
+    def test_caddy_cloudflare_passthrough(self):
+        self.assertEqual(self._tag("caddy", "cloudflare"), "cloudflare")
+
+    def test_haproxy_ssl_passthrough(self):
+        self.assertEqual(self._tag("haproxy", "ssl"), "ssl")
+
+    def test_empty_name_empty_profile_passthrough(self):
+        self.assertEqual(self._tag("", ""), "")
+
+    def test_python_builder_dev_passthrough(self):
+        self.assertEqual(self._tag("python-builder", "dev"), "dev")
+
+
+# =============================================================================
 # CLI guard: missing env vars → exit(1)
 # =============================================================================
 
