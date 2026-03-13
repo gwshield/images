@@ -39,7 +39,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `—` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `301322b81a2f` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `0e098330be8f` | 0 CVEs | 2026-03-13 |
 
 ### haproxy
@@ -66,7 +66,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `—` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `66c3cb7bf501` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `a4f6200d2af7` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `—` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `—` | 0 CVEs | 2026-03-13 |
