@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-13T15:29:02Z",
+  "last_updated": "2026-03-13T15:29:04Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -869,17 +869,20 @@
       "profile": "",
       "category": "runtime",
       "public_image": "ghcr.io/gwshield/valkey",
-      "tags": [],
-      "digest": "",
+      "tags": [
+        "ghcr.io/gwshield/valkey:v8.1.6",
+        "ghcr.io/gwshield/valkey:latest"
+      ],
+      "digest": "sha256:99cf71125034f6b4e5b125f26932010b43d95ae80cfe2ef6a276b9b72a00006c",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-13T13:23:30Z",
+      "promoted_at": "2026-03-13T15:29:01Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-13T13:23:30Z"
+        "scanned_at": "2026-03-13T15:29:01Z"
       }
     },
     "varnish:v7.7.3-tls": {
