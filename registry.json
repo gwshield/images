@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-13T15:26:50Z",
+  "last_updated": "2026-03-13T15:26:53Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -471,17 +471,19 @@
       "profile": "vector",
       "category": "runtime",
       "public_image": "ghcr.io/gwshield/postgres",
-      "tags": [],
-      "digest": "",
+      "tags": [
+        "ghcr.io/gwshield/postgres:v17.9-vector"
+      ],
+      "digest": "sha256:b24a1269c11532c22ccf794543f2c088cbbb560a8cf3ecc3a0c0100126d45b73",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-13T13:23:38Z",
+      "promoted_at": "2026-03-13T15:26:51Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-13T13:23:38Z"
+        "scanned_at": "2026-03-13T15:26:51Z"
       }
     },
     "rust-builder:v1.87": {
