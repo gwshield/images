@@ -26,6 +26,13 @@ from pathlib import Path
 
 _SCRIPT = Path(__file__).resolve().parent.parent / "supabase_ingress.py"
 
+# When running against the local development copy (e.g. /tmp/supabase_ingress_new.py),
+# override via env var: TEST_INGRESS_SCRIPT=/tmp/supabase_ingress_new.py
+import os as _os
+_override = _os.environ.get("TEST_INGRESS_SCRIPT")
+if _override:
+    _SCRIPT = Path(_override)
+
 
 def _load_module():
     spec = importlib.util.spec_from_file_location("supabase_ingress", _SCRIPT)
@@ -713,6 +720,279 @@ class TestMainEnvGuard(unittest.TestCase):
         )
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("SUPABASE_URL", result.stderr)
+
+
+# =============================================================================
+# _merge_with_allowlist
+# =============================================================================
+
+class TestMergeWithAllowlist(unittest.TestCase):
+    """
+    _merge_with_allowlist merges real Trivy findings with suppressed allowlist
+    entries.  Key invariants:
+
+    1. Trivy findings are never modified.
+    2. Suppressed entries are appended when their CVE ID is not in the Trivy set.
+    3. When a CVE appears in both (Trivy still emitted it despite .trivyignore),
+       the Trivy finding takes precedence and the allowlist entry is skipped.
+    4. Empty inputs on either side produce correct output.
+    5. Suppressed entries always have is_suppressed=True.
+    """
+
+    def _make_trivy_finding(self, cve_id: str, severity: str = "HIGH") -> dict:
+        return {
+            "cve_id":          cve_id,
+            "severity":        severity,
+            "package_name":    "some-pkg",
+            "package_version": "1.0.0",
+            "fixed_version":   "1.0.1",
+            "description":     "A real finding",
+            "mitigation_type": "pkg_upgrade",
+            "layer":           "base_image",
+            "component":       "alpine-pkg",
+        }
+
+    def _make_suppressed(self, cve_id: str, reason: str = "FALSE_POSITIVE_LINUX_BUILD") -> dict:
+        return {
+            "cve_id":               cve_id,
+            "severity":             "HIGH",
+            "package_name":         "go.opentelemetry.io/otel/sdk",
+            "package_version":      "v1.39.0",
+            "fixed_version":        "1.40.0",
+            "description":          "Darwin-only, suppressed.",
+            "mitigation_type":      "allowlisted",
+            "layer":                "base_image",
+            "component":            "go-module",
+            "is_suppressed":        True,
+            "suppression_reason":   reason,
+            "suppression_detail":   "macOS only — not compiled on linux/amd64.",
+            "suppression_evidence": ["build tag: darwin only"],
+            "review_date":          "2026-06-30",
+        }
+
+    # --- basic merge ---
+
+    def test_empty_trivy_empty_allowlist(self):
+        result = _si._merge_with_allowlist([], [])
+        self.assertEqual(result, [])
+
+    def test_trivy_only_no_allowlist(self):
+        findings = [self._make_trivy_finding("CVE-2025-001")]
+        result   = _si._merge_with_allowlist(findings, [])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["cve_id"], "CVE-2025-001")
+
+    def test_allowlist_only_no_trivy(self):
+        suppressed = [self._make_suppressed("CVE-2025-SUPP")]
+        result     = _si._merge_with_allowlist([], suppressed)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["cve_id"],       "CVE-2025-SUPP")
+        self.assertTrue(result[0]["is_suppressed"])
+
+    def test_disjoint_merge(self):
+        # 2 real + 1 suppressed → 3 total, order: real first
+        real = [
+            self._make_trivy_finding("CVE-2025-001"),
+            self._make_trivy_finding("CVE-2025-002"),
+        ]
+        supp = [self._make_suppressed("CVE-2025-SUPP")]
+        result = _si._merge_with_allowlist(real, supp)
+        self.assertEqual(len(result), 3)
+        cves = [f["cve_id"] for f in result]
+        self.assertIn("CVE-2025-001",  cves)
+        self.assertIn("CVE-2025-002",  cves)
+        self.assertIn("CVE-2025-SUPP", cves)
+
+    # --- Trivy precedence ---
+
+    def test_overlap_trivy_takes_precedence(self):
+        # Same CVE ID in both lists — Trivy finding wins, allowlist entry dropped
+        cve = "CVE-2025-OVERLAP"
+        real = [self._make_trivy_finding(cve)]
+        supp = [self._make_suppressed(cve)]
+        result = _si._merge_with_allowlist(real, supp)
+        self.assertEqual(len(result), 1)
+        # The surviving entry must be the Trivy one (mitigation_type != allowlisted)
+        self.assertNotEqual(result[0].get("mitigation_type"), "allowlisted")
+
+    def test_partial_overlap(self):
+        # 1 real + 1 suppressed, but 1 suppressed overlaps with real
+        real = [
+            self._make_trivy_finding("CVE-2025-REAL"),
+            self._make_trivy_finding("CVE-2025-OVERLAP"),
+        ]
+        supp = [
+            self._make_suppressed("CVE-2025-OVERLAP"),   # will be dropped
+            self._make_suppressed("CVE-2025-UNIQUE"),    # will be appended
+        ]
+        result = _si._merge_with_allowlist(real, supp)
+        self.assertEqual(len(result), 3)
+        cves = [f["cve_id"] for f in result]
+        self.assertIn("CVE-2025-REAL",    cves)
+        self.assertIn("CVE-2025-OVERLAP", cves)
+        self.assertIn("CVE-2025-UNIQUE",  cves)
+
+    # --- invariants ---
+
+    def test_trivy_findings_not_mutated(self):
+        original = self._make_trivy_finding("CVE-2025-ORIG")
+        original_copy = dict(original)
+        _si._merge_with_allowlist([original], [self._make_suppressed("CVE-2025-OTHER")])
+        self.assertEqual(original, original_copy)
+
+    def test_suppressed_entry_missing_cve_id_skipped(self):
+        # Entry without cve_id should be silently skipped
+        bad_entry = {"severity": "HIGH", "package_name": "pkg", "package_version": "1.0"}
+        result = _si._merge_with_allowlist([], [bad_entry])
+        self.assertEqual(result, [])
+
+    def test_multiple_suppressed_all_appended(self):
+        supp = [
+            self._make_suppressed(f"CVE-2025-{i:04d}")
+            for i in range(10)
+        ]
+        result = _si._merge_with_allowlist([], supp)
+        self.assertEqual(len(result), 10)
+        for entry in result:
+            self.assertTrue(entry["is_suppressed"])
+
+
+# =============================================================================
+# gen-trivyignore integration: _entry_to_finding (tested via gen-trivyignore.py)
+# =============================================================================
+
+class TestAllowlistEntryConversion(unittest.TestCase):
+    """
+    Verifies the contract between gen-trivyignore.py's _entry_to_finding()
+    output and what _merge_with_allowlist() + write_findings() expect.
+
+    We test the shape of the produced findings dict to ensure it's compatible
+    with the cve_findings row schema and the merge logic.
+    """
+
+    # Minimal allowlist entry (only required fields)
+    _MINIMAL_ENTRY = {
+        "cve":      "CVE-2026-24051",
+        "severity": "HIGH",
+        "component": "gobinary/go.opentelemetry.io/otel/sdk",
+        "installed_version": "v1.39.0",
+        "fixed_version": "1.40.0",
+        "verdict": "FALSE_POSITIVE_LINUX_BUILD",
+        "analysis": "Darwin-only code path. Build tag gated. Not compiled on linux/amd64.",
+        "evidence": ["Build tag: darwin only", "Binary: ioreg NOT FOUND"],
+        "review_date": "2026-06-30",
+    }
+
+    def _load_gen_script(self):
+        """Load gen-trivyignore.py as a module."""
+        import importlib.util
+        script = (Path(__file__).resolve().parent.parent.parent.parent
+                  / "shared" / "scripts" / "gen-trivyignore.py")
+        # Try env-override path as well
+        env_override = _os.environ.get("TEST_GEN_SCRIPT")
+        if env_override:
+            script = Path(env_override)
+        if not script.exists():
+            self.skipTest(f"gen-trivyignore.py not found at {script}")
+        spec = importlib.util.spec_from_file_location("gen_trivyignore", script)
+        mod  = importlib.util.module_from_spec(spec)
+        import sys as _sys
+        _orig = _sys.argv
+        _sys.argv = ["gen-trivyignore.py"]
+        try:
+            spec.loader.exec_module(mod)
+        except SystemExit:
+            pass
+        finally:
+            _sys.argv = _orig
+        return mod
+
+    def test_entry_produces_required_fields(self):
+        gen = self._load_gen_script()
+        import pathlib as _pl
+        fake_path = _pl.Path("images/traefik/v3.6.9/scan/allowlist.yaml")
+        finding = gen._entry_to_finding(self._MINIMAL_ENTRY, fake_path)
+
+        required = [
+            "cve_id", "severity", "package_name", "package_version",
+            "fixed_version", "description", "layer", "component",
+            "mitigation_type", "mitigation_detail",
+            "is_suppressed", "suppression_reason", "suppression_detail",
+            "suppression_evidence", "review_date",
+        ]
+        for field in required:
+            self.assertIn(field, finding, f"Missing field: {field}")
+
+    def test_entry_is_suppressed_true(self):
+        gen = self._load_gen_script()
+        import pathlib as _pl
+        finding = gen._entry_to_finding(
+            self._MINIMAL_ENTRY,
+            _pl.Path("images/traefik/v3.6.9/scan/allowlist.yaml")
+        )
+        self.assertTrue(finding["is_suppressed"])
+        self.assertEqual(finding["mitigation_type"], "allowlisted")
+
+    def test_entry_cve_id_mapped(self):
+        gen = self._load_gen_script()
+        import pathlib as _pl
+        finding = gen._entry_to_finding(
+            self._MINIMAL_ENTRY,
+            _pl.Path("images/traefik/v3.6.9/scan/allowlist.yaml")
+        )
+        self.assertEqual(finding["cve_id"], "CVE-2026-24051")
+
+    def test_entry_component_classified_as_go_module(self):
+        gen = self._load_gen_script()
+        import pathlib as _pl
+        finding = gen._entry_to_finding(
+            self._MINIMAL_ENTRY,
+            _pl.Path("images/traefik/v3.6.9/scan/allowlist.yaml")
+        )
+        self.assertEqual(finding["component"], "go-module")
+
+    def test_entry_description_truncated_to_500(self):
+        gen = self._load_gen_script()
+        import pathlib as _pl
+        long_entry = dict(self._MINIMAL_ENTRY)
+        long_entry["analysis"] = "x" * 600
+        finding = gen._entry_to_finding(
+            long_entry,
+            _pl.Path("images/x/v1.0/scan/allowlist.yaml")
+        )
+        self.assertLessEqual(len(finding["description"]), 500)
+
+    def test_entry_suppression_detail_truncated_to_2000(self):
+        gen = self._load_gen_script()
+        import pathlib as _pl
+        long_entry = dict(self._MINIMAL_ENTRY)
+        long_entry["analysis"] = "y" * 2500
+        finding = gen._entry_to_finding(
+            long_entry,
+            _pl.Path("images/x/v1.0/scan/allowlist.yaml")
+        )
+        self.assertLessEqual(len(finding["suppression_detail"]), 2000)
+
+    def test_entry_evidence_is_list(self):
+        gen = self._load_gen_script()
+        import pathlib as _pl
+        finding = gen._entry_to_finding(
+            self._MINIMAL_ENTRY,
+            _pl.Path("images/traefik/v3.6.9/scan/allowlist.yaml")
+        )
+        self.assertIsInstance(finding["suppression_evidence"], list)
+
+    def test_entry_compatible_with_merge(self):
+        """A finding from gen-trivyignore passes cleanly through _merge_with_allowlist."""
+        gen = self._load_gen_script()
+        import pathlib as _pl
+        suppressed = gen._entry_to_finding(
+            self._MINIMAL_ENTRY,
+            _pl.Path("images/traefik/v3.6.9/scan/allowlist.yaml")
+        )
+        result = _si._merge_with_allowlist([], [suppressed])
+        self.assertEqual(len(result), 1)
+        self.assertTrue(result[0]["is_suppressed"])
 
 
 # =============================================================================
