@@ -32,14 +32,14 @@
       "tags": [],
       "digest": "",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-13T10:48:46Z",
+      "promoted_at": "2026-03-13T11:09:09Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-13T10:48:46Z"
+        "scanned_at": "2026-03-13T11:09:09Z"
       }
     },
     "postgres:v15.17-cli": {
