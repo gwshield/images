@@ -221,6 +221,27 @@ def render_builder_section(entries: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def render_pipeline_philosophy(static_path: pathlib.Path | None) -> str:
+    """
+    Inject the static 'Build philosophy' section from static_sections.json.
+
+    The JSON file holds plain Markdown under the key 'pipeline_philosophy'.
+    If the file is absent or the key is missing, this section is silently omitted.
+    Content is never interpolated with dynamic data — it is inserted verbatim.
+    """
+    if not static_path or not static_path.exists():
+        return ""
+    try:
+        data = json.loads(static_path.read_text())
+        content = data.get("pipeline_philosophy", "").strip()
+        if not content:
+            return ""
+        return content + "\n\n---\n\n"
+    except Exception as exc:
+        print(f"WARNING: could not read {static_path}: {exc}", file=sys.stderr)
+        return ""
+
+
 def render_hardening() -> str:
     return """\
 ## Hardening principles
@@ -335,7 +356,11 @@ Apache-2.0 — Gatewarden / RelicFrog Foundation
 # Main
 # ---------------------------------------------------------------------------
 
-def generate(registry_path: pathlib.Path, output_path: pathlib.Path) -> None:
+def generate(
+    registry_path: pathlib.Path,
+    output_path: pathlib.Path,
+    static_path: pathlib.Path | None = None,
+) -> None:
     if not registry_path.exists():
         print(f"WARNING: {registry_path} not found — writing placeholder README", file=sys.stderr)
         output_path.write_text(
@@ -358,13 +383,14 @@ def generate(registry_path: pathlib.Path, output_path: pathlib.Path) -> None:
         render_header(),
         render_runtime_section(runtime),
         render_builder_section(builder),
+        render_pipeline_philosophy(static_path),
         render_hardening(),
         render_verify(runtime, builder),
         render_cosign_table(runtime, builder),
         render_footer(last_updated),
     ]
 
-    readme = "\n".join(sections)
+    readme = "\n".join(s for s in sections if s)
     output_path.write_text(readme)
     print(
         f"README.md written "
@@ -377,8 +403,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Generate README.md from registry.json")
     parser.add_argument("--registry", default="registry.json")
     parser.add_argument("--output",   default="README.md")
+    parser.add_argument(
+        "--static",
+        default="static_sections.json",
+        help="Optional JSON file with static Markdown sections (default: static_sections.json)",
+    )
     args = parser.parse_args()
-    generate(pathlib.Path(args.registry), pathlib.Path(args.output))
+    static_path = pathlib.Path(args.static)
+    generate(pathlib.Path(args.registry), pathlib.Path(args.output), static_path)
 
 
 if __name__ == "__main__":
