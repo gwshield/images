@@ -1282,6 +1282,31 @@ class TestAllowlistEntryConversion(unittest.TestCase):
         ev = self._finding(entry)["suppression_evidence"]
         self.assertIsNone(ev)
 
+    def test_entry_compensating_controls_fallback(self):
+        """compensating_controls is accepted as a deprecated alias for evidence."""
+        entry = {k: v for k, v in self._MINIMAL_ENTRY.items() if k != "evidence"}
+        entry["compensating_controls"] = ["control A", "control B"]
+        ev = self._finding(entry)["suppression_evidence"]
+        self.assertIsInstance(ev, list)
+        self.assertEqual(ev, ["control A", "control B"])
+
+    def test_entry_evidence_takes_precedence_over_compensating_controls(self):
+        """When both evidence and compensating_controls are present, evidence wins."""
+        entry = dict(
+            self._MINIMAL_ENTRY,
+            evidence=["evidence item"],
+            compensating_controls=["control item"],
+        )
+        ev = self._finding(entry)["suppression_evidence"]
+        self.assertEqual(ev, ["evidence item"])
+
+    def test_entry_compensating_controls_empty_list_is_none(self):
+        """Empty compensating_controls (fallback) produces None, consistent with evidence."""
+        entry = {k: v for k, v in self._MINIMAL_ENTRY.items() if k != "evidence"}
+        entry["compensating_controls"] = []
+        ev = self._finding(entry)["suppression_evidence"]
+        self.assertIsNone(ev)
+
     # --- edge cases ---
 
     def test_entry_missing_severity_defaults_to_unknown(self):
