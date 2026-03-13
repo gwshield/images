@@ -858,61 +858,350 @@ class TestMergeWithAllowlist(unittest.TestCase):
 
 
 # =============================================================================
+# write_findings — row-dict construction (mock DB, no network)
+# =============================================================================
+
+class _MockDB:
+    """
+    Minimal SupabaseClient stand-in for write_findings tests.
+    Records every upsert() call in self.rows for inspection.
+    table_exists() and _suppression_cols_exist probe are controlled
+    via constructor flags.
+    """
+
+    def __init__(self, table_exists: bool = True, suppress_cols: bool = True):
+        self._table_exists  = table_exists
+        self._suppress_cols = suppress_cols
+        self.rows: list[dict] = []
+        self.deleted: list[dict] = []
+        # Expose attributes that _suppression_cols_exist probes
+        self.base    = "http://mock/rest/v1"
+        self.headers = {}
+
+    def table_exists(self, table: str) -> bool:
+        return self._table_exists
+
+    def upsert(self, table: str, row: dict, on_conflict: str) -> dict:
+        self.rows.append(dict(row))
+        return row
+
+    def delete(self, table: str, filters: dict) -> None:
+        self.deleted.append(filters)
+
+
+def _write_findings_with_mock(findings, suppress_cols=True, table_exists=True, replace=True):
+    """
+    Helper: run write_findings() with a MockDB, patching the global
+    suppression-column cache so we don't need a real HTTP probe.
+    Returns (written_count, rows_written).
+    """
+    db = _MockDB(table_exists=table_exists, suppress_cols=suppress_cols)
+
+    # Patch global cache for this call
+    orig = _si._suppression_columns_available
+    _si._suppression_columns_available = suppress_cols
+    try:
+        n = _si.write_findings(db, "test-version-uuid-0001", findings, replace=replace)
+    finally:
+        _si._suppression_columns_available = orig
+
+    return n, db.rows
+
+
+class TestWriteFindings(unittest.TestCase):
+    """
+    write_findings() row-dict construction tests.
+    No network — uses _MockDB.  Tests cover:
+      - core columns always present
+      - suppression columns present when suppress_cols=True
+      - suppression columns absent when suppress_cols=False (pre-migration)
+      - is_suppressed default is False for real findings
+      - suppressed findings correctly flagged
+      - empty findings → 0 written
+      - table not yet migrated → 0 written, no upsert called
+      - replace=True triggers a delete before upsert
+    """
+
+    _REAL_FINDING = {
+        "cve_id":          "CVE-2025-REAL",
+        "severity":        "HIGH",
+        "package_name":    "some-pkg",
+        "package_version": "1.2.3",
+        "fixed_version":   "1.2.4",
+        "description":     "A real vuln",
+        "mitigation_type": "pkg_upgrade",
+        "layer":           "base_image",
+        "component":       "alpine-pkg",
+    }
+
+    _SUPPRESSED_FINDING = {
+        "cve_id":               "CVE-2025-SUPP",
+        "severity":             "LOW",
+        "package_name":         "go.opentelemetry.io/otel/sdk",
+        "package_version":      "v1.39.0",
+        "fixed_version":        None,
+        "description":          "Darwin-only — suppressed.",
+        "mitigation_type":      "allowlisted",
+        "layer":                "base_image",
+        "component":            "go-module",
+        "is_suppressed":        True,
+        "suppression_reason":   "FALSE_POSITIVE_LINUX_BUILD",
+        "suppression_detail":   "macOS only, not compiled on linux/amd64.",
+        "suppression_evidence": ["build tag: darwin only"],
+        "review_date":          "2026-06-30",
+    }
+
+    def test_empty_findings_returns_zero(self):
+        n, rows = _write_findings_with_mock([])
+        self.assertEqual(n, 0)
+        self.assertEqual(rows, [])
+
+    def test_table_not_exists_returns_zero(self):
+        n, rows = _write_findings_with_mock([self._REAL_FINDING], table_exists=False)
+        self.assertEqual(n, 0)
+        self.assertEqual(rows, [])
+
+    def test_core_columns_always_present(self):
+        n, rows = _write_findings_with_mock([self._REAL_FINDING])
+        self.assertEqual(n, 1)
+        row = rows[0]
+        for col in ("image_version_id", "cve_id", "severity", "package_name",
+                    "package_version", "fixed_version", "description",
+                    "mitigation_type", "layer", "component"):
+            self.assertIn(col, row, f"Core column missing: {col}")
+
+    def test_image_version_id_injected(self):
+        _, rows = _write_findings_with_mock([self._REAL_FINDING])
+        self.assertEqual(rows[0]["image_version_id"], "test-version-uuid-0001")
+
+    def test_suppression_cols_written_when_available(self):
+        _, rows = _write_findings_with_mock([self._SUPPRESSED_FINDING], suppress_cols=True)
+        row = rows[0]
+        self.assertIn("is_suppressed",        row)
+        self.assertIn("suppression_reason",   row)
+        self.assertIn("suppression_detail",   row)
+        self.assertIn("suppression_evidence", row)
+        self.assertIn("review_date",          row)
+        self.assertTrue(row["is_suppressed"])
+        self.assertEqual(row["suppression_reason"], "FALSE_POSITIVE_LINUX_BUILD")
+
+    def test_suppression_cols_absent_when_migration_pending(self):
+        """Before migration 0044 — suppression columns must NOT be sent to DB."""
+        _, rows = _write_findings_with_mock([self._SUPPRESSED_FINDING], suppress_cols=False)
+        row = rows[0]
+        self.assertNotIn("is_suppressed",      row)
+        self.assertNotIn("suppression_reason", row)
+        self.assertNotIn("suppression_detail", row)
+
+    def test_real_finding_is_suppressed_defaults_false(self):
+        """Real finding has no is_suppressed key → written as False."""
+        _, rows = _write_findings_with_mock([self._REAL_FINDING], suppress_cols=True)
+        self.assertFalse(rows[0]["is_suppressed"])
+
+    def test_mixed_findings_written_in_order(self):
+        findings = [self._REAL_FINDING, self._SUPPRESSED_FINDING]
+        n, rows  = _write_findings_with_mock(findings, suppress_cols=True)
+        self.assertEqual(n, 2)
+        cves = [r["cve_id"] for r in rows]
+        self.assertIn("CVE-2025-REAL", cves)
+        self.assertIn("CVE-2025-SUPP", cves)
+
+    def test_replace_true_triggers_delete(self):
+        db = _MockDB(suppress_cols=True)
+        orig = _si._suppression_columns_available
+        _si._suppression_columns_available = True
+        try:
+            _si.write_findings(db, "ver-001", [self._REAL_FINDING], replace=True)
+        finally:
+            _si._suppression_columns_available = orig
+        self.assertEqual(len(db.deleted), 1)
+        self.assertEqual(db.deleted[0], {"image_version_id": "ver-001"})
+
+    def test_replace_false_no_delete(self):
+        db = _MockDB(suppress_cols=True)
+        orig = _si._suppression_columns_available
+        _si._suppression_columns_available = True
+        try:
+            _si.write_findings(db, "ver-001", [self._REAL_FINDING], replace=False)
+        finally:
+            _si._suppression_columns_available = orig
+        self.assertEqual(len(db.deleted), 0)
+
+
+# =============================================================================
+# _suppression_cols_exist — probe + cache behaviour (mock HTTP)
+# =============================================================================
+
+class TestSuppressionColsProbe(unittest.TestCase):
+    """
+    _suppression_cols_exist() probes via HTTP GET and caches the result.
+    Tests:
+      - successful probe → True cached
+      - failed probe (exception) → False cached (graceful fallback)
+      - result is cached (probe called only once per cache reset)
+    """
+
+    def _reset_cache(self):
+        """Reset the global cache between tests."""
+        _si._suppression_columns_available = None
+
+    def test_probe_success_returns_true(self):
+        """When the HTTP probe succeeds, result is True."""
+        self._reset_cache()
+
+        class _OkDB(_MockDB):
+            pass  # table_exists not used; we mock urllib directly
+
+        import unittest.mock as _mock
+        import urllib.request as _ur
+
+        fake_resp = _mock.MagicMock()
+        fake_resp.__enter__ = lambda s: s
+        fake_resp.__exit__  = _mock.MagicMock(return_value=False)
+        fake_resp.read      = _mock.MagicMock(return_value=b"[]")
+
+        db = _OkDB()
+        with _mock.patch.object(_ur, "urlopen", return_value=fake_resp):
+            result = _si._suppression_cols_exist(db)
+
+        self.assertTrue(result)
+        self.assertTrue(_si._suppression_columns_available)
+
+    def test_probe_failure_returns_false(self):
+        """When the HTTP probe raises, fallback is False — never propagates."""
+        self._reset_cache()
+
+        import unittest.mock as _mock
+        import urllib.request as _ur
+
+        db = _MockDB()
+        with _mock.patch.object(_ur, "urlopen", side_effect=Exception("network error")):
+            result = _si._suppression_cols_exist(db)
+
+        self.assertFalse(result)
+        self.assertFalse(_si._suppression_columns_available)
+
+    def test_probe_cached_after_first_call(self):
+        """Second call must not issue another HTTP request."""
+        self._reset_cache()
+
+        import unittest.mock as _mock
+        import urllib.request as _ur
+
+        call_count = {"n": 0}
+
+        fake_resp = _mock.MagicMock()
+        fake_resp.__enter__ = lambda s: s
+        fake_resp.__exit__  = _mock.MagicMock(return_value=False)
+        fake_resp.read      = _mock.MagicMock(return_value=b"[]")
+
+        def _counting_urlopen(req, **kw):
+            call_count["n"] += 1
+            return fake_resp
+
+        db = _MockDB()
+        with _mock.patch.object(_ur, "urlopen", side_effect=_counting_urlopen):
+            _si._suppression_cols_exist(db)
+            _si._suppression_cols_exist(db)  # second call — must hit cache
+
+        self.assertEqual(call_count["n"], 1, "urlopen called more than once — cache not working")
+
+    def tearDown(self):
+        # Always reset cache so other tests are not affected
+        _si._suppression_columns_available = None
+
+
+# =============================================================================
 # gen-trivyignore integration: _entry_to_finding (tested via gen-trivyignore.py)
 # =============================================================================
+
+# ---------------------------------------------------------------------------
+# Path resolution for gen-trivyignore.py — CI-compatible.
+# Candidate search order:
+#   1. TEST_GEN_SCRIPT env var (explicit override — local dev / docker)
+#   2. relative to this test file in-repo: ../../shared/scripts/gen-trivyignore.py
+#      (works when tests run from scripts/tests/ inside gwshield-images checkout)
+#   3. relative 4 levels up (legacy path kept for backward compat)
+# The module is loaded once at import time and cached in _GEN_MOD.
+# If not found, _GEN_MOD is None and all TestAllowlistEntryConversion tests skip.
+# ---------------------------------------------------------------------------
+
+def _find_gen_script() -> Path | None:
+    import importlib.util as _ilu
+    candidates = []
+
+    env_override = _os.environ.get("TEST_GEN_SCRIPT")
+    if env_override:
+        candidates.append(Path(env_override))
+
+    this_file = Path(__file__).resolve()
+    # In-repo layout: scripts/tests/test_supabase_ingress.py
+    candidates.append(this_file.parent.parent.parent / "shared" / "scripts" / "gen-trivyignore.py")
+    # Legacy / flat layout (test run from repo root or /tmp)
+    candidates.append(this_file.parent.parent.parent.parent / "shared" / "scripts" / "gen-trivyignore.py")
+
+    for p in candidates:
+        if p.exists():
+            return p
+    return None
+
+
+def _load_gen_trivyignore() -> object | None:
+    import importlib.util as _ilu
+    script = _find_gen_script()
+    if script is None:
+        return None
+    spec = _ilu.spec_from_file_location("gen_trivyignore", script)
+    mod  = _ilu.module_from_spec(spec)
+    _orig = sys.argv
+    sys.argv = ["gen-trivyignore.py"]
+    try:
+        spec.loader.exec_module(mod)
+    except SystemExit:
+        pass
+    finally:
+        sys.argv = _orig
+    return mod
+
+
+_GEN_MOD = _load_gen_trivyignore()
+
 
 class TestAllowlistEntryConversion(unittest.TestCase):
     """
     Verifies the contract between gen-trivyignore.py's _entry_to_finding()
     output and what _merge_with_allowlist() + write_findings() expect.
 
-    We test the shape of the produced findings dict to ensure it's compatible
-    with the cve_findings row schema and the merge logic.
+    _GEN_MOD is resolved at import time via _load_gen_trivyignore() using
+    a multi-candidate path search — works in CI (in-repo layout) and local
+    dev (TEST_GEN_SCRIPT override or legacy path).  All tests in this class
+    skip uniformly when the script cannot be located.
     """
 
-    # Minimal allowlist entry (only required fields)
+    # Full allowlist entry matching the allowlist.yaml schema
     _MINIMAL_ENTRY = {
-        "cve":      "CVE-2026-24051",
-        "severity": "HIGH",
-        "component": "gobinary/go.opentelemetry.io/otel/sdk",
+        "cve":               "CVE-2026-24051",
+        "severity":          "HIGH",
+        "component":         "gobinary/go.opentelemetry.io/otel/sdk",
         "installed_version": "v1.39.0",
-        "fixed_version": "1.40.0",
-        "verdict": "FALSE_POSITIVE_LINUX_BUILD",
-        "analysis": "Darwin-only code path. Build tag gated. Not compiled on linux/amd64.",
-        "evidence": ["Build tag: darwin only", "Binary: ioreg NOT FOUND"],
-        "review_date": "2026-06-30",
+        "fixed_version":     "1.40.0",
+        "verdict":           "FALSE_POSITIVE_LINUX_BUILD",
+        "analysis":          "Darwin-only code path. Build tag gated. Not compiled on linux/amd64.",
+        "evidence":          ["Build tag: darwin only", "Binary: ioreg NOT FOUND"],
+        "review_date":       "2026-06-30",
     }
 
-    def _load_gen_script(self):
-        """Load gen-trivyignore.py as a module."""
-        import importlib.util
-        script = (Path(__file__).resolve().parent.parent.parent.parent
-                  / "shared" / "scripts" / "gen-trivyignore.py")
-        # Try env-override path as well
-        env_override = _os.environ.get("TEST_GEN_SCRIPT")
-        if env_override:
-            script = Path(env_override)
-        if not script.exists():
-            self.skipTest(f"gen-trivyignore.py not found at {script}")
-        spec = importlib.util.spec_from_file_location("gen_trivyignore", script)
-        mod  = importlib.util.module_from_spec(spec)
-        import sys as _sys
-        _orig = _sys.argv
-        _sys.argv = ["gen-trivyignore.py"]
-        try:
-            spec.loader.exec_module(mod)
-        except SystemExit:
-            pass
-        finally:
-            _sys.argv = _orig
-        return mod
+    def setUp(self):
+        if _GEN_MOD is None:
+            self.skipTest("gen-trivyignore.py not found — set TEST_GEN_SCRIPT to enable")
+
+    def _finding(self, entry=None, path="images/traefik/v3.6.9/scan/allowlist.yaml"):
+        return _GEN_MOD._entry_to_finding(entry or self._MINIMAL_ENTRY, Path(path))
+
+    # --- schema contract ---
 
     def test_entry_produces_required_fields(self):
-        gen = self._load_gen_script()
-        import pathlib as _pl
-        fake_path = _pl.Path("images/traefik/v3.6.9/scan/allowlist.yaml")
-        finding = gen._entry_to_finding(self._MINIMAL_ENTRY, fake_path)
-
+        finding = self._finding()
         required = [
             "cve_id", "severity", "package_name", "package_version",
             "fixed_version", "description", "layer", "component",
@@ -924,75 +1213,112 @@ class TestAllowlistEntryConversion(unittest.TestCase):
             self.assertIn(field, finding, f"Missing field: {field}")
 
     def test_entry_is_suppressed_true(self):
-        gen = self._load_gen_script()
-        import pathlib as _pl
-        finding = gen._entry_to_finding(
-            self._MINIMAL_ENTRY,
-            _pl.Path("images/traefik/v3.6.9/scan/allowlist.yaml")
-        )
+        finding = self._finding()
         self.assertTrue(finding["is_suppressed"])
         self.assertEqual(finding["mitigation_type"], "allowlisted")
 
     def test_entry_cve_id_mapped(self):
-        gen = self._load_gen_script()
-        import pathlib as _pl
-        finding = gen._entry_to_finding(
-            self._MINIMAL_ENTRY,
-            _pl.Path("images/traefik/v3.6.9/scan/allowlist.yaml")
-        )
-        self.assertEqual(finding["cve_id"], "CVE-2026-24051")
+        self.assertEqual(self._finding()["cve_id"], "CVE-2026-24051")
+
+    def test_entry_suppression_reason_mapped(self):
+        self.assertEqual(self._finding()["suppression_reason"], "FALSE_POSITIVE_LINUX_BUILD")
+
+    def test_entry_review_date_mapped(self):
+        self.assertEqual(self._finding()["review_date"], "2026-06-30")
 
     def test_entry_component_classified_as_go_module(self):
-        gen = self._load_gen_script()
-        import pathlib as _pl
-        finding = gen._entry_to_finding(
-            self._MINIMAL_ENTRY,
-            _pl.Path("images/traefik/v3.6.9/scan/allowlist.yaml")
-        )
-        self.assertEqual(finding["component"], "go-module")
+        self.assertEqual(self._finding()["component"], "go-module")
+
+    def test_entry_alpine_pkg_classified(self):
+        entry = dict(self._MINIMAL_ENTRY, component="apk/musl")
+        self.assertEqual(self._finding(entry)["component"], "alpine-pkg")
+
+    def test_entry_rust_crate_classified(self):
+        entry = dict(self._MINIMAL_ENTRY, component="cargo/ring")
+        self.assertEqual(self._finding(entry)["component"], "rust-crate")
+
+    def test_entry_python_pkg_classified(self):
+        entry = dict(self._MINIMAL_ENTRY, component="pypi/requests")
+        self.assertEqual(self._finding(entry)["component"], "python-pkg")
+
+    def test_entry_unknown_component_is_other(self):
+        entry = dict(self._MINIMAL_ENTRY, component="")
+        self.assertEqual(self._finding(entry)["component"], "other")
+
+    # --- truncation ---
 
     def test_entry_description_truncated_to_500(self):
-        gen = self._load_gen_script()
-        import pathlib as _pl
-        long_entry = dict(self._MINIMAL_ENTRY)
-        long_entry["analysis"] = "x" * 600
-        finding = gen._entry_to_finding(
-            long_entry,
-            _pl.Path("images/x/v1.0/scan/allowlist.yaml")
-        )
-        self.assertLessEqual(len(finding["description"]), 500)
+        entry = dict(self._MINIMAL_ENTRY, analysis="x" * 600)
+        self.assertLessEqual(len(self._finding(entry)["description"]), 500)
 
     def test_entry_suppression_detail_truncated_to_2000(self):
-        gen = self._load_gen_script()
-        import pathlib as _pl
-        long_entry = dict(self._MINIMAL_ENTRY)
-        long_entry["analysis"] = "y" * 2500
-        finding = gen._entry_to_finding(
-            long_entry,
-            _pl.Path("images/x/v1.0/scan/allowlist.yaml")
-        )
-        self.assertLessEqual(len(finding["suppression_detail"]), 2000)
+        entry = dict(self._MINIMAL_ENTRY, analysis="y" * 2500)
+        self.assertLessEqual(len(self._finding(entry)["suppression_detail"]), 2000)
+
+    def test_entry_suppression_detail_exact_2000_boundary(self):
+        entry = dict(self._MINIMAL_ENTRY, analysis="z" * 2000)
+        self.assertEqual(len(self._finding(entry)["suppression_detail"]), 2000)
+
+    # --- evidence handling ---
 
     def test_entry_evidence_is_list(self):
-        gen = self._load_gen_script()
-        import pathlib as _pl
-        finding = gen._entry_to_finding(
-            self._MINIMAL_ENTRY,
-            _pl.Path("images/traefik/v3.6.9/scan/allowlist.yaml")
-        )
-        self.assertIsInstance(finding["suppression_evidence"], list)
+        self.assertIsInstance(self._finding()["suppression_evidence"], list)
+
+    def test_entry_evidence_string_wrapped_in_list(self):
+        """When evidence is a plain string (not a list), it must still produce a list."""
+        entry = dict(self._MINIMAL_ENTRY, evidence="single string evidence")
+        ev = self._finding(entry)["suppression_evidence"]
+        self.assertIsInstance(ev, list)
+        self.assertEqual(len(ev), 1)
+
+    def test_entry_evidence_empty_list(self):
+        entry = dict(self._MINIMAL_ENTRY, evidence=[])
+        # Empty list → None (falsy guard in _entry_to_finding)
+        ev = self._finding(entry)["suppression_evidence"]
+        self.assertIsNone(ev)
+
+    def test_entry_no_evidence_key(self):
+        entry = {k: v for k, v in self._MINIMAL_ENTRY.items() if k != "evidence"}
+        ev = self._finding(entry)["suppression_evidence"]
+        self.assertIsNone(ev)
+
+    # --- edge cases ---
+
+    def test_entry_missing_severity_defaults_to_unknown(self):
+        entry = {k: v for k, v in self._MINIMAL_ENTRY.items() if k != "severity"}
+        self.assertEqual(self._finding(entry)["severity"], "UNKNOWN")
+
+    def test_entry_severity_normalised_to_upper(self):
+        entry = dict(self._MINIMAL_ENTRY, severity="high")
+        self.assertEqual(self._finding(entry)["severity"], "HIGH")
+
+    def test_entry_no_review_date_is_none(self):
+        entry = {k: v for k, v in self._MINIMAL_ENTRY.items() if k != "review_date"}
+        self.assertIsNone(self._finding(entry)["review_date"])
+
+    def test_entry_no_fixed_version_is_none(self):
+        entry = {k: v for k, v in self._MINIMAL_ENTRY.items() if k != "fixed_version"}
+        self.assertIsNone(self._finding(entry)["fixed_version"])
+
+    def test_entry_layer_always_base_image(self):
+        self.assertEqual(self._finding()["layer"], "base_image")
+
+    # --- integration with merge ---
 
     def test_entry_compatible_with_merge(self):
         """A finding from gen-trivyignore passes cleanly through _merge_with_allowlist."""
-        gen = self._load_gen_script()
-        import pathlib as _pl
-        suppressed = gen._entry_to_finding(
-            self._MINIMAL_ENTRY,
-            _pl.Path("images/traefik/v3.6.9/scan/allowlist.yaml")
-        )
+        suppressed = self._finding()
         result = _si._merge_with_allowlist([], [suppressed])
         self.assertEqual(len(result), 1)
         self.assertTrue(result[0]["is_suppressed"])
+
+    def test_entry_compatible_with_write_findings(self):
+        """A finding from gen-trivyignore is written correctly by write_findings."""
+        suppressed = self._finding()
+        n, rows = _write_findings_with_mock([suppressed], suppress_cols=True)
+        self.assertEqual(n, 1)
+        self.assertTrue(rows[0]["is_suppressed"])
+        self.assertEqual(rows[0]["suppression_reason"], "FALSE_POSITIVE_LINUX_BUILD")
 
 
 # =============================================================================
