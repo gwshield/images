@@ -22,7 +22,7 @@
 #   The suppression_* columns (is_suppressed, suppression_reason,
 #   suppression_detail, suppression_evidence, review_date) are written
 #   conditionally — write_findings() probes for column existence and falls
-#   back silently to the current schema if migration 0034 is not yet applied.
+#   back silently to the current schema if migration 0044 is not yet applied.
 #   This keeps the pipeline forward-compatible with the Hub migration schedule.
 #
 # Usage:
@@ -579,14 +579,14 @@ class SupabaseClient:
 # CVE findings persistence
 # ---------------------------------------------------------------------------
 
-# Suppression columns added by Hub migration 0034.
+# Suppression columns added by Hub migration 0044.
 # We probe for their existence once per process run and cache the result.
 _suppression_columns_available: bool | None = None
 
 
 def _suppression_cols_exist(db: SupabaseClient) -> bool:
     """
-    Return True if the cve_findings table has the migration-0034 suppression
+    Return True if the cve_findings table has the migration-0044 suppression
     columns (is_suppressed, suppression_reason, …).
 
     Result is cached for the lifetime of the process — one probe per run.
@@ -610,7 +610,7 @@ def _suppression_cols_exist(db: SupabaseClient) -> bool:
     except Exception:
         _suppression_columns_available = False
 
-    status = "available" if _suppression_columns_available else "not yet available (migration 0034 pending)"
+    status = "available" if _suppression_columns_available else "not yet available (migration 0044 pending)"
     print(f"  [suppress-probe] suppression columns: {status}")
     return _suppression_columns_available
 
@@ -666,7 +666,7 @@ def write_findings(db: SupabaseClient, version_id: str, findings: list[dict],
     --emit-findings-json + _merge_with_allowlist).
 
     Suppression columns (is_suppressed, suppression_reason, suppression_detail,
-    suppression_evidence, review_date) are written only when migration 0034 is
+    suppression_evidence, review_date) are written only when migration 0044 is
     applied. If the columns don't exist yet the row is written without them —
     the suppressed entry is still stored, just without the rich metadata until
     the migration runs.
@@ -716,7 +716,7 @@ def write_findings(db: SupabaseClient, version_id: str, findings: list[dict],
             "component":         f.get("component", "other"),
         }
 
-        # --- suppression columns (migration 0034 — written only when available) ---
+        # --- suppression columns (migration 0044 — written only when available) ---
         if suppress_cols:
             row["is_suppressed"]        = f.get("is_suppressed", False)
             row["suppression_reason"]   = f.get("suppression_reason")
@@ -728,7 +728,7 @@ def write_findings(db: SupabaseClient, version_id: str, findings: list[dict],
         written += 1
 
     print(f"  Wrote {written} CVE finding(s) to cve_findings "
-          f"(suppression metadata: {'yes' if suppress_cols else 'no — migration 0034 pending'})")
+          f"(suppression metadata: {'yes' if suppress_cols else 'no — migration 0044 pending'})")
     return written
 
 
