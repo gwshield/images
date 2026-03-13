@@ -100,7 +100,8 @@ jobs:
         run: |
           python3 scripts/generate-readme.py \
             --registry registry.json \
-            --output README.md
+            --output README.md \
+            --static static_sections.json
 
       - name: Show diff
         run: git diff README.md || true
