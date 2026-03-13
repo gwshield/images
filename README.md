@@ -62,12 +62,12 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `c0f1f9d3b947` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `d514d0f8896d` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `5de8d713cbb5` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `884f2fb89990` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `89a1c44181fa` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `4bb65f6c4dbe` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `a39e54bf3c92` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `77dbdbc5f385` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `22635171c029` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `66c3cb7bf501` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `a4f6200d2af7` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `074a7fd10169` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `d8b4d7853ee0` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `7a50b9c0d189` | 0 CVEs | 2026-03-13 |
