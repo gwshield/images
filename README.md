@@ -36,24 +36,24 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `23beb4a661d4` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `9d7146ec7f20` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `9d7146ec7f20` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `bfa527606ce6` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `2ec11841c2d1` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `17c88656844e` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `20b9ff42811f` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `20b9ff42811f` | 0 CVEs | 2026-03-13 |
 
 ### haproxy
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `12d2b6bdd3db` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `12d2b6bdd3db` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `ce9a4f7ec4bb` | 0 CVEs | 2026-03-12 |
 
 ### nginx — HTTP server / reverse proxy
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `6e18df432a23` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `6e18df432a23` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `98eea42dee2a` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `91c0fa5a163c` | 0 CVEs | 2026-03-12 |
 
@@ -67,19 +67,19 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `db2ff15e90ce` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `33e6c7a36d05` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `b1eedce0d9a7` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `77c4a1567def` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `77c4a1567def` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `5b1f6bcb4f18` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `1cdd7ae049fa` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `b9e88703aeba` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `b9e88703aeba` | 0 CVEs | 2026-03-13 |
 
 ### Redis — in-memory data store
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `4aa85cb8bfc9` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `f8c51c41b756` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `f8c51c41b756` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `c555dbf23415` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `70486c2bf1a7` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `70486c2bf1a7` | 0 CVEs | 2026-03-13 |
 
 ### Traefik — cloud-native edge router
 
@@ -112,7 +112,7 @@ ENTRYPOINT ["/myapp"]
 | `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `fbcd53458c87` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `c9c40de1bac8` | 0 CVEs | 2026-03-12 |
 | `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `17a8cf38ed77` | 0 CVEs | 2026-03-12 |
-| `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `cc6634dca569` | 0 CVEs | 2026-03-12 |
+| `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `cc6634dca569` | 0 CVEs | 2026-03-13 |
 
 ### Python — reproducible wheel builds
 
@@ -230,4 +230,4 @@ Apache-2.0 — Gatewarden / RelicFrog Foundation
 
 ---
 
-*Registry last updated: 2026-03-12. This file is auto-generated — do not edit manually.*
+*Registry last updated: 2026-03-13. This file is auto-generated — do not edit manually.*
