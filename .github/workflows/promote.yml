@@ -225,7 +225,6 @@ jobs:
 
           PLATFORMS_JSON="[]"
           IMAGE_SIZE_JSON="{}"
-          RUNNABLE_SIZE_JSON="{}"
           SBOM_REFS_JSON="{}"
 
           # Inspect the manifest list — determine if this is a multi-arch image
@@ -236,7 +235,6 @@ jobs:
             _D=$(openssl rand -hex 8)
             { echo "platforms_json<<${_D}";     echo "${PLATFORMS_JSON}";     echo "${_D}"; } >> "$GITHUB_OUTPUT"
             { echo "image_size_json<<${_D}";    echo "${IMAGE_SIZE_JSON}";    echo "${_D}"; } >> "$GITHUB_OUTPUT"
-            { echo "runnable_size_json<<${_D}"; echo "${RUNNABLE_SIZE_JSON}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
             { echo "sbom_refs_json<<${_D}";     echo "${SBOM_REFS_JSON}";     echo "${_D}"; } >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -280,7 +278,6 @@ jobs:
 
             # Build size maps via per-platform skopeo inspect
             IMG_MAP="{}"
-            RUN_MAP="{}"
             for ROW in $(echo "${PLAT_DATA}" | python3 -c "
           import json,sys
           d=json.loads(sys.stdin.read())
@@ -298,17 +295,9 @@ jobs:
           print(sum(l.get('size',0) for l in d.get('layers',[])))
           " 2>/dev/null || echo "0")
 
-              # uncompressed size (no --raw → LayersData[].Size)
-              RUN_SIZE=$(skopeo inspect --creds "${DST_CREDS}"                 "docker://${DST_IMAGE}@${DIGEST}" 2>/dev/null | python3 -c "
-          import json,sys
-          d=json.load(sys.stdin)
-          print(sum(l.get('Size',0) for l in d.get('LayersData',[])))
-          " 2>/dev/null || echo "0")
-
               IMG_MAP=$(echo "${IMG_MAP}" | jq -c --arg k "${PLAT}" --argjson v "${IMG_SIZE}" '. + {($k): $v}')
-              RUN_MAP=$(echo "${RUN_MAP}" | jq -c --arg k "${PLAT}" --argjson v "${RUN_SIZE}" '. + {($k): $v}')
 
-              echo "  ${PLAT}: image_size=${IMG_SIZE} runnable_size=${RUN_SIZE}"
+              echo "  ${PLAT}: image_size=${IMG_SIZE}"
             done
 
             if [[ "${PLAT_LIST}" == "[]" || -z "${PLAT_LIST}" ]]; then
@@ -318,7 +307,6 @@ jobs:
             else
               PLATFORMS_JSON="${PLAT_LIST}"
               IMAGE_SIZE_JSON="${IMG_MAP}"
-              RUNNABLE_SIZE_JSON="${RUN_MAP}"
             fi
           fi
 
@@ -357,22 +345,14 @@ jobs:
           print(sum(l.get('size',0) for l in d.get('layers',[])))
           " 2>/dev/null || echo "0")
 
-            RUN_SIZE=$(skopeo inspect --creds "${DST_CREDS}" "${INSPECT_REF}" 2>/dev/null | python3 -c "
-          import json,sys
-          d=json.load(sys.stdin)
-          print(sum(l.get('Size',0) for l in d.get('LayersData',[])))
-          " 2>/dev/null || echo "0")
-
             PLATFORMS_JSON='["linux/amd64"]'
             IMAGE_SIZE_JSON=$(jq -cn --argjson v "${IMG_SIZE}" '{"linux/amd64": $v}')
-            RUNNABLE_SIZE_JSON=$(jq -cn --argjson v "${RUN_SIZE}" '{"linux/amd64": $v}')
-            echo "  linux/amd64: image_size=${IMG_SIZE} runnable_size=${RUN_SIZE}"
+            echo "  linux/amd64: image_size=${IMG_SIZE}"
           fi
 
           _D=$(openssl rand -hex 8)
           { echo "platforms_json<<${_D}";     echo "${PLATFORMS_JSON}";     echo "${_D}"; } >> "$GITHUB_OUTPUT"
           { echo "image_size_json<<${_D}";    echo "${IMAGE_SIZE_JSON}";    echo "${_D}"; } >> "$GITHUB_OUTPUT"
-          { echo "runnable_size_json<<${_D}"; echo "${RUNNABLE_SIZE_JSON}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
           { echo "sbom_refs_json<<${_D}";     echo "${SBOM_REFS_JSON}";     echo "${_D}"; } >> "$GITHUB_OUTPUT"
           echo "Platforms: ${PLATFORMS_JSON}"
 
@@ -666,13 +646,11 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           _PLATFORMS_JSON: ${{ steps.plat.outputs.platforms_json }}
           _IMAGE_SIZE_JSON: ${{ steps.plat.outputs.image_size_json }}
-          _RUNNABLE_SIZE_JSON: ${{ steps.plat.outputs.runnable_size_json }}
           _SBOM_REFS_JSON: ${{ steps.sbom.outputs.sbom_refs_json }}
         run: |
           set -euo pipefail
           PLATFORMS_JSON="${_PLATFORMS_JSON}"
           IMAGE_SIZE_JSON="${_IMAGE_SIZE_JSON}"
-          RUNNABLE_SIZE_JSON="${_RUNNABLE_SIZE_JSON}"
           SBOM_REFS_JSON="${_SBOM_REFS_JSON}"
 
           # Build optional platform args — only pass when we have platform data
@@ -683,9 +661,9 @@ jobs:
           if [[ -n "${IMAGE_SIZE_JSON}" && "${IMAGE_SIZE_JSON}" != "{}" ]]; then
             PLAT_ARGS+=(--image-size-json "${IMAGE_SIZE_JSON}")
           fi
-          if [[ -n "${RUNNABLE_SIZE_JSON}" && "${RUNNABLE_SIZE_JSON}" != "{}" ]]; then
-            PLAT_ARGS+=(--runnable-size-json "${RUNNABLE_SIZE_JSON}")
-          fi
+          # runnable_size_bytes intentionally omitted — OCI registry API does not expose
+          # uncompressed layer sizes; writing the compressed size as runnable_size would be
+          # misleading. Column is left NULL; Hub renders '—' for this field.
           if [[ -n "${SBOM_REFS_JSON}" && "${SBOM_REFS_JSON}" != "{}" ]]; then
             PLAT_ARGS+=(--sbom-refs-json "${SBOM_REFS_JSON}")
           fi
