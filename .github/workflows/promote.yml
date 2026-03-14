@@ -20,6 +20,8 @@
 #   src_digest   e.g. sha256:abc123...  (used for signing/SBOM ref)
 #   src_tag      e.g. v3.6.9 or main    (tag resolved upstream — used for copy)
 #   src_image    e.g. ghcr.io/relicfrog/gwshield-traefik
+#   platforms    e.g. ["linux/amd64","linux/arm64"] (from release-public.yml detection)
+#                Hint only — promote.yml re-detects from the pushed destination image.
 # =============================================================================
 
 name: promote
@@ -205,6 +207,152 @@ jobs:
       # cosign keyless sign (Sigstore OIDC)
       # Identity: https://github.com/gwshield/images/.github/workflows/promote.yml
       # -----------------------------------------------------------------------
+      # -----------------------------------------------------------------------
+      # Collect per-platform image sizes and platform list.
+      # Inspects the manifest list that was just pushed.
+      #   --raw  → OCI manifest JSON → sum layer sizes → image_size_bytes (compressed)
+      # skopeo inspect (no --raw) → LayersData[].Size sum → runnable_size_bytes
+      # Gracefully skipped if the inspect fails (e.g. single-arch image).
+      # -----------------------------------------------------------------------
+      - name: Collect per-platform metadata
+        id: plat
+        env:
+          DST_CREDS: x-access-token:${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          FIRST_TAG="${{ steps.push.outputs.first_tag }}"
+          [[ -z "${FIRST_TAG}" ]] && { echo "No tag — skip platform metadata"; exit 0; }
+
+          PLATFORMS_JSON="[]"
+          IMAGE_SIZE_JSON="{}"
+          RUNNABLE_SIZE_JSON="{}"
+          SBOM_REFS_JSON="{}"
+
+          # Inspect the manifest list — determine if this is a multi-arch image
+          RAW_MANIFEST=$(skopeo inspect --raw --creds "${DST_CREDS}"             "docker://${FIRST_TAG}" 2>/dev/null || true)
+
+          if [[ -z "${RAW_MANIFEST}" ]]; then
+            echo "Could not inspect manifest — falling back to no platform metadata"
+            echo "platforms_json=${PLATFORMS_JSON}"     >> "$GITHUB_OUTPUT"
+            echo "image_size_json=${IMAGE_SIZE_JSON}"   >> "$GITHUB_OUTPUT"
+            echo "runnable_size_json=${RUNNABLE_SIZE_JSON}" >> "$GITHUB_OUTPUT"
+            echo "sbom_refs_json=${SBOM_REFS_JSON}"     >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Check if this is a manifest list (mediaType contains 'index' or 'manifest.list')
+          IS_INDEX=$(echo "${RAW_MANIFEST}" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          mt=d.get('mediaType','')
+          print('true' if ('index' in mt or 'list' in mt) else 'false')
+          " 2>/dev/null || echo "false")
+
+          if [[ "${IS_INDEX}" == "true" ]]; then
+            echo "Manifest list detected — collecting per-platform sizes"
+            PLAT_DATA=$(echo "${RAW_MANIFEST}" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          manifests=d.get('manifests',[])
+          result=[]
+          for m in manifests:
+              p=m.get('platform',{})
+              os_=p.get('os','')
+              arch=p.get('architecture','')
+              variant=p.get('variant','')
+              if os_ and arch:
+                  plat=f'{os_}/{arch}'
+                  if variant:
+                      plat+=f'/{variant}'
+                  result.append({'platform':plat,'digest':m.get('digest',''),'size':m.get('size',0)})
+          print(json.dumps(result))
+          " 2>/dev/null || echo "[]")
+
+            FIRST_TAG_BASE="${{ steps.push.outputs.first_tag }}"
+            DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+
+            PLAT_LIST=$(echo "${PLAT_DATA}" | python3 -c "
+          import json,sys
+          d=json.loads(sys.stdin.read())
+          print(json.dumps([x['platform'] for x in d]))
+          " 2>/dev/null || echo "[]")
+
+            # Build size maps via per-platform skopeo inspect
+            IMG_MAP="{}"
+            RUN_MAP="{}"
+            for ROW in $(echo "${PLAT_DATA}" | python3 -c "
+          import json,sys
+          d=json.loads(sys.stdin.read())
+          for x in d:
+              print(x['platform']+'|'+x['digest'])
+          " 2>/dev/null); do
+              PLAT="${ROW%%|*}"
+              DIGEST="${ROW##*|}"
+              [[ -z "${DIGEST}" ]] && continue
+
+              # compressed size (--raw → sum layers[].size)
+              IMG_SIZE=$(skopeo inspect --raw --creds "${DST_CREDS}"                 "docker://${DST_IMAGE}@${DIGEST}" 2>/dev/null | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          print(sum(l.get('size',0) for l in d.get('layers',[])))
+          " 2>/dev/null || echo "0")
+
+              # uncompressed size (no --raw → LayersData[].Size)
+              RUN_SIZE=$(skopeo inspect --creds "${DST_CREDS}"                 "docker://${DST_IMAGE}@${DIGEST}" 2>/dev/null | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          print(sum(l.get('Size',0) for l in d.get('LayersData',[])))
+          " 2>/dev/null || echo "0")
+
+              IMG_MAP=$(echo "${IMG_MAP}" | python3 -c "
+          import json,sys,os
+          d=json.loads(sys.stdin.read())
+          d[os.environ['PLAT']]=int(os.environ['IMG_SIZE'])
+          print(json.dumps(d))
+          " PLAT="${PLAT}" IMG_SIZE="${IMG_SIZE}")
+              RUN_MAP=$(echo "${RUN_MAP}" | python3 -c "
+          import json,sys,os
+          d=json.loads(sys.stdin.read())
+          d[os.environ['PLAT']]=int(os.environ['RUN_SIZE'])
+          print(json.dumps(d))
+          " PLAT="${PLAT}" RUN_SIZE="${RUN_SIZE}")
+
+              echo "  ${PLAT}: image_size=${IMG_SIZE} runnable_size=${RUN_SIZE}"
+            done
+
+            PLATFORMS_JSON="${PLAT_LIST}"
+            IMAGE_SIZE_JSON="${IMG_MAP}"
+            RUNNABLE_SIZE_JSON="${RUN_MAP}"
+          else
+            # Single-arch image — collect sizes for linux/amd64
+            echo "Single-arch manifest — collecting sizes for linux/amd64"
+            DIGEST="${{ steps.push.outputs.digest }}"
+            DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+
+            IMG_SIZE=$(skopeo inspect --raw --creds "${DST_CREDS}"               "docker://${FIRST_TAG}" 2>/dev/null | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          print(sum(l.get('size',0) for l in d.get('layers',[])))
+          " 2>/dev/null || echo "0")
+
+            RUN_SIZE=$(skopeo inspect --creds "${DST_CREDS}"               "docker://${FIRST_TAG}" 2>/dev/null | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          print(sum(l.get('Size',0) for l in d.get('LayersData',[])))
+          " 2>/dev/null || echo "0")
+
+            PLATFORMS_JSON='["linux/amd64"]'
+            IMAGE_SIZE_JSON=$(python3 -c "import json,os; print(json.dumps({'linux/amd64':int(os.environ['S'])}))" S="${IMG_SIZE}")
+            RUNNABLE_SIZE_JSON=$(python3 -c "import json,os; print(json.dumps({'linux/amd64':int(os.environ['S'])}))" S="${RUN_SIZE}")
+            echo "  linux/amd64: image_size=${IMG_SIZE} runnable_size=${RUN_SIZE}"
+          fi
+
+          echo "platforms_json=${PLATFORMS_JSON}"         >> "$GITHUB_OUTPUT"
+          echo "image_size_json=${IMAGE_SIZE_JSON}"       >> "$GITHUB_OUTPUT"
+          echo "runnable_size_json=${RUNNABLE_SIZE_JSON}" >> "$GITHUB_OUTPUT"
+          echo "sbom_refs_json=${SBOM_REFS_JSON}"         >> "$GITHUB_OUTPUT"
+          echo "Platforms: ${PLATFORMS_JSON}"
+
       - name: Sign public image (cosign keyless)
         run: |
           set -euo pipefail
@@ -232,6 +380,7 @@ jobs:
         uses: anchore/sbom-action/download-syft@v0
 
       - name: Generate and attest SBOM
+        id: sbom
         continue-on-error: true
         run: |
           set -euo pipefail
@@ -242,21 +391,86 @@ jobs:
           [[ -z "${DIGEST}" ]] && { echo "No digest -- skip SBOM"; exit 0; }
           mkdir -p sbom-out
 
-          syft "${DST_IMAGE}@${DIGEST}" \
-            --output cyclonedx-json=sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json
+          PLATFORMS_JSON="${{ steps.plat.outputs.platforms_json }}"
+          SBOM_REFS="{}"
 
-          syft "${DST_IMAGE}@${DIGEST}" \
-            --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
+          # If we have per-platform platform list, attest SBOM per platform digest
+          if [[ -n "${PLATFORMS_JSON}" && "${PLATFORMS_JSON}" != "[]" ]]; then
+            RAW_MANIFEST=$(skopeo inspect --raw               --creds "x-access-token:${{ secrets.GITHUB_TOKEN }}"               "docker://${DST_IMAGE}@${DIGEST}" 2>/dev/null || true)
+            IS_INDEX=$(echo "${RAW_MANIFEST}" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          mt=d.get('mediaType','')
+          print('true' if ('index' in mt or 'list' in mt) else 'false')
+          " 2>/dev/null || echo "false")
 
-          cosign attest --yes \
-            --predicate sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json \
-            --type cyclonedx \
-            "${DST_IMAGE}@${DIGEST}"
+            if [[ "${IS_INDEX}" == "true" ]]; then
+              PLAT_DIGESTS=$(echo "${RAW_MANIFEST}" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          for m in d.get('manifests',[]):
+              p=m.get('platform',{})
+              os_=p.get('os','')
+              arch=p.get('architecture','')
+              if os_ and arch:
+                  plat=f'{os_}/{arch}'
+                  print(plat+'|'+m.get('digest',''))
+          " 2>/dev/null || true)
 
-          cosign attest --yes \
-            --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
-            --type spdx \
-            "${DST_IMAGE}@${DIGEST}"
+              for ROW in $PLAT_DIGESTS; do
+                PLAT="${ROW%%|*}"
+                PDIGEST="${ROW##*|}"
+                [[ -z "${PDIGEST}" ]] && continue
+                PLAT_SAFE="${PLAT//\//-}"
+
+                syft "${DST_IMAGE}@${PDIGEST}" \
+                  --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json
+
+                cosign attest --yes \
+                  --predicate sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json \
+                  --type spdx \
+                  "${DST_IMAGE}@${PDIGEST}"
+
+                SBOM_REF="${DST_IMAGE}@${PDIGEST}"
+                SBOM_REFS=$(echo "${SBOM_REFS}" | python3 -c "
+          import json,sys,os
+          d=json.loads(sys.stdin.read())
+          d[os.environ['PLAT']]=os.environ['SBOM_REF']
+          print(json.dumps(d))
+          " PLAT="${PLAT}" SBOM_REF="${SBOM_REF}")
+                echo "  SBOM attested for ${PLAT}: ${DST_IMAGE}@${PDIGEST}"
+              done
+            else
+              # Single-arch — attest to manifest digest
+              syft "${DST_IMAGE}@${DIGEST}" \
+                --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
+              cosign attest --yes \
+                --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
+                --type spdx \
+                "${DST_IMAGE}@${DIGEST}"
+              SBOM_REFS=$(python3 -c "import json,os; print(json.dumps({'linux/amd64':os.environ['R']}))" R="${DST_IMAGE}@${DIGEST}")
+            fi
+          else
+            # Legacy / fallback — single SBOM on manifest list digest
+            syft "${DST_IMAGE}@${DIGEST}" \
+              --output cyclonedx-json=sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json
+
+            syft "${DST_IMAGE}@${DIGEST}" \
+              --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
+
+            cosign attest --yes \
+              --predicate sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json \
+              --type cyclonedx \
+              "${DST_IMAGE}@${DIGEST}"
+
+            cosign attest --yes \
+              --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
+              --type spdx \
+              "${DST_IMAGE}@${DIGEST}"
+          fi
+
+          echo "sbom_refs_json=${SBOM_REFS}" >> "$GITHUB_OUTPUT"
+          echo "SBOM refs: ${SBOM_REFS}"
 
       - name: Upload SBOM artifacts
         uses: actions/upload-artifact@v4
@@ -432,6 +646,27 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
+          set -euo pipefail
+          PLATFORMS_JSON="${{ steps.plat.outputs.platforms_json }}"
+          IMAGE_SIZE_JSON="${{ steps.plat.outputs.image_size_json }}"
+          RUNNABLE_SIZE_JSON="${{ steps.plat.outputs.runnable_size_json }}"
+          SBOM_REFS_JSON="${{ steps.sbom.outputs.sbom_refs_json }}"
+
+          # Build optional platform args — only pass when we have platform data
+          PLAT_ARGS=()
+          if [[ -n "${PLATFORMS_JSON}" && "${PLATFORMS_JSON}" != "[]" ]]; then
+            PLAT_ARGS+=(--platforms "${PLATFORMS_JSON}")
+          fi
+          if [[ -n "${IMAGE_SIZE_JSON}" && "${IMAGE_SIZE_JSON}" != "{}" ]]; then
+            PLAT_ARGS+=(--image-size-json "${IMAGE_SIZE_JSON}")
+          fi
+          if [[ -n "${RUNNABLE_SIZE_JSON}" && "${RUNNABLE_SIZE_JSON}" != "{}" ]]; then
+            PLAT_ARGS+=(--runnable-size-json "${RUNNABLE_SIZE_JSON}")
+          fi
+          if [[ -n "${SBOM_REFS_JSON}" && "${SBOM_REFS_JSON}" != "{}" ]]; then
+            PLAT_ARGS+=(--sbom-refs-json "${SBOM_REFS_JSON}")
+          fi
+
           python3 scripts/supabase_ingress.py promote \
             --name            "${{ github.event.client_payload.name }}" \
             --version         "${{ github.event.client_payload.version }}" \
@@ -441,7 +676,8 @@ jobs:
             --tags            "${{ steps.tags.outputs.tags }}" \
             --cosign-identity "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main" \
             --promoted-at     "${{ steps.registry.outputs.promoted_at }}" \
-            --image-type      "${{ github.event.client_payload.image_type }}"
+            --image-type      "${{ github.event.client_payload.image_type }}" \
+            "${PLAT_ARGS[@]}"
 
       # Fetch allowlist for this image from RelicFrog/gwshield-images so suppressed
       # CVEs can be written transparently alongside real Trivy findings.
