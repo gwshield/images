@@ -1346,6 +1346,538 @@ class TestAllowlistEntryConversion(unittest.TestCase):
         self.assertEqual(rows[0]["suppression_reason"], "FALSE_POSITIVE_LINUX_BUILD")
 
 
+
+# =============================================================================
+# Migration 0053 — Multi-platform ingest + image size fields
+# =============================================================================
+# =============================================================================
+# parse_platforms (migration 0053)
+# =============================================================================
+
+class TestParsePlatforms(unittest.TestCase):
+    """
+    parse_platforms() converts JSON platform args to list[str].
+    Empty / missing → [] (legacy mode).
+    Single string → ["linux/amd64"].
+    Array → ["linux/amd64", "linux/arm64"].
+    """
+
+    def _p(self, s):
+        return _si.parse_platforms(s)
+
+    def test_none_returns_empty_list(self):
+        self.assertEqual(self._p(None), [])
+
+    def test_empty_string_returns_empty_list(self):
+        self.assertEqual(self._p(""), [])
+
+    def test_json_array_dual_arch(self):
+        result = self._p('["linux/amd64","linux/arm64"]')
+        self.assertEqual(result, ["linux/amd64", "linux/arm64"])
+
+    def test_json_array_single_platform(self):
+        result = self._p('["linux/amd64"]')
+        self.assertEqual(result, ["linux/amd64"])
+
+    def test_json_string_single_platform(self):
+        """A bare JSON string (not array) is accepted as a single-element list."""
+        result = self._p('"linux/amd64"')
+        self.assertEqual(result, ["linux/amd64"])
+
+    def test_json_empty_array(self):
+        self.assertEqual(self._p("[]"), [])
+
+    def test_json_array_filters_empty_strings(self):
+        """Null / empty slots in the JSON array are dropped."""
+        result = self._p('["linux/amd64", "", "linux/arm64"]')
+        self.assertEqual(result, ["linux/amd64", "linux/arm64"])
+
+    def test_order_preserved(self):
+        result = self._p('["linux/arm64","linux/amd64"]')
+        self.assertEqual(result[0], "linux/arm64")
+        self.assertEqual(result[1], "linux/amd64")
+
+
+# =============================================================================
+# parse_size_map (migration 0053)
+# =============================================================================
+
+class TestParseSizeMap(unittest.TestCase):
+    """
+    parse_size_map() converts platform→size JSON to dict[str, int].
+    None / "" → {}.
+    Null values in the JSON are dropped.
+    Values are coerced to int.
+    """
+
+    def _p(self, s):
+        return _si.parse_size_map(s)
+
+    def test_none_returns_empty_dict(self):
+        self.assertEqual(self._p(None), {})
+
+    def test_empty_string_returns_empty_dict(self):
+        self.assertEqual(self._p(""), {})
+
+    def test_empty_json_object(self):
+        self.assertEqual(self._p("{}"), {})
+
+    def test_dual_arch_map(self):
+        result = self._p('{"linux/amd64":12345678,"linux/arm64":12100000}')
+        self.assertEqual(result["linux/amd64"], 12345678)
+        self.assertEqual(result["linux/arm64"], 12100000)
+
+    def test_null_value_dropped(self):
+        """Null values must not appear in the result dict."""
+        result = self._p('{"linux/amd64":12345678,"linux/arm64":null}')
+        self.assertIn("linux/amd64", result)
+        self.assertNotIn("linux/arm64", result)
+
+    def test_float_coerced_to_int(self):
+        """JSON numbers like 1.23e7 should be coerced to int."""
+        result = self._p('{"linux/amd64":12345678.0}')
+        self.assertIsInstance(result["linux/amd64"], int)
+        self.assertEqual(result["linux/amd64"], 12345678)
+
+    def test_zero_value_kept(self):
+        """Zero is a valid size (e.g. scratch image with no layers)."""
+        result = self._p('{"linux/amd64":0}')
+        self.assertIn("linux/amd64", result)
+        self.assertEqual(result["linux/amd64"], 0)
+
+
+# =============================================================================
+# parse_ref_map (migration 0053)
+# =============================================================================
+
+class TestParseRefMap(unittest.TestCase):
+    """
+    parse_ref_map() converts platform→OCI-ref JSON to dict[str, str].
+    None / "" → {}.
+    Null / empty string values in the JSON are dropped.
+    """
+
+    def _p(self, s):
+        return _si.parse_ref_map(s)
+
+    def test_none_returns_empty_dict(self):
+        self.assertEqual(self._p(None), {})
+
+    def test_empty_string_returns_empty_dict(self):
+        self.assertEqual(self._p(""), {})
+
+    def test_empty_json_object(self):
+        self.assertEqual(self._p("{}"), {})
+
+    def test_dual_arch_refs(self):
+        result = self._p(
+            '{"linux/amd64":"ghcr.io/gwshield/redis:v7.4.8@sha256:aaa",'
+            '"linux/arm64":"ghcr.io/gwshield/redis:v7.4.8@sha256:bbb"}'
+        )
+        self.assertEqual(result["linux/amd64"], "ghcr.io/gwshield/redis:v7.4.8@sha256:aaa")
+        self.assertEqual(result["linux/arm64"], "ghcr.io/gwshield/redis:v7.4.8@sha256:bbb")
+
+    def test_null_value_dropped(self):
+        result = self._p('{"linux/amd64":"ghcr.io/gwshield/redis:v7.4.8@sha256:aaa","linux/arm64":null}')
+        self.assertIn("linux/amd64", result)
+        self.assertNotIn("linux/arm64", result)
+
+    def test_empty_string_value_dropped(self):
+        result = self._p('{"linux/amd64":"","linux/arm64":"ghcr.io/gwshield/redis:v7.4.8@sha256:bbb"}')
+        self.assertNotIn("linux/amd64", result)
+        self.assertIn("linux/arm64", result)
+
+
+# =============================================================================
+# _build_snapshot_payload (migration 0053)
+# =============================================================================
+
+class TestBuildSnapshotPayload(unittest.TestCase):
+    """
+    _build_snapshot_payload() constructs the image_metadata_snapshots insert dict.
+
+    Core behaviour:
+    - Always includes image_id, version_id, sbom_ref, provenance_ref,
+      raw_payload, snapshotted_at, cve_count (None), scan_status, scanner.
+    - Migration 0053 columns (platform, arch, image_size_bytes,
+      runnable_size_bytes) are ONLY included in the dict when non-None.
+      This ensures backward-compat with pre-0053 DB schemas.
+    """
+
+    _COMMON_KWARGS = dict(
+        image_id="img-001",
+        version_id="ver-001",
+        sbom_ref="ghcr.io/gwshield/redis:v7.4.8",
+        provenance="https://github.com/gwshield/images/...",
+        promoted_at="2026-03-14T10:00:00Z",
+        name="redis",
+        version="v7.4.8",
+        base_version="v7.4.8",
+        profile="",
+        digest="sha256:abc123",
+        tags="ghcr.io/gwshield/redis:v7.4.8",
+        cosign_id="https://github.com/gwshield/images/...",
+        image_type="service",
+    )
+
+    def test_core_columns_present(self):
+        payload = _si._build_snapshot_payload(**self._COMMON_KWARGS)
+        for col in ("image_id", "version_id", "sbom_ref", "provenance_ref",
+                    "raw_payload", "snapshotted_at", "cve_count", "scan_status"):
+            self.assertIn(col, payload, f"Core column missing: {col}")
+
+    def test_platform_absent_when_none(self):
+        """Without platform kwarg, 'platform' must NOT appear in payload."""
+        payload = _si._build_snapshot_payload(**self._COMMON_KWARGS)
+        self.assertNotIn("platform", payload)
+
+    def test_arch_absent_when_none(self):
+        payload = _si._build_snapshot_payload(**self._COMMON_KWARGS)
+        self.assertNotIn("arch", payload)
+
+    def test_image_size_bytes_absent_when_none(self):
+        payload = _si._build_snapshot_payload(**self._COMMON_KWARGS)
+        self.assertNotIn("image_size_bytes", payload)
+
+    def test_runnable_size_bytes_absent_when_none(self):
+        payload = _si._build_snapshot_payload(**self._COMMON_KWARGS)
+        self.assertNotIn("runnable_size_bytes", payload)
+
+    def test_platform_present_when_supplied(self):
+        payload = _si._build_snapshot_payload(
+            **self._COMMON_KWARGS, platform="linux/amd64", arch="amd64"
+        )
+        self.assertEqual(payload["platform"], "linux/amd64")
+        self.assertEqual(payload["arch"], "amd64")
+
+    def test_image_size_bytes_present_when_supplied(self):
+        payload = _si._build_snapshot_payload(
+            **self._COMMON_KWARGS, image_size_bytes=12345678
+        )
+        self.assertEqual(payload["image_size_bytes"], 12345678)
+
+    def test_runnable_size_bytes_present_when_supplied(self):
+        payload = _si._build_snapshot_payload(
+            **self._COMMON_KWARGS, runnable_size_bytes=26000000
+        )
+        self.assertEqual(payload["runnable_size_bytes"], 26000000)
+
+    def test_all_0053_columns_when_fully_supplied(self):
+        payload = _si._build_snapshot_payload(
+            **self._COMMON_KWARGS,
+            platform="linux/arm64",
+            arch="arm64",
+            image_size_bytes=11800000,
+            runnable_size_bytes=25000000,
+        )
+        self.assertEqual(payload["platform"], "linux/arm64")
+        self.assertEqual(payload["arch"], "arm64")
+        self.assertEqual(payload["image_size_bytes"], 11800000)
+        self.assertEqual(payload["runnable_size_bytes"], 25000000)
+
+    def test_cve_count_initially_none(self):
+        """Snapshot is created before scanning — cve_count must be None."""
+        payload = _si._build_snapshot_payload(**self._COMMON_KWARGS)
+        self.assertIsNone(payload["cve_count"])
+
+    def test_scan_status_initially_unknown(self):
+        payload = _si._build_snapshot_payload(**self._COMMON_KWARGS)
+        self.assertEqual(payload["scan_status"], "unknown")
+
+    def test_snapshotted_at_matches_promoted_at(self):
+        payload = _si._build_snapshot_payload(**self._COMMON_KWARGS)
+        self.assertEqual(payload["snapshotted_at"], "2026-03-14T10:00:00Z")
+
+    def test_raw_payload_contains_name_and_version(self):
+        payload = _si._build_snapshot_payload(**self._COMMON_KWARGS)
+        rp = payload["raw_payload"]
+        self.assertEqual(rp["name"], "redis")
+        self.assertEqual(rp["version"], "v7.4.8")
+
+
+# =============================================================================
+# cmd_promote — per-platform path (migration 0053)
+# =============================================================================
+
+class _MockDBForPromote:
+    """
+    Minimal SupabaseClient stand-in for cmd_promote tests.
+    Records all insert / upsert / update / delete / select calls.
+    """
+
+    def __init__(self):
+        self.inserted_tables: dict[str, list[dict]] = {}
+        self.upserted_tables: dict[str, list[dict]] = {}
+        self.updated_tables: dict[str, list[dict]] = {}
+        self.deleted_tables: dict[str, list[dict]] = {}
+        self.selected_tables: dict[str, list] = {}
+        self._row_counter = 0
+
+    def _next_id(self, prefix="row"):
+        self._row_counter += 1
+        return f"{prefix}-{self._row_counter:04d}-uuid"
+
+    def upsert_image(self, slug, insert_fields, update_fields):
+        row = {"id": self._next_id("img"), "slug": slug,
+               **insert_fields, **update_fields}
+        self.upserted_tables.setdefault("images", []).append(row)
+        return row
+
+    def upsert(self, table, row, on_conflict):
+        rid = row.get("id", self._next_id(table[:3]))
+        stored = dict(row, id=rid)
+        self.upserted_tables.setdefault(table, []).append(stored)
+        return stored
+
+    def insert(self, table, row):
+        stored = dict(row, id=self._next_id(table[:3]))
+        self.inserted_tables.setdefault(table, []).append(stored)
+        return stored
+
+    def select(self, table, filters):
+        return self.selected_tables.get(table, [])
+
+    def update(self, table, filters, row):
+        self.updated_tables.setdefault(table, []).append((filters, row))
+
+    def delete(self, table, filters):
+        self.deleted_tables.setdefault(table, []).append(filters)
+
+
+def _make_promote_args(
+    name="redis",
+    version="v7.4.8",
+    base_version="v7.4.8",
+    profile="",
+    digest="sha256:abc123",
+    tags="ghcr.io/gwshield/redis:v7.4.8",
+    cosign_identity="https://github.com/gwshield/images/...",
+    promoted_at="2026-03-14T10:00:00Z",
+    image_type=None,
+    platforms=None,
+    image_size_json=None,
+    runnable_size_json=None,
+    sbom_refs_json=None,
+    provenance_refs_json=None,
+):
+    """Build a minimal argparse-like Namespace for cmd_promote."""
+    import argparse
+    return argparse.Namespace(
+        name=name,
+        version=version,
+        base_version=base_version,
+        profile=profile,
+        digest=digest,
+        tags=tags,
+        cosign_identity=cosign_identity,
+        promoted_at=promoted_at,
+        image_type=image_type,
+        platforms=platforms,
+        image_size_json=image_size_json,
+        runnable_size_json=runnable_size_json,
+        sbom_refs_json=sbom_refs_json,
+        provenance_refs_json=provenance_refs_json,
+    )
+
+
+class TestCmdPromoteLegacyPath(unittest.TestCase):
+    """
+    cmd_promote with no --platforms → legacy single-row snapshot.
+    Verifies:
+      - Exactly 1 snapshot row inserted
+      - No 'platform' column in snapshot payload
+      - No 'platforms' column in version payload
+      - arch tag uses legacy "linux/amd64,linux/arm64" string
+    """
+
+    def setUp(self):
+        self.db = _MockDBForPromote()
+        args = _make_promote_args()
+        _si.cmd_promote(args, self.db)
+
+    def test_exactly_one_snapshot_inserted(self):
+        snaps = self.db.inserted_tables.get("image_metadata_snapshots", [])
+        self.assertEqual(len(snaps), 1)
+
+    def test_snapshot_has_no_platform_field(self):
+        snap = self.db.inserted_tables["image_metadata_snapshots"][0]
+        self.assertNotIn("platform", snap)
+
+    def test_snapshot_has_no_image_size_bytes_field(self):
+        snap = self.db.inserted_tables["image_metadata_snapshots"][0]
+        self.assertNotIn("image_size_bytes", snap)
+
+    def test_version_has_no_platforms_field(self):
+        """image_versions.platforms must be absent in legacy mode."""
+        ver_rows = self.db.upserted_tables.get("image_versions", [])
+        self.assertTrue(len(ver_rows) > 0)
+        ver = ver_rows[0]
+        self.assertNotIn("platforms", ver)
+
+    def test_arch_tag_is_legacy_string(self):
+        """Legacy path uses the hardcoded 'linux/amd64,linux/arm64' arch tag."""
+        arch_tags = [
+            t["tag_value"]
+            for t in self.db.upserted_tables.get("image_tags", [])
+            if t["tag_key"] == "arch"
+        ]
+        self.assertEqual(len(arch_tags), 1)
+        self.assertEqual(arch_tags[0], "linux/amd64,linux/arm64")
+
+
+class TestCmdPromotePerPlatformPath(unittest.TestCase):
+    """
+    cmd_promote with --platforms '["linux/amd64","linux/arm64"]' →
+    two snapshot rows, one per platform.
+    Verifies:
+      - Exactly 2 snapshot rows inserted
+      - Each row has 'platform' and 'arch' fields
+      - Correct platform→arch derivation (amd64, arm64)
+      - image_versions.platforms field populated
+      - Size fields present when supplied, absent when not
+      - arch tag reflects the platforms list (joined)
+    """
+
+    def setUp(self):
+        self.db = _MockDBForPromote()
+        args = _make_promote_args(
+            platforms='["linux/amd64","linux/arm64"]',
+            image_size_json='{"linux/amd64":12345678,"linux/arm64":12100000}',
+            runnable_size_json='{"linux/amd64":26000000,"linux/arm64":25900000}',
+            sbom_refs_json=(
+                '{"linux/amd64":"ghcr.io/gwshield/redis:v7.4.8@sha256:aaa",'
+                '"linux/arm64":"ghcr.io/gwshield/redis:v7.4.8@sha256:bbb"}'
+            ),
+        )
+        _si.cmd_promote(args, self.db)
+
+    def test_exactly_two_snapshots_inserted(self):
+        snaps = self.db.inserted_tables.get("image_metadata_snapshots", [])
+        self.assertEqual(len(snaps), 2)
+
+    def test_snapshot_platforms_are_correct(self):
+        snaps = self.db.inserted_tables["image_metadata_snapshots"]
+        platforms = {s["platform"] for s in snaps}
+        self.assertEqual(platforms, {"linux/amd64", "linux/arm64"})
+
+    def test_snapshot_arch_derived_from_platform(self):
+        snaps = self.db.inserted_tables["image_metadata_snapshots"]
+        for snap in snaps:
+            expected_arch = snap["platform"].split("/")[1]
+            self.assertEqual(snap["arch"], expected_arch)
+
+    def test_snapshot_image_size_bytes_populated(self):
+        snaps = self.db.inserted_tables["image_metadata_snapshots"]
+        sizes = {s["platform"]: s["image_size_bytes"] for s in snaps}
+        self.assertEqual(sizes["linux/amd64"], 12345678)
+        self.assertEqual(sizes["linux/arm64"], 12100000)
+
+    def test_snapshot_runnable_size_bytes_populated(self):
+        snaps = self.db.inserted_tables["image_metadata_snapshots"]
+        sizes = {s["platform"]: s["runnable_size_bytes"] for s in snaps}
+        self.assertEqual(sizes["linux/amd64"], 26000000)
+        self.assertEqual(sizes["linux/arm64"], 25900000)
+
+    def test_snapshot_sbom_ref_per_platform(self):
+        snaps = self.db.inserted_tables["image_metadata_snapshots"]
+        refs = {s["platform"]: s["sbom_ref"] for s in snaps}
+        self.assertEqual(refs["linux/amd64"], "ghcr.io/gwshield/redis:v7.4.8@sha256:aaa")
+        self.assertEqual(refs["linux/arm64"], "ghcr.io/gwshield/redis:v7.4.8@sha256:bbb")
+
+    def test_version_platforms_field_populated(self):
+        ver_rows = self.db.upserted_tables.get("image_versions", [])
+        self.assertTrue(len(ver_rows) > 0)
+        ver = ver_rows[0]
+        self.assertIn("platforms", ver)
+        self.assertIsInstance(ver["platforms"], list)
+        self.assertIn("linux/amd64", ver["platforms"])
+        self.assertIn("linux/arm64", ver["platforms"])
+
+    def test_arch_tag_is_joined_platform_list(self):
+        arch_tags = [
+            t["tag_value"]
+            for t in self.db.upserted_tables.get("image_tags", [])
+            if t["tag_key"] == "arch"
+        ]
+        self.assertEqual(len(arch_tags), 1)
+        # Both platforms appear in the arch tag value
+        self.assertIn("linux/amd64", arch_tags[0])
+        self.assertIn("linux/arm64", arch_tags[0])
+
+
+class TestCmdPromoteSinglePlatform(unittest.TestCase):
+    """
+    cmd_promote with --platforms '["linux/amd64"]' (amd64-only image).
+    Verifies:
+      - Exactly 1 snapshot row with platform='linux/amd64'
+      - image_versions.platforms = ['linux/amd64']
+      - Size fields present when supplied
+    """
+
+    def setUp(self):
+        self.db = _MockDBForPromote()
+        args = _make_promote_args(
+            name="postgres",
+            version="v15.17",
+            base_version="v15.17",
+            profile="",
+            platforms='["linux/amd64"]',
+            image_size_json='{"linux/amd64":34567890}',
+            runnable_size_json='{"linux/amd64":80000000}',
+        )
+        _si.cmd_promote(args, self.db)
+
+    def test_one_snapshot_with_correct_platform(self):
+        snaps = self.db.inserted_tables.get("image_metadata_snapshots", [])
+        self.assertEqual(len(snaps), 1)
+        self.assertEqual(snaps[0]["platform"], "linux/amd64")
+        self.assertEqual(snaps[0]["arch"], "amd64")
+
+    def test_image_size_populated(self):
+        snap = self.db.inserted_tables["image_metadata_snapshots"][0]
+        self.assertEqual(snap["image_size_bytes"], 34567890)
+
+    def test_runnable_size_populated(self):
+        snap = self.db.inserted_tables["image_metadata_snapshots"][0]
+        self.assertEqual(snap["runnable_size_bytes"], 80000000)
+
+    def test_version_platforms_single_element(self):
+        ver_rows = self.db.upserted_tables.get("image_versions", [])
+        self.assertTrue(len(ver_rows) > 0)
+        self.assertEqual(ver_rows[0]["platforms"], ["linux/amd64"])
+
+
+class TestCmdPromoteSizeFieldsOptional(unittest.TestCase):
+    """
+    cmd_promote with --platforms but without size/ref JSON args.
+    Size fields must not appear in snapshot payload (no spurious None writes).
+    """
+
+    def setUp(self):
+        self.db = _MockDBForPromote()
+        args = _make_promote_args(
+            platforms='["linux/amd64","linux/arm64"]',
+            # no image_size_json, runnable_size_json, sbom_refs_json
+        )
+        _si.cmd_promote(args, self.db)
+
+    def test_two_snapshots_created(self):
+        snaps = self.db.inserted_tables.get("image_metadata_snapshots", [])
+        self.assertEqual(len(snaps), 2)
+
+    def test_image_size_bytes_absent_when_not_supplied(self):
+        for snap in self.db.inserted_tables["image_metadata_snapshots"]:
+            self.assertNotIn("image_size_bytes", snap)
+
+    def test_runnable_size_bytes_absent_when_not_supplied(self):
+        for snap in self.db.inserted_tables["image_metadata_snapshots"]:
+            self.assertNotIn("runnable_size_bytes", snap)
+
+    def test_platforms_still_populated_on_version(self):
+        ver_rows = self.db.upserted_tables.get("image_versions", [])
+        self.assertIn("platforms", ver_rows[0])
+
+
 # =============================================================================
 # Entry point — can be run without pytest
 # =============================================================================
