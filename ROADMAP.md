@@ -8,7 +8,31 @@ The project has two audiences with overlapping interests — see
 
 ---
 
+## Active
+
+### v0.3.2-alpha — Next targets
+
+- [ ] **PHP hardened image** (FPM profile — version TBD)
+- [ ] **Go builder v1.26** — compile-only + dev variants
+- [ ] **OCI provenance attestation** — SLSA Level 3 for all images
+
+---
+
 ## Completed
+
+### v0.3.1-alpha — Hub metadata: image size display (2026-03-14) ✓
+
+- [x] **Image size field** — `image_size_bytes` (compressed OCI layer sum) correctly
+  populated and displayed on the hub detail page for all 43 images
+- [x] **Runnable size field** — hidden when not available; OCI registry API does not
+  expose uncompressed layer sizes without a full image pull
+
+### v0.3.0-alpha — OTel Collector Contrib + NATS Server (2026-03-14) ✓
+
+- [x] **OTel Collector Contrib v0.147.0** — contrib profile, 0 CVEs, distroless/static,
+  all receivers/exporters, OTLP gRPC+HTTP, health_check extension
+- [x] **NATS Server v2.12.5 (standard)** — JetStream enabled, 0 CVEs, distroless/static,
+  monitoring `/healthz`, no shell in runtime image
 
 ### v0.1.0-alpha — Initial release
 
