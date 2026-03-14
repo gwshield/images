@@ -236,14 +236,14 @@
       ],
       "digest": "sha256:dac6f74a34f9d07e5dd20a402d3411923f832e032629901cd31c275103c7c96c",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-14T08:09:51Z",
+      "promoted_at": "2026-03-14T08:48:18Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-14T08:09:51Z"
+        "scanned_at": "2026-03-14T08:48:18Z"
       }
     },
     "nginx:v1.28.2": {
