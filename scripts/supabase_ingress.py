@@ -12,6 +12,18 @@
 #   findings  — write structured CVE findings for a specific image version
 #               (used by rescan-origin pipeline and manual backfill)
 #
+# Multi-platform support (migration 0053):
+#   The promote subcommand accepts --platforms (JSON array of OCI platform
+#   strings, e.g. '["linux/amd64","linux/arm64"]') and per-platform size
+#   fields (--image-size-json, --runnable-size-json, --sbom-refs-json,
+#   --provenance-refs-json). When platforms are supplied, one
+#   image_metadata_snapshots row is written per platform instead of a single
+#   row. The image_versions.platforms column is populated with the full list.
+#
+#   Backward compatibility: when --platforms is omitted the script falls back
+#   to the previous single-row snapshot behaviour so existing callers continue
+#   to work unmodified.
+#
 # Suppressed CVE transparency:
 #   The scan and findings subcommands accept an optional --allowlist-json
 #   argument. When provided, suppressed CVE entries (produced by
@@ -33,7 +45,11 @@
 #     --digest sha256:abc123 \
 #     --tags "ghcr.io/gwshield/postgres:v15.17-tls" \
 #     --cosign-identity "https://github.com/gwshield/images/..." \
-#     --promoted-at "2026-03-09T12:00:00Z"
+#     --promoted-at "2026-03-09T12:00:00Z" \
+#     --platforms '["linux/amd64","linux/arm64"]' \
+#     --image-size-json '{"linux/amd64":12345678,"linux/arm64":12100000}' \
+#     --runnable-size-json '{"linux/amd64":26000000,"linux/arm64":25900000}' \
+#     --sbom-refs-json '{"linux/amd64":"ghcr.io/gwshield/postgres:v15.17-tls@sha256:aaa","linux/arm64":"ghcr.io/gwshield/postgres:v15.17-tls@sha256:bbb"}'
 #
 #   python3 scripts/supabase_ingress.py scan \
 #     --name postgres --version v15.17-tls \
@@ -316,6 +332,62 @@ def derive_version_group(version_string: str) -> str:
     if minor is not None:
         return f"{major}.{minor}"
     return str(major)
+
+
+# ---------------------------------------------------------------------------
+# Platform helpers (migration 0053)
+# ---------------------------------------------------------------------------
+
+def parse_platforms(platforms_json: str | None) -> list[str]:
+    """
+    Parse the --platforms JSON argument into a list of OCI platform strings.
+
+    Accepts:
+      '["linux/amd64","linux/arm64"]'  -> ["linux/amd64", "linux/arm64"]
+      '"linux/amd64"'                  -> ["linux/amd64"]  (single string)
+      None / ""                        -> []  (single-arch legacy mode)
+
+    Returns an empty list when platforms_json is absent — callers treat []
+    as "legacy single-row mode" and fall back to the pre-0053 path.
+    """
+    if not platforms_json:
+        return []
+    data = json.loads(platforms_json)
+    if isinstance(data, str):
+        return [data] if data else []
+    if isinstance(data, list):
+        return [str(p) for p in data if p]
+    return []
+
+
+def parse_size_map(size_json: str | None) -> dict[str, int]:
+    """
+    Parse a per-platform size JSON map.
+
+    Accepts:
+      '{"linux/amd64":12345678,"linux/arm64":12100000}'
+      None / ""  -> {}
+
+    Values are coerced to int; null values are dropped.
+    """
+    if not size_json:
+        return {}
+    data = json.loads(size_json)
+    return {k: int(v) for k, v in data.items() if v is not None}
+
+
+def parse_ref_map(ref_json: str | None) -> dict[str, str]:
+    """
+    Parse a per-platform OCI ref JSON map.
+
+    Accepts:
+      '{"linux/amd64":"ghcr.io/gwshield/redis:v7.4.8@sha256:aaa","linux/arm64":"..."}'
+      None / ""  -> {}
+    """
+    if not ref_json:
+        return {}
+    data = json.loads(ref_json)
+    return {k: str(v) for k, v in data.items() if v}
 
 
 # ---------------------------------------------------------------------------
@@ -733,6 +805,71 @@ def write_findings(db: SupabaseClient, version_id: str, findings: list[dict],
 
 
 # ---------------------------------------------------------------------------
+# Snapshot payload builder (shared by single-row + per-platform promote)
+# ---------------------------------------------------------------------------
+
+def _build_snapshot_payload(
+    image_id:            str,
+    version_id:          str,
+    sbom_ref:            str | None,
+    provenance:          str | None,
+    promoted_at:         str,
+    name:                str,
+    version:             str,
+    base_version:        str,
+    profile:             str,
+    digest:              str | None,
+    tags:                str,
+    cosign_id:           str | None,
+    image_type:          str,
+    # per-platform fields (migration 0053) — omitted from payload when None
+    platform:            str | None = None,
+    arch:                str | None = None,
+    image_size_bytes:    int | None = None,
+    runnable_size_bytes: int | None = None,
+) -> dict:
+    """
+    Build the image_metadata_snapshots insert payload.
+
+    Columns added by migration 0053 (platform, arch, image_size_bytes,
+    runnable_size_bytes) are included only when a value is provided, so the
+    function is safe to call against databases where migration 0053 is not yet
+    applied — the insert simply omits the new columns.
+    """
+    payload: dict = {
+        "image_id":       image_id,
+        "version_id":     version_id,
+        "cve_count":      None,
+        "scan_status":    "unknown",
+        "scanner":        None,
+        "sbom_ref":       sbom_ref,
+        "provenance_ref": provenance,
+        "raw_payload": {
+            "name":            name,
+            "version":         version,
+            "base_version":    base_version,
+            "profile":         profile,
+            "digest":          digest,
+            "tags":            tags.split(),
+            "cosign_identity": cosign_id,
+            "promoted_at":     promoted_at,
+            "image_type":      image_type,
+        },
+        "snapshotted_at": promoted_at,
+    }
+    # migration 0053 columns — only written when values are provided
+    if platform is not None:
+        payload["platform"] = platform
+    if arch is not None:
+        payload["arch"] = arch
+    if image_size_bytes is not None:
+        payload["image_size_bytes"] = image_size_bytes
+    if runnable_size_bytes is not None:
+        payload["runnable_size_bytes"] = runnable_size_bytes
+    return payload
+
+
+# ---------------------------------------------------------------------------
 # promote subcommand
 # ---------------------------------------------------------------------------
 
@@ -746,30 +883,33 @@ def cmd_promote(args, db: SupabaseClient):
     cosign_id    = args.cosign_identity or None
     promoted_at  = args.promoted_at or datetime.now(timezone.utc).isoformat()
 
-    slug         = derive_slug(name, profile, base_version)
-    image_type   = resolve_image_type(getattr(args, "image_type", None), name, profile)
-    source_type  = derive_source_type(name)
-    summary      = derive_summary(name, profile, base_version)
-    sbom_ref     = f"ghcr.io/gwshield/{name}:{version}" if version else None
-    os_tag       = derive_os_tag(name)
+    # --- migration 0053 fields ---
+    platforms       = parse_platforms(getattr(args, "platforms", None))
+    image_sizes     = parse_size_map(getattr(args, "image_size_json", None))
+    runnable_sizes  = parse_size_map(getattr(args, "runnable_size_json", None))
+    sbom_refs       = parse_ref_map(getattr(args, "sbom_refs_json", None))
+    provenance_refs = parse_ref_map(getattr(args, "provenance_refs_json", None))
 
-    print(f"[promote] {name}:{version}  slug={slug}  profile={profile!r}  image_type={image_type}")
+    slug             = derive_slug(name, profile, base_version)
+    image_type       = resolve_image_type(getattr(args, "image_type", None), name, profile)
+    source_type      = derive_source_type(name)
+    summary          = derive_summary(name, profile, base_version)
+    default_sbom_ref = f"ghcr.io/gwshield/{name}:{version}" if version else None
+    os_tag           = derive_os_tag(name)
+
+    print(f"[promote] {name}:{version}  slug={slug}  profile={profile!r}  "
+          f"image_type={image_type}  platforms={platforms or '(legacy)'}")
 
     # 1. Insert-or-selective-update images table
     #
     #    insert_fields  — written ONLY on first insert, never overwritten:
-    #      image_type   ← admin override in Hub is authoritative after first write
+    #      image_type   <- admin override in Hub is authoritative after first write
     #
     #    update_fields  — always written (pipeline is authoritative for these):
     #      name, summary, source_type, visibility, status, featured
-    #
-    #    Never touched (admin-only, migration 0032):
-    #      title_override, featured_promo_text
     image_row = db.upsert_image(
         slug=slug,
-        insert_fields={
-            "image_type": image_type,
-        },
+        insert_fields={"image_type": image_type},
         update_fields={
             "name":        f"{name.replace('-', ' ').title()} {base_version}" if base_version else name,
             "summary":     summary,
@@ -779,17 +919,15 @@ def cmd_promote(args, db: SupabaseClient):
             "featured":    False,
         },
     )
-
     image_id = image_row["id"]
 
     # 2. Set all existing versions for this image to is_latest=false
-    existing_versions = db.select("image_versions", {"image_id": image_id})
-    for ev in existing_versions:
+    for ev in db.select("image_versions", {"image_id": image_id}):
         if ev.get("is_latest"):
             db.update("image_versions", {"id": ev["id"]}, {"is_latest": False})
 
-    # 3. Upsert image_version
-    version_row = db.upsert("image_versions", {
+    # 3. Upsert image_version — include platforms list (migration 0053)
+    version_payload: dict = {
         "image_id":        image_id,
         "tag":             version,
         "digest":          digest,
@@ -798,81 +936,90 @@ def cmd_promote(args, db: SupabaseClient):
         "cosign_identity": cosign_id,
         "base_version":    base_version,
         "profile":         profile,
-    }, on_conflict="image_id,tag")
+    }
+    if platforms:
+        version_payload["platforms"] = platforms
 
-    version_id = version_row["id"]
-    print(f"  version {version_id[:8]}… upserted (is_latest=True)")
+    version_row = db.upsert("image_versions", version_payload, on_conflict="image_id,tag")
+    version_id  = version_row["id"]
+    print(f"  version {version_id[:8]}… upserted (is_latest=True"
+          + (f", platforms={platforms}" if platforms else "") + ")")
 
-    # 4. Insert metadata snapshot (always new row — snapshots are immutable)
-    snapshot_row = db.insert("image_metadata_snapshots", {
-        "image_id":       image_id,
-        "version_id":     version_id,
-        "cve_count":      None,
-        "scan_status":    "unknown",
-        "scanner":        None,
-        "sbom_ref":       sbom_ref,
-        "provenance_ref": cosign_id,
-        "raw_payload":    {
-            "name":            name,
-            "version":         version,
-            "base_version":    base_version,
-            "profile":         profile,
-            "digest":          digest,
-            "tags":            tags.split(),
-            "cosign_identity": cosign_id,
-            "promoted_at":     promoted_at,
-            "image_type":      image_type,
-        },
-        "snapshotted_at": promoted_at,
-    })
+    # 4. Insert metadata snapshot(s)
+    #
+    #    Migration 0053: one row per platform when --platforms is supplied.
+    #    The per-platform row carries platform, arch, image_size_bytes,
+    #    runnable_size_bytes, and the platform-specific sbom_ref.
+    #
+    #    Legacy fallback (no --platforms): single row without platform fields —
+    #    identical to the pre-0053 behaviour, safe against older DB schemas.
+    snapshot_ids: list[str] = []
 
-    snapshot_id = snapshot_row["id"]
-    print(f"  snapshot {snapshot_id[:8]}… created")
+    if platforms:
+        for plat in platforms:
+            arch = plat.split("/")[1] if "/" in plat else plat
+            snap_payload = _build_snapshot_payload(
+                image_id=image_id, version_id=version_id,
+                sbom_ref=sbom_refs.get(plat, default_sbom_ref),
+                provenance=provenance_refs.get(plat, cosign_id),
+                promoted_at=promoted_at,
+                name=name, version=version, base_version=base_version,
+                profile=profile, digest=digest, tags=tags,
+                cosign_id=cosign_id, image_type=image_type,
+                platform=plat, arch=arch,
+                image_size_bytes=image_sizes.get(plat) or None,
+                runnable_size_bytes=runnable_sizes.get(plat) or None,
+            )
+            snap_row = db.insert("image_metadata_snapshots", snap_payload)
+            snap_id  = snap_row["id"]
+            snapshot_ids.append(snap_id)
+            size_info = ""
+            if image_sizes.get(plat):
+                size_info += f"  image_size={image_sizes[plat]}"
+            if runnable_sizes.get(plat):
+                size_info += f"  runnable_size={runnable_sizes[plat]}"
+            print(f"  snapshot {snap_id[:8]}… created  platform={plat}{size_info}")
+    else:
+        snap_payload = _build_snapshot_payload(
+            image_id=image_id, version_id=version_id,
+            sbom_ref=default_sbom_ref, provenance=cosign_id,
+            promoted_at=promoted_at,
+            name=name, version=version, base_version=base_version,
+            profile=profile, digest=digest, tags=tags,
+            cosign_id=cosign_id, image_type=image_type,
+        )
+        snap_row = db.insert("image_metadata_snapshots", snap_payload)
+        snap_id  = snap_row["id"]
+        snapshot_ids.append(snap_id)
+        print(f"  snapshot {snap_id[:8]}… created (legacy single-row)")
 
-    # 5. Link snapshot back to version
-    db.update("image_versions", {"id": version_id}, {"metadata_snapshot_id": snapshot_id})
+    # 5. Link most-recent snapshot back to version
+    db.update("image_versions", {"id": version_id}, {"metadata_snapshot_id": snapshot_ids[-1]})
 
     # 6. Upsert image_tags
-    #    Standard tags written for every image:
-    #      family      — image family name (e.g. "go-builder", "postgres", "nginx")
-    #      image_type  — mirrors images.image_type for tag-based filtering
-    #      os          — base OS layer (alpine / distroless / scratch)
-    #      arch        — multi-arch support declaration
-    #    Optional (profile-specific):
-    #      profile     — Hub-facing profile tag; canonical profiles (nginx:http,
-    #                    go-builder/rust-builder:compile) are mapped to "standard"
-    #                    via derive_profile_tag() so the Hub renders them as primary
-    #                    parent rows.  Empty string → tag omitted.
-    #      category    — "tooling" for cli-profile images
+    #    arch tag: reflects actual platforms when available, else legacy string
+    arch_tag = ",".join(platforms) if platforms else "linux/amd64,linux/arm64"
     tags_to_write: list[dict] = [
         {"image_id": image_id, "tag_key": "family",     "tag_value": name},
         {"image_id": image_id, "tag_key": "image_type", "tag_value": image_type},
         {"image_id": image_id, "tag_key": "os",         "tag_value": os_tag},
-        {"image_id": image_id, "tag_key": "arch",       "tag_value": "linux/amd64,linux/arm64"},
+        {"image_id": image_id, "tag_key": "arch",       "tag_value": arch_tag},
     ]
-
     profile_tag = derive_profile_tag(name, profile)
     if profile_tag:
         tags_to_write.append(
             {"image_id": image_id, "tag_key": "profile", "tag_value": profile_tag}
         )
-
     if image_type == "tooling":
         tags_to_write.append(
             {"image_id": image_id, "tag_key": "category", "tag_value": "tooling"}
         )
-
     for t in tags_to_write:
         db.upsert("image_tags", t, on_conflict="image_id,tag_key,tag_value")
-
     print(f"  wrote {len(tags_to_write)} tag(s): "
-          f"{', '.join(t['tag_key'] + '=' + t['tag_value'] for t in tags_to_write)}")
+          f"{", ".join(t['tag_key'] + '=' + t['tag_value'] for t in tags_to_write)}")
 
     # 7. Write version group tag
-    #    tag_key='version' — Major or Major.Minor depending on heuristic.
-    #    The UNIQUE constraint includes tag_value, so a version bump (e.g. v15→v17)
-    #    requires delete-first to replace the old value cleanly.
-    #    Same-version re-promotes (v15.16→v15.17, both → "15") are no-ops after delete+insert.
     version_group = derive_version_group(base_version)
     try:
         db.delete("image_tags", {"image_id": image_id, "tag_key": "version"})
@@ -881,7 +1028,8 @@ def cmd_promote(args, db: SupabaseClient):
     except Exception as e:
         print(f"[WARN] Could not write version tag: {e}", file=sys.stderr)
 
-    print(f"[promote] done — slug={slug}  image_type={image_type}  version={version_group}")
+    print(f"[promote] done — slug={slug}  image_type={image_type}  version={version_group}"
+          + (f"  snapshots={len(snapshot_ids)}" if len(snapshot_ids) > 1 else ""))
 
 
 # ---------------------------------------------------------------------------
@@ -1049,6 +1197,32 @@ def main():
     p_promote.add_argument("--tags",             default="")
     p_promote.add_argument("--cosign-identity",  default=None, dest="cosign_identity")
     p_promote.add_argument("--promoted-at",      default=None, dest="promoted_at")
+    # migration 0053 — multi-platform fields
+    p_promote.add_argument("--platforms",
+                            default=None,
+                            help=(
+                                'JSON array of OCI platform strings, e.g. '
+                                '["linux/amd64","linux/arm64"]. '
+                                'When supplied, one snapshot row per platform is written '
+                                'and image_versions.platforms is populated. '
+                                'Omit for legacy single-arch images.'
+                            ))
+    p_promote.add_argument("--image-size-json",
+                            default=None, dest="image_size_json",
+                            help=('JSON object platform -> compressed size bytes '
+                                  '(skopeo inspect --raw, sum of layer sizes).'))
+    p_promote.add_argument("--runnable-size-json",
+                            default=None, dest="runnable_size_json",
+                            help=('JSON object platform -> uncompressed on-disk size bytes '
+                                  '(skopeo inspect without --raw, LayersData[].Size sum).'))
+    p_promote.add_argument("--sbom-refs-json",
+                            default=None, dest="sbom_refs_json",
+                            help=('JSON object platform -> per-platform OCI SBOM ref '
+                                  '(ghcr.io/gwshield/<name>:<tag>@sha256:<platform-digest>).'))
+    p_promote.add_argument("--provenance-refs-json",
+                            default=None, dest="provenance_refs_json",
+                            help=('JSON object platform -> per-platform provenance ref. '
+                                  'Defaults to cosign identity when not supplied.'))
 
     # --- scan ---
     p_scan = sub.add_parser("scan")
