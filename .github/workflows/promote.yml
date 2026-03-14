@@ -529,41 +529,31 @@ jobs:
           workflow_ref = sys.argv[4]
 
           predicate = {
-            "_type": "https://slsa.dev/provenance/v1",
-            "subject": [
-              {
-                "name":   "${{ steps.tags.outputs.dst_image }}",
-                "digest": {"sha256": plat_digest.split(":")[-1]},
-              }
-            ],
-            "predicateType": "https://slsa.dev/provenance/v1",
-            "predicate": {
-              "buildDefinition": {
-                "buildType": "https://github.com/gwshield/images/build@v1",
-                "externalParameters": {
-                  "name":         "${{ github.event.client_payload.name }}",
-                  "version":      "${{ github.event.client_payload.version }}",
-                  "base_version": "${{ github.event.client_payload.base_version }}",
-                  "profile":      "${{ github.event.client_payload.profile }}",
-                  "src_image":    "${{ github.event.client_payload.src_image }}",
-                  "src_digest":   "${{ github.event.client_payload.src_digest }}",
-                },
-                "resolvedDependencies": [
-                  {
-                    "uri":    "${{ github.event.client_payload.src_image }}",
-                    "digest": {"sha256": "${{ github.event.client_payload.src_digest }}".split(":")[-1]},
-                  }
-                ],
+            "buildDefinition": {
+              "buildType": "https://github.com/gwshield/images/build@v1",
+              "externalParameters": {
+                "name":         "${{ github.event.client_payload.name }}",
+                "version":      "${{ github.event.client_payload.version }}",
+                "base_version": "${{ github.event.client_payload.base_version }}",
+                "profile":      "${{ github.event.client_payload.profile }}",
+                "src_image":    "${{ github.event.client_payload.src_image }}",
+                "src_digest":   "${{ github.event.client_payload.src_digest }}",
               },
-              "runDetails": {
-                "builder": {
-                  "id": workflow_ref,
-                },
-                "metadata": {
-                  "invocationId": "${{ github.run_id }}/${{ github.run_attempt }}",
-                  "startedOn":    build_ts,
-                  "finishedOn":   build_ts,
-                },
+              "resolvedDependencies": [
+                {
+                  "uri":    "${{ github.event.client_payload.src_image }}",
+                  "digest": {"sha256": "${{ github.event.client_payload.src_digest }}".split(":")[-1]},
+                }
+              ],
+            },
+            "runDetails": {
+              "builder": {
+                "id": workflow_ref,
+              },
+              "metadata": {
+                "invocationId": "${{ github.run_id }}/${{ github.run_attempt }}",
+                "startedOn":    build_ts,
+                "finishedOn":   build_ts,
               },
             },
           }
