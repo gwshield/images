@@ -38,9 +38,9 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `51771128878b` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `4e70a5d67f92` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `d39dda02bb04` | 0 CVEs | 2026-03-14 |
-| `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `950797401d10` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `950797401d10` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `a3c112aae13f` | 0 CVEs | 2026-03-14 |
-| `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `996d7fd96ff6` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `996d7fd96ff6` | 0 CVEs | 2026-03-14 |
 
 ### haproxy
 
@@ -53,7 +53,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `cd95d864c392` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `cd95d864c392` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `4f982bbb4879` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `dac6f74a34f9` | 0 CVEs | 2026-03-14 |
 
@@ -64,19 +64,19 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `1d77e266cc62` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `06c654ea59e1` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `824b2b34f020` | 0 CVEs | 2026-03-14 |
-| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `27ae10767730` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `27ae10767730` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `46f33da87239` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `c46f1b8ac138` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `eeb8aaae6c4b` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `59ee1c8b2682` | 0 CVEs | 2026-03-14 |
-| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `f6f403319614` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `f6f403319614` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `b24a1269c115` | 0 CVEs | 2026-03-14 |
 
 ### Redis — in-memory data store
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `58cea14c80d7` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `58cea14c80d7` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `7c00bda0ffb8` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `116fc17587df` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `1d47d7dc3a25` | 0 CVEs | 2026-03-14 |
@@ -101,7 +101,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/varnish:v7.7.3` | `v7.7.3` | standard | `7da45b889571` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/varnish:v7.7.3-tls` | `v7.7.3-tls` | TLS | `8822a5c879e9` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/varnish:v7.7.3-tls` | `v7.7.3-tls` | TLS | `8822a5c879e9` | 0 CVEs | 2026-03-14 |
 
 ---
 
@@ -144,7 +144,7 @@ ENTRYPOINT ["/myapp"]
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `816ff3648acb` | 0 CVEs | 2026-03-14 |
-| `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `244e9206404d` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `244e9206404d` | 0 CVEs | 2026-03-14 |
 
 ---
 
