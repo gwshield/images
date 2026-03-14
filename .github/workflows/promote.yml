@@ -323,18 +323,41 @@ jobs:
           fi
 
           if [[ "${IS_INDEX}" == "false" ]]; then
-            # Single-arch image — collect sizes for linux/amd64
+            # Single-arch image (or index with only attestation manifests) — collect sizes for linux/amd64
             echo "Single-arch manifest — collecting sizes for linux/amd64"
             DIGEST="${{ steps.push.outputs.digest }}"
             DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
 
-            IMG_SIZE=$(skopeo inspect --raw --creds "${DST_CREDS}"               "docker://${FIRST_TAG}" 2>/dev/null | python3 -c "
+            # If RAW_MANIFEST is an index (attestation-only case), extract the linux/amd64
+            # per-platform digest and use that for --raw; otherwise use DIGEST directly.
+            PLAT_DIGEST=$(echo "${RAW_MANIFEST}" | python3 -c "
+          import json,sys
+          d=json.loads(sys.stdin.read())
+          mt=d.get('mediaType','')
+          if 'index' not in mt and 'list' not in mt:
+              print('')
+          else:
+              for m in d.get('manifests',[]):
+                  p=m.get('platform',{})
+                  if p.get('os')=='linux' and p.get('architecture')=='amd64':
+                      print(m.get('digest',''))
+                      break
+          " 2>/dev/null || echo "")
+
+            # Use per-platform digest when available, else fall back to the manifest digest
+            if [[ -n "${PLAT_DIGEST}" ]]; then
+              INSPECT_REF="docker://${DST_IMAGE}@${PLAT_DIGEST}"
+            else
+              INSPECT_REF="docker://${DST_IMAGE}@${DIGEST}"
+            fi
+
+            IMG_SIZE=$(skopeo inspect --raw --creds "${DST_CREDS}" "${INSPECT_REF}" 2>/dev/null | python3 -c "
           import json,sys
           d=json.load(sys.stdin)
           print(sum(l.get('size',0) for l in d.get('layers',[])))
           " 2>/dev/null || echo "0")
 
-            RUN_SIZE=$(skopeo inspect --creds "${DST_CREDS}"               "docker://${FIRST_TAG}" 2>/dev/null | python3 -c "
+            RUN_SIZE=$(skopeo inspect --creds "${DST_CREDS}" "${INSPECT_REF}" 2>/dev/null | python3 -c "
           import json,sys
           d=json.load(sys.stdin)
           print(sum(l.get('Size',0) for l in d.get('LayersData',[])))
