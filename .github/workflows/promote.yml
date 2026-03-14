@@ -641,12 +641,16 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          _PLATFORMS_JSON: ${{ steps.plat.outputs.platforms_json }}
+          _IMAGE_SIZE_JSON: ${{ steps.plat.outputs.image_size_json }}
+          _RUNNABLE_SIZE_JSON: ${{ steps.plat.outputs.runnable_size_json }}
+          _SBOM_REFS_JSON: ${{ steps.sbom.outputs.sbom_refs_json }}
         run: |
           set -euo pipefail
-          PLATFORMS_JSON="${{ steps.plat.outputs.platforms_json }}"
-          IMAGE_SIZE_JSON="${{ steps.plat.outputs.image_size_json }}"
-          RUNNABLE_SIZE_JSON="${{ steps.plat.outputs.runnable_size_json }}"
-          SBOM_REFS_JSON="${{ steps.sbom.outputs.sbom_refs_json }}"
+          PLATFORMS_JSON="${_PLATFORMS_JSON}"
+          IMAGE_SIZE_JSON="${_IMAGE_SIZE_JSON}"
+          RUNNABLE_SIZE_JSON="${_RUNNABLE_SIZE_JSON}"
+          SBOM_REFS_JSON="${_SBOM_REFS_JSON}"
 
           # Build optional platform args — only pass when we have platform data
           PLAT_ARGS=()
