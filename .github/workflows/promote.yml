@@ -260,11 +260,11 @@ jobs:
               os_=p.get('os','')
               arch=p.get('architecture','')
               variant=p.get('variant','')
-              if os_ and arch:
-                  plat=f'{os_}/{arch}'
-                  if variant:
-                      plat+=f'/{variant}'
-                  result.append({'platform':plat,'digest':m.get('digest',''),'size':m.get('size',0)})
+               if os_ and arch and os_ != 'unknown' and arch != 'unknown':
+                   plat=f'{os_}/{arch}'
+                   if variant:
+                       plat+=f'/{variant}'
+                   result.append({'platform':plat,'digest':m.get('digest',''),'size':m.get('size',0)})
           print(json.dumps(result))
           " 2>/dev/null || echo "[]")
 
@@ -402,9 +402,9 @@ jobs:
               p=m.get('platform',{})
               os_=p.get('os','')
               arch=p.get('architecture','')
-              if os_ and arch:
-                  plat=f'{os_}/{arch}'
-                  print(plat+'|'+m.get('digest',''))
+               if os_ and arch and os_ != 'unknown' and arch != 'unknown':
+                   plat=f'{os_}/{arch}'
+                   print(plat+'|'+m.get('digest',''))
           " 2>/dev/null || true)
 
               for ROW in $PLAT_DIGESTS; do
