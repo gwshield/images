@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-14T08:10:57Z",
+  "last_updated": "2026-03-14T08:10:59Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -916,6 +916,29 @@
         "high": 0,
         "scanner": "trivy",
         "scanned_at": "2026-03-14T08:09:58Z"
+      }
+    },
+    "nats:v2.12.5": {
+      "name": "nats",
+      "version": "v2.12.5",
+      "base_version": "v2.12.5",
+      "profile": "",
+      "category": "runtime",
+      "public_image": "ghcr.io/gwshield/nats",
+      "tags": [
+        "ghcr.io/gwshield/nats:v2.12.5",
+        "ghcr.io/gwshield/nats:latest"
+      ],
+      "digest": "sha256:51af7d6334848ee6009b5c10c624bae91f2f17fee9cb3f45e9c268f1b1966b68",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "promoted_at": "2026-03-14T08:10:58Z",
+      "scan": {
+        "status": "clean",
+        "total": 0,
+        "critical": 0,
+        "high": 0,
+        "scanner": "trivy",
+        "scanned_at": "2026-03-14T08:10:58Z"
       }
     }
   }
