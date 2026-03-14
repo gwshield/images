@@ -78,7 +78,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `58cea14c80d7` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `7c00bda0ffb8` | 0 CVEs | 2026-03-13 |
-| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `116fc17587df` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `116fc17587df` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `1d47d7dc3a25` | 0 CVEs | 2026-03-13 |
 
 ### Traefik — cloud-native edge router
@@ -125,18 +125,18 @@ ENTRYPOINT ["/myapp"]
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `a770148665d2` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `a770148665d2` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `d7dc61dfea3b` | 0 CVEs | 2026-03-13 |
 | `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `42ac94dfa89f` | 0 CVEs | 2026-03-14 |
-| `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `2386cafab05e` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `2386cafab05e` | 0 CVEs | 2026-03-14 |
 
 ### Python — reproducible wheel builds
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `759684a02771` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `759684a02771` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `f5a00ac6308d` | 0 CVEs | 2026-03-14 |
-| `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `8e1e4bbc3b9c` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `8e1e4bbc3b9c` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `bbcc7abad875` | 0 CVEs | 2026-03-13 |
 
 ### rust-builder
