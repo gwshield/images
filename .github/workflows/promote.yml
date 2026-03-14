@@ -569,7 +569,7 @@ jobs:
           }
           with open(pred_file, "w") as f:
               json.dump(predicate, f, indent=2)
-          print(f"  predicate written to {pred_file}")
+          import sys as _sys; _sys.stderr.write(f"  predicate written to {pred_file}\n")
           INNER_PY
             echo "${PRED_FILE}"
           }
