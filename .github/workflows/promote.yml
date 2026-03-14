@@ -479,6 +479,171 @@ jobs:
           retention-days: 365
           if-no-files-found: warn
 
+
+      # -----------------------------------------------------------------------
+      # SLSA Provenance Attestation (Level 3)
+      # Generates and attests an SLSA v1.0 BuildDefinition predicate for each
+      # platform.  The predicate is built from the dispatch payload (which
+      # already carries git_commit, build_ts, workflow ref, platforms) —
+      # no external metadata sources required.
+      #
+      # Attested per-platform digest (same pattern as SBOM attest):
+      #   cosign attest --type slsaprovenance1 --predicate <predicate.json>
+      #                 <image>@<platform-digest>
+      #
+      # provenance_refs_json step output: JSON map platform → OCI ref
+      #   (written to Supabase image_metadata_snapshots.provenance_ref)
+      #
+      # continue-on-error: true — attestation outage must not block promote.
+      # -----------------------------------------------------------------------
+      - name: Generate and attest SLSA provenance
+        id: provenance
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+          NAME="${{ github.event.client_payload.name }}"
+          VERSION="${{ github.event.client_payload.version }}"
+          [[ -z "${DIGEST}" ]] && { echo "No digest -- skip SLSA provenance"; exit 0; }
+
+          PLATFORMS_JSON="${{ steps.plat.outputs.platforms_json }}"
+          PROVENANCE_REFS="{}"
+          mkdir -p provenance-out
+
+          COSIGN_IDENTITY="https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main"
+          BUILD_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          # Helper: generate SLSA v1.0 BuildDefinition predicate for a given digest
+          generate_predicate() {
+            local PLAT_DIGEST="$1"
+            local PLAT_SAFE="$2"
+            local PRED_FILE="provenance-out/provenance-${NAME}-${VERSION}-${PLAT_SAFE}.json"
+
+            python3 - <<INNER_PY "${PLAT_DIGEST}" "${PRED_FILE}" "${BUILD_TS}" "${COSIGN_IDENTITY}"
+          import json, sys
+
+          plat_digest  = sys.argv[1]
+          pred_file    = sys.argv[2]
+          build_ts     = sys.argv[3]
+          workflow_ref = sys.argv[4]
+
+          predicate = {
+            "_type": "https://slsa.dev/provenance/v1",
+            "subject": [
+              {
+                "name":   "${{ steps.tags.outputs.dst_image }}",
+                "digest": {"sha256": plat_digest.split(":")[-1]},
+              }
+            ],
+            "predicateType": "https://slsa.dev/provenance/v1",
+            "predicate": {
+              "buildDefinition": {
+                "buildType": "https://github.com/gwshield/images/build@v1",
+                "externalParameters": {
+                  "name":         "${{ github.event.client_payload.name }}",
+                  "version":      "${{ github.event.client_payload.version }}",
+                  "base_version": "${{ github.event.client_payload.base_version }}",
+                  "profile":      "${{ github.event.client_payload.profile }}",
+                  "src_image":    "${{ github.event.client_payload.src_image }}",
+                  "src_digest":   "${{ github.event.client_payload.src_digest }}",
+                },
+                "resolvedDependencies": [
+                  {
+                    "uri":    "${{ github.event.client_payload.src_image }}",
+                    "digest": {"sha256": "${{ github.event.client_payload.src_digest }}".split(":")[-1]},
+                  }
+                ],
+              },
+              "runDetails": {
+                "builder": {
+                  "id": workflow_ref,
+                },
+                "metadata": {
+                  "invocationId": "${{ github.run_id }}/${{ github.run_attempt }}",
+                  "startedOn":    build_ts,
+                  "finishedOn":   build_ts,
+                },
+              },
+            },
+          }
+          with open(pred_file, "w") as f:
+              json.dump(predicate, f, indent=2)
+          print(f"  predicate written to {pred_file}")
+          INNER_PY
+            echo "${PRED_FILE}"
+          }
+
+          if [[ -n "${PLATFORMS_JSON}" && "${PLATFORMS_JSON}" != "[]" ]]; then
+            RAW_MANIFEST=$(skopeo inspect --raw               --creds "x-access-token:${{ secrets.GITHUB_TOKEN }}"               "docker://${DST_IMAGE}@${DIGEST}" 2>/dev/null || true)
+            IS_INDEX=$(echo "${RAW_MANIFEST}" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          mt=d.get('mediaType','')
+          print('true' if ('index' in mt or 'list' in mt) else 'false')
+          " 2>/dev/null || echo "false")
+
+            if [[ "${IS_INDEX}" == "true" ]]; then
+              PLAT_DIGESTS=$(echo "${RAW_MANIFEST}" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          for m in d.get('manifests',[]):
+              p=m.get('platform',{})
+              os_=p.get('os','')
+              arch=p.get('architecture','')
+              if os_ and arch and os_ != 'unknown' and arch != 'unknown':
+                  plat=f'{os_}/{arch}'
+                  print(plat+'|'+m.get('digest',''))
+          " 2>/dev/null || true)
+
+              for ROW in $PLAT_DIGESTS; do
+                PLAT="${ROW%%|*}"
+                PDIGEST="${ROW##*|}"
+                [[ -z "${PDIGEST}" ]] && continue
+                PLAT_SAFE="${PLAT//\//-}"
+
+                PRED_FILE=$(generate_predicate "${PDIGEST}" "${PLAT_SAFE}")
+
+                cosign attest --yes \
+                  --predicate "${PRED_FILE}" \
+                  --type slsaprovenance1 \
+                  "${DST_IMAGE}@${PDIGEST}"
+
+                PROV_REF="${DST_IMAGE}@${PDIGEST}"
+                PROVENANCE_REFS=$(echo "${PROVENANCE_REFS}" | jq -c --arg k "${PLAT}" --arg v "${PROV_REF}" '. + {($k): $v}')
+                echo "  SLSA provenance attested for ${PLAT}: ${DST_IMAGE}@${PDIGEST}"
+              done
+            else
+              # Single-arch index — attest to manifest digest
+              PRED_FILE=$(generate_predicate "${DIGEST}" "linux-amd64")
+              cosign attest --yes \
+                --predicate "${PRED_FILE}" \
+                --type slsaprovenance1 \
+                "${DST_IMAGE}@${DIGEST}"
+              PROVENANCE_REFS=$(jq -cn --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
+            fi
+          else
+            # Legacy / fallback — single provenance attestation on manifest list digest
+            PRED_FILE=$(generate_predicate "${DIGEST}" "manifest")
+            cosign attest --yes \
+              --predicate "${PRED_FILE}" \
+              --type slsaprovenance1 \
+              "${DST_IMAGE}@${DIGEST}"
+            PROVENANCE_REFS=$(jq -cn --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
+          fi
+
+          _D=$(openssl rand -hex 8)
+          { echo "provenance_refs_json<<${_D}"; echo "${PROVENANCE_REFS}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
+          echo "Provenance refs: ${PROVENANCE_REFS}"
+
+      - name: Upload SLSA provenance artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: provenance-${{ github.event.client_payload.name }}-${{ github.event.client_payload.version }}
+          path: provenance-out/
+          retention-days: 365
+          if-no-files-found: warn
+
       # -----------------------------------------------------------------------
       # CVE scan -- Trivy on the public image (digest-pinned).
       # Runs after the image is pushed so we scan exactly what is public.
@@ -647,11 +812,13 @@ jobs:
           _PLATFORMS_JSON: ${{ steps.plat.outputs.platforms_json }}
           _IMAGE_SIZE_JSON: ${{ steps.plat.outputs.image_size_json }}
           _SBOM_REFS_JSON: ${{ steps.sbom.outputs.sbom_refs_json }}
+          _PROVENANCE_REFS_JSON: ${{ steps.provenance.outputs.provenance_refs_json }}
         run: |
           set -euo pipefail
           PLATFORMS_JSON="${_PLATFORMS_JSON}"
           IMAGE_SIZE_JSON="${_IMAGE_SIZE_JSON}"
           SBOM_REFS_JSON="${_SBOM_REFS_JSON}"
+          PROVENANCE_REFS_JSON="${_PROVENANCE_REFS_JSON:-}"
 
           # Build optional platform args — only pass when we have platform data
           PLAT_ARGS=()
@@ -666,6 +833,9 @@ jobs:
           # misleading. Column is left NULL; Hub renders '—' for this field.
           if [[ -n "${SBOM_REFS_JSON}" && "${SBOM_REFS_JSON}" != "{}" ]]; then
             PLAT_ARGS+=(--sbom-refs-json "${SBOM_REFS_JSON}")
+          fi
+          if [[ -n "${PROVENANCE_REFS_JSON}" && "${PROVENANCE_REFS_JSON}" != "{}" ]]; then
+            PLAT_ARGS+=(--provenance-refs-json "${PROVENANCE_REFS_JSON}")
           fi
 
           python3 scripts/supabase_ingress.py promote \
@@ -829,6 +999,7 @@ jobs:
             echo "| Pushed digest | \`${{ steps.push.outputs.digest }}\` |"
             echo "| Signed | cosign keyless (Sigstore / gwshield OIDC) |"
             echo "| SBOM | CycloneDX + SPDX attached |"
+            echo "| SLSA provenance | slsaprovenance1 attested |"
             echo "| CVE total | ${{ steps.trivy.outputs.total }} (critical: ${{ steps.trivy.outputs.critical }}, high: ${{ steps.trivy.outputs.high }}) |"
             echo "| registry.json | updated |"
             echo ""
