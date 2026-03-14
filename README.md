@@ -91,7 +91,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `99cf71125034` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `99cf71125034` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `5c0f15546f51` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `9428ce048fd7` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `f07dc5034bb5` | 0 CVEs | 2026-03-14 |
@@ -100,7 +100,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/varnish:v7.7.3` | `v7.7.3` | standard | `7da45b889571` | 0 CVEs | 2026-03-13 |
+| `ghcr.io/gwshield/varnish:v7.7.3` | `v7.7.3` | standard | `7da45b889571` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/varnish:v7.7.3-tls` | `v7.7.3-tls` | TLS | `8822a5c879e9` | 0 CVEs | 2026-03-14 |
 
 ---
