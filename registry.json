@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-14T05:28:18Z",
+  "last_updated": "2026-03-14T00:00:00Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -893,51 +893,6 @@
         "high": 0,
         "scanner": "trivy",
         "scanned_at": "2026-03-14T05:26:23Z"
-      }
-    },
-    "varnish:v7.7.3-tls": {
-      "name": "varnish",
-      "version": "v7.7.3-tls",
-      "base_version": "v7.7.3",
-      "profile": "tls",
-      "category": "runtime",
-      "public_image": "ghcr.io/gwshield/varnish",
-      "tags": [
-        "ghcr.io/gwshield/varnish:v7.7.3-tls"
-      ],
-      "digest": "sha256:8822a5c879e96b6e8de97169b8ef9b074f32c24a04f0f51e6bd3798c1f7e5ac6",
-      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-14T05:26:10Z",
-      "scan": {
-        "status": "clean",
-        "total": 0,
-        "critical": 0,
-        "high": 0,
-        "scanner": "trivy",
-        "scanned_at": "2026-03-14T05:26:10Z"
-      }
-    },
-    "varnish:v7.7.3": {
-      "name": "varnish",
-      "version": "v7.7.3",
-      "base_version": "v7.7.3",
-      "profile": "",
-      "category": "runtime",
-      "public_image": "ghcr.io/gwshield/varnish",
-      "tags": [
-        "ghcr.io/gwshield/varnish:v7.7.3",
-        "ghcr.io/gwshield/varnish:latest"
-      ],
-      "digest": "sha256:7da45b88957173e3ae936e38867a95cdd663fbbf5f626b63ef97c905adc2fb1a",
-      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-14T05:27:32Z",
-      "scan": {
-        "status": "clean",
-        "total": 0,
-        "critical": 0,
-        "high": 0,
-        "scanner": "trivy",
-        "scanned_at": "2026-03-14T05:27:32Z"
       }
     }
   }
