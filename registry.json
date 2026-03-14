@@ -751,14 +751,14 @@
       ],
       "digest": "sha256:950797401d103718a13c31c3747c7ed66bd2f9bf99380819ea7913035e16afab",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-14T11:17:25Z",
+      "promoted_at": "2026-03-14T15:56:35Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-14T11:17:25Z"
+        "scanned_at": "2026-03-14T15:56:35Z"
       }
     },
     "go-builder:v1.25": {
