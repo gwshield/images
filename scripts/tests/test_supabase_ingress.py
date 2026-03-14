@@ -1878,6 +1878,148 @@ class TestCmdPromoteSizeFieldsOptional(unittest.TestCase):
         self.assertIn("platforms", ver_rows[0])
 
 
+
+
+class TestBuildSnapshotPayloadProvenanceRef(unittest.TestCase):
+    """
+    _build_snapshot_payload() correctly sets provenance_ref.
+
+    provenance_ref receives the per-platform OCI attestation ref from
+    --provenance-refs-json (or falls back to cosign_id in legacy mode).
+    These tests verify the field is correctly carried into the snapshot dict.
+    """
+
+    _BASE = dict(
+        image_id="img-001",
+        version_id="ver-001",
+        sbom_ref="ghcr.io/gwshield/redis:v7.4.8@sha256:sbomaaa",
+        promoted_at="2026-03-14T10:00:00Z",
+        name="redis",
+        version="v7.4.8",
+        base_version="v7.4.8",
+        profile="",
+        digest="sha256:abc123",
+        tags="ghcr.io/gwshield/redis:v7.4.8",
+        cosign_id="https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+        image_type="service",
+    )
+
+    def test_provenance_ref_set_from_explicit_value(self):
+        """An explicit provenance OCI ref is stored verbatim."""
+        prov_ref = "ghcr.io/gwshield/redis:v7.4.8@sha256:provaaa"
+        payload = _si._build_snapshot_payload(**self._BASE, provenance=prov_ref)
+        self.assertEqual(payload["provenance_ref"], prov_ref)
+
+    def test_provenance_ref_none_when_not_supplied(self):
+        """provenance=None must produce provenance_ref=None in payload."""
+        payload = _si._build_snapshot_payload(**self._BASE, provenance=None)
+        self.assertIsNone(payload["provenance_ref"])
+
+    def test_provenance_ref_distinct_from_sbom_ref(self):
+        """provenance_ref and sbom_ref must be independent fields."""
+        payload = _si._build_snapshot_payload(
+            **self._BASE,
+            provenance="ghcr.io/gwshield/redis:v7.4.8@sha256:provXXX",
+        )
+        self.assertNotEqual(payload["provenance_ref"], payload["sbom_ref"])
+
+
+class TestCmdPromoteProvenanceRefs(unittest.TestCase):
+    """
+    cmd_promote correctly routes --provenance-refs-json into snapshot rows.
+
+    Mirrors the sbom_ref test pattern in TestCmdPromotePerPlatformPath:
+    each platform snapshot must carry the matching provenance OCI ref.
+    """
+
+    def setUp(self):
+        self.db = _MockDBForPromote()
+        args = _make_promote_args(
+            platforms='["linux/amd64","linux/arm64"]',
+            sbom_refs_json=(
+                '{"linux/amd64":"ghcr.io/gwshield/redis:v7.4.8@sha256:sbomaaa",'
+                '"linux/arm64":"ghcr.io/gwshield/redis:v7.4.8@sha256:sbombbb"}'
+            ),
+            provenance_refs_json=(
+                '{"linux/amd64":"ghcr.io/gwshield/redis:v7.4.8@sha256:provaaa",'
+                '"linux/arm64":"ghcr.io/gwshield/redis:v7.4.8@sha256:provbbb"}'
+            ),
+        )
+        _si.cmd_promote(args, self.db)
+
+    def test_provenance_ref_per_platform_amd64(self):
+        snaps = self.db.inserted_tables["image_metadata_snapshots"]
+        refs = {s["platform"]: s["provenance_ref"] for s in snaps}
+        self.assertEqual(refs["linux/amd64"], "ghcr.io/gwshield/redis:v7.4.8@sha256:provaaa")
+
+    def test_provenance_ref_per_platform_arm64(self):
+        snaps = self.db.inserted_tables["image_metadata_snapshots"]
+        refs = {s["platform"]: s["provenance_ref"] for s in snaps}
+        self.assertEqual(refs["linux/arm64"], "ghcr.io/gwshield/redis:v7.4.8@sha256:provbbb")
+
+    def test_provenance_ref_independent_of_sbom_ref(self):
+        snaps = self.db.inserted_tables["image_metadata_snapshots"]
+        for snap in snaps:
+            self.assertNotEqual(snap["provenance_ref"], snap["sbom_ref"])
+
+    def test_provenance_ref_present_in_all_snapshots(self):
+        snaps = self.db.inserted_tables["image_metadata_snapshots"]
+        for snap in snaps:
+            self.assertIn("provenance_ref", snap)
+            self.assertIsNotNone(snap["provenance_ref"])
+
+
+class TestCmdPromoteProvenanceRefFallback(unittest.TestCase):
+    """
+    When --provenance-refs-json is absent, provenance_ref falls back to
+    cosign_identity (legacy single-row behaviour).
+    """
+
+    def setUp(self):
+        self.db = _MockDBForPromote()
+        # No provenance_refs_json — legacy single-row path
+        args = _make_promote_args()  # no platforms, no provenance_refs_json
+        _si.cmd_promote(args, self.db)
+
+    def test_provenance_ref_falls_back_to_cosign_id(self):
+        snaps = self.db.inserted_tables["image_metadata_snapshots"]
+        self.assertEqual(len(snaps), 1)
+        # In legacy path, provenance= is set to cosign_id in _build_snapshot_payload
+        snap = snaps[0]
+        self.assertIn("provenance_ref", snap)
+        # cosign_id from _make_promote_args default
+        self.assertEqual(
+            snap["provenance_ref"],
+            "https://github.com/gwshield/images/...",
+        )
+
+
+class TestParseRefMapProvenanceRefs(unittest.TestCase):
+    """
+    parse_ref_map() handles provenance_refs_json correctly.
+    (Reuses the same function as sbom_refs_json — verify it works for provenance too.)
+    """
+
+    def test_parse_two_platform_refs(self):
+        result = _si.parse_ref_map(
+            '{"linux/amd64":"ghcr.io/gwshield/redis:v7.4.8@sha256:provaaa",'
+            '"linux/arm64":"ghcr.io/gwshield/redis:v7.4.8@sha256:provbbb"}'
+        )
+        self.assertEqual(result["linux/amd64"], "ghcr.io/gwshield/redis:v7.4.8@sha256:provaaa")
+        self.assertEqual(result["linux/arm64"], "ghcr.io/gwshield/redis:v7.4.8@sha256:provbbb")
+
+    def test_empty_string_returns_empty_dict(self):
+        self.assertEqual(_si.parse_ref_map(""), {})
+
+    def test_none_returns_empty_dict(self):
+        self.assertEqual(_si.parse_ref_map(None), {})
+
+    def test_null_values_dropped(self):
+        result = _si.parse_ref_map('{"linux/amd64":"ghcr.io/gwshield/redis@sha256:aaa","linux/arm64":null}')
+        self.assertIn("linux/amd64", result)
+        self.assertNotIn("linux/arm64", result)
+
+
 # =============================================================================
 # Entry point — can be run without pytest
 # =============================================================================
