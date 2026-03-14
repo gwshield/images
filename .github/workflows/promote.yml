@@ -233,10 +233,11 @@ jobs:
 
           if [[ -z "${RAW_MANIFEST}" ]]; then
             echo "Could not inspect manifest — falling back to no platform metadata"
-            echo "platforms_json=${PLATFORMS_JSON}"     >> "$GITHUB_OUTPUT"
-            echo "image_size_json=${IMAGE_SIZE_JSON}"   >> "$GITHUB_OUTPUT"
-            echo "runnable_size_json=${RUNNABLE_SIZE_JSON}" >> "$GITHUB_OUTPUT"
-            echo "sbom_refs_json=${SBOM_REFS_JSON}"     >> "$GITHUB_OUTPUT"
+            _D=$(openssl rand -hex 8)
+            { echo "platforms_json<<${_D}";     echo "${PLATFORMS_JSON}";     echo "${_D}"; } >> "$GITHUB_OUTPUT"
+            { echo "image_size_json<<${_D}";    echo "${IMAGE_SIZE_JSON}";    echo "${_D}"; } >> "$GITHUB_OUTPUT"
+            { echo "runnable_size_json<<${_D}"; echo "${RUNNABLE_SIZE_JSON}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
+            { echo "sbom_refs_json<<${_D}";     echo "${SBOM_REFS_JSON}";     echo "${_D}"; } >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -337,10 +338,11 @@ jobs:
             echo "  linux/amd64: image_size=${IMG_SIZE} runnable_size=${RUN_SIZE}"
           fi
 
-          echo "platforms_json=${PLATFORMS_JSON}"         >> "$GITHUB_OUTPUT"
-          echo "image_size_json=${IMAGE_SIZE_JSON}"       >> "$GITHUB_OUTPUT"
-          echo "runnable_size_json=${RUNNABLE_SIZE_JSON}" >> "$GITHUB_OUTPUT"
-          echo "sbom_refs_json=${SBOM_REFS_JSON}"         >> "$GITHUB_OUTPUT"
+          _D=$(openssl rand -hex 8)
+          { echo "platforms_json<<${_D}";     echo "${PLATFORMS_JSON}";     echo "${_D}"; } >> "$GITHUB_OUTPUT"
+          { echo "image_size_json<<${_D}";    echo "${IMAGE_SIZE_JSON}";    echo "${_D}"; } >> "$GITHUB_OUTPUT"
+          { echo "runnable_size_json<<${_D}"; echo "${RUNNABLE_SIZE_JSON}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
+          { echo "sbom_refs_json<<${_D}";     echo "${SBOM_REFS_JSON}";     echo "${_D}"; } >> "$GITHUB_OUTPUT"
           echo "Platforms: ${PLATFORMS_JSON}"
 
       - name: Sign public image (cosign keyless)
@@ -454,7 +456,8 @@ jobs:
               "${DST_IMAGE}@${DIGEST}"
           fi
 
-          echo "sbom_refs_json=${SBOM_REFS}" >> "$GITHUB_OUTPUT"
+          _D=$(openssl rand -hex 8)
+          { echo "sbom_refs_json<<${_D}"; echo "${SBOM_REFS}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
           echo "SBOM refs: ${SBOM_REFS}"
 
       - name: Upload SBOM artifacts
