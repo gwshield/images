@@ -20,6 +20,54 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
 ---
 
+## [v0.3.1-alpha] — 2026-03-14
+
+### Changed
+
+#### Hub metadata: image size display corrected
+
+`Image size` on the hub detail page now shows the correct compressed transfer size
+(sum of OCI layer blobs) for all 43 images. `Runnable size` is no longer displayed —
+the OCI registry API does not expose uncompressed layer sizes without pulling the full image,
+so displaying an estimated or duplicated value would be misleading. The field is hidden when
+no value is available.
+
+---
+
+## [v0.3.0-alpha] — 2026-03-14
+
+### Added
+
+#### OTel Collector Contrib v0.147.0
+
+Pre-built upstream binary in a distroless/static base. Fully static, zero dynamic
+dependencies. All receivers, processors, exporters, and extensions from
+`opentelemetry-collector-contrib` included.
+
+| Profile | Image | CVEs |
+|---|---|---|
+| contrib | `ghcr.io/gwshield/otelcol:v0.147.0` | 0 |
+
+- EXPOSE 4317/tcp (OTLP gRPC), 4318/tcp (OTLP HTTP), 8888/tcp (Prometheus metrics), 13133/tcp (health)
+- Bundled config with `health_check` extension enabled
+- SHA256-verified binary — no source compilation required
+
+#### NATS Server v2.12.5 — standard profile
+
+Pre-built upstream binary in a distroless/static base. Fully static, zero dynamic
+dependencies. JetStream persistence enabled.
+
+| Profile | Image | CVEs |
+|---|---|---|
+| standard | `ghcr.io/gwshield/nats:v2.12.5` | 0 |
+
+- EXPOSE 4222/tcp (clients), 6222/tcp (cluster routing), 8222/tcp (HTTP monitoring `/healthz`)
+- JetStream storage at `/data/jetstream` — mount a persistent volume for durable streams
+- Health probe via `/healthz` (orchestrator `httpGet`) — no shell in runtime image
+- SHA256-verified binary — no source compilation required
+
+---
+
 ## [v0.2.3-alpha] — 2026-03-13
 
 ### Fixed
