@@ -304,8 +304,8 @@ jobs:
           print(sum(l.get('Size',0) for l in d.get('LayersData',[])))
           " 2>/dev/null || echo "0")
 
-              IMG_MAP=$(echo "${IMG_MAP}" | jq --arg k "${PLAT}" --argjson v "${IMG_SIZE}" '. + {($k): $v}')
-              RUN_MAP=$(echo "${RUN_MAP}" | jq --arg k "${PLAT}" --argjson v "${RUN_SIZE}" '. + {($k): $v}')
+              IMG_MAP=$(echo "${IMG_MAP}" | jq -c --arg k "${PLAT}" --argjson v "${IMG_SIZE}" '. + {($k): $v}')
+              RUN_MAP=$(echo "${RUN_MAP}" | jq -c --arg k "${PLAT}" --argjson v "${RUN_SIZE}" '. + {($k): $v}')
 
               echo "  ${PLAT}: image_size=${IMG_SIZE} runnable_size=${RUN_SIZE}"
             done
@@ -332,8 +332,8 @@ jobs:
           " 2>/dev/null || echo "0")
 
             PLATFORMS_JSON='["linux/amd64"]'
-            IMAGE_SIZE_JSON=$(jq -n --argjson v "${IMG_SIZE}" '{"linux/amd64": $v}')
-            RUNNABLE_SIZE_JSON=$(jq -n --argjson v "${RUN_SIZE}" '{"linux/amd64": $v}')
+            IMAGE_SIZE_JSON=$(jq -cn --argjson v "${IMG_SIZE}" '{"linux/amd64": $v}')
+            RUNNABLE_SIZE_JSON=$(jq -cn --argjson v "${RUN_SIZE}" '{"linux/amd64": $v}')
             echo "  linux/amd64: image_size=${IMG_SIZE} runnable_size=${RUN_SIZE}"
           fi
 
@@ -422,7 +422,7 @@ jobs:
                   "${DST_IMAGE}@${PDIGEST}"
 
                 SBOM_REF="${DST_IMAGE}@${PDIGEST}"
-                SBOM_REFS=$(echo "${SBOM_REFS}" | jq --arg k "${PLAT}" --arg v "${SBOM_REF}" '. + {($k): $v}')
+                SBOM_REFS=$(echo "${SBOM_REFS}" | jq -c --arg k "${PLAT}" --arg v "${SBOM_REF}" '. + {($k): $v}')
                 echo "  SBOM attested for ${PLAT}: ${DST_IMAGE}@${PDIGEST}"
               done
             else
@@ -433,7 +433,7 @@ jobs:
                 --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
                 --type spdx \
                 "${DST_IMAGE}@${DIGEST}"
-              SBOM_REFS=$(jq -n --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
+              SBOM_REFS=$(jq -cn --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
             fi
           else
             # Legacy / fallback — single SBOM on manifest list digest
