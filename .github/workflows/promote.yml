@@ -311,10 +311,18 @@ jobs:
               echo "  ${PLAT}: image_size=${IMG_SIZE} runnable_size=${RUN_SIZE}"
             done
 
-            PLATFORMS_JSON="${PLAT_LIST}"
-            IMAGE_SIZE_JSON="${IMG_MAP}"
-            RUNNABLE_SIZE_JSON="${RUN_MAP}"
-          else
+            if [[ "${PLAT_LIST}" == "[]" || -z "${PLAT_LIST}" ]]; then
+              # All manifests were attestation-only (unknown/unknown) — treat as single-arch
+              echo "No real platform manifests after filtering — treating as single-arch linux/amd64"
+              IS_INDEX="false"
+            else
+              PLATFORMS_JSON="${PLAT_LIST}"
+              IMAGE_SIZE_JSON="${IMG_MAP}"
+              RUNNABLE_SIZE_JSON="${RUN_MAP}"
+            fi
+          fi
+
+          if [[ "${IS_INDEX}" == "false" ]]; then
             # Single-arch image — collect sizes for linux/amd64
             echo "Single-arch manifest — collecting sizes for linux/amd64"
             DIGEST="${{ steps.push.outputs.digest }}"
