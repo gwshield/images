@@ -199,7 +199,7 @@ jobs:
           OCI_DIR="/tmp/baseline-oci-${{ matrix.slug }}"
 
           echo "Pulling ${SRC} → ${OCI_DIR}"
-          skopeo copy             --override-os linux             --override-arch amd64             "${SRC}"             "oci:${OCI_DIR}"
+          skopeo copy             --src-no-creds             --override-os linux             --override-arch amd64             "${SRC}"             "oci:${OCI_DIR}"
           echo "oci_dir=${OCI_DIR}" >> "$GITHUB_OUTPUT"
           echo "Pull complete"
 
