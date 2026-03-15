@@ -161,11 +161,11 @@ jobs:
           MIRROR_TAG="${{ steps.cfg.outputs.BASELINE_MIRROR_TAG }}"
           FORCE="${{ github.event.inputs.force || github.event.client_payload.force || 'false' }}"
 
-          # Source ref — use digest-pinned upstream (no Docker Hub rate limit check needed)
+          # Source ref — digest-only (skopeo rejects tag+digest combined references)
           if echo "$IMG" | grep -q "^gcr\.io"; then
-            SRC_REF="docker://${IMG}:${TAG}@${DIGEST}"
+            SRC_REF="docker://${IMG}@${DIGEST}"
           else
-            SRC_REF="docker://docker.io/library/${IMG}:${TAG}@${DIGEST}"
+            SRC_REF="docker://docker.io/library/${IMG}@${DIGEST}"
           fi
 
           echo "pinned_digest=${DIGEST}"  >> "$GITHUB_OUTPUT"
