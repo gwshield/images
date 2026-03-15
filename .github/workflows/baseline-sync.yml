@@ -188,15 +188,27 @@ jobs:
           fi
 
       # ── Trivy CRITICAL scan ───────────────────────────────────────────────
-      - name: Trivy scan upstream image
+      # Pull via skopeo first (supports digest-pinned pulls without Docker Hub auth),
+      # then scan the local OCI layout with Trivy.
+      - name: Pull image for Trivy scan
+        id: pull
+        if: steps.resolve.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          SRC="${{ steps.resolve.outputs.src_ref }}"
+          OCI_DIR="/tmp/baseline-oci-${{ matrix.slug }}"
+
+          echo "Pulling ${SRC} → ${OCI_DIR}"
+          skopeo copy             --override-os linux             --override-arch amd64             "${SRC}"             "oci:${OCI_DIR}"
+          echo "oci_dir=${OCI_DIR}" >> "$GITHUB_OUTPUT"
+          echo "Pull complete"
+
+      - name: Trivy scan local OCI image
         id: trivy
         if: steps.resolve.outputs.changed == 'true'
         uses: aquasecurity/trivy-action@0.35.0
         with:
-          image-ref: >-
-            ${{ steps.cfg.outputs.BASELINE_UPSTREAM_IMAGE
-            }}:${{ steps.cfg.outputs.BASELINE_UPSTREAM_TAG
-            }}@${{ steps.cfg.outputs.BASELINE_UPSTREAM_DIGEST }}
+          input: ${{ steps.pull.outputs.oci_dir }}
           format: json
           output: trivy-${{ matrix.slug }}.json
           severity: CRITICAL,HIGH
