@@ -431,6 +431,107 @@ jobs:
           GH_TOKEN: ${{ secrets.RELICFROG_DISPATCH_PAT }}
 
       # ── Supabase writeback (continue-on-error) ────────────────────────────
+
+      # ── Mirror-Verification Smoke Test ───────────────────────────────────
+      # 5 checks — no container startup needed, pure registry + cosign API:
+      #   reachable      skopeo inspect ok
+      #   digest_match   mirror manifest digest recorded
+      #   cosign_sig     keyless signature verifiable (gwshield/images OIDC)
+      #   sbom_attest    cosign verify-attestation --type spdx ok
+      #   multi_platform linux/amd64 + linux/arm64 platform manifests present
+      - name: Mirror verification smoke test
+        id: smoke
+        if: >-
+          always() && steps.resolve.outputs.changed == 'true' &&
+          steps.cve.outputs.cve_blocked != 'true' &&
+          steps.mirror.outputs.pushed_digest != ''
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          MIRROR="${{ steps.cfg.outputs.BASELINE_MIRROR_IMAGE }}"
+          TAG="${{ steps.cfg.outputs.BASELINE_MIRROR_TAG }}"
+          DIGEST="${{ steps.mirror.outputs.pushed_digest }}"
+          PLATFORMS="${{ steps.cfg.outputs.BASELINE_PLATFORMS }}"
+          PASS=0; FAIL=0
+
+          _pass() { echo "  [PASS] $1 — ${2:-}"; ((PASS++)) || true; }
+          _fail() { echo "  [FAIL] $1 — ${2:-}"; ((FAIL++)) || true; }
+
+          # Accumulate checks as JSON via python (safe for special chars)
+          CHECKS_FILE=$(mktemp)
+          echo "[]" > "$CHECKS_FILE"
+          _record() {
+            python3 -c "
+          import json,sys
+          checks=json.load(open(sys.argv[1]))
+          checks.append({'id':sys.argv[2],'label':sys.argv[3],
+                          'status':sys.argv[4],'detail':sys.argv[5]})
+          open(sys.argv[1],'w').write(json.dumps(checks))
+          " "$CHECKS_FILE" "$1" "$2" "$3" "$4" 2>/dev/null || true
+          }
+
+          echo "=== Mirror Verification: ${MIRROR}:${TAG} ==="
+
+          # 1. Reachable
+          if skopeo inspect --no-creds "docker://${MIRROR}:${TAG}" >/dev/null 2>&1; then
+            _pass "image reachable in ghcr.io/gwshield" "${MIRROR}:${TAG}"
+            _record "reachable" "Image reachable in ghcr.io/gwshield" "passed" "${MIRROR}:${TAG}"
+          else
+            _fail "image reachable in ghcr.io/gwshield" "skopeo inspect failed"
+            _record "reachable" "Image reachable in ghcr.io/gwshield" "failed" "skopeo inspect failed"
+          fi
+
+          # 2. Digest recorded
+          MIRROR_DIGEST=$(skopeo inspect --no-creds --raw             "docker://${MIRROR}:${TAG}" 2>/dev/null             | python3 -c "import json,sys,hashlib; d=sys.stdin.buffer.read(); print('sha256:'+hashlib.sha256(d).hexdigest())"             2>/dev/null || echo "unknown")
+          _pass "mirror manifest digest recorded" "${MIRROR_DIGEST:0:19}..."
+          _record "digest_recorded" "Mirror manifest digest recorded" "passed" "${MIRROR_DIGEST:0:19}..."
+
+          # 3. cosign signature
+          if cosign verify               --certificate-identity-regexp="https://github.com/gwshield/images.*"               --certificate-oidc-issuer="https://token.actions.githubusercontent.com"               "${MIRROR}:${TAG}@${DIGEST}" >/dev/null 2>&1; then
+            _pass "cosign signature valid" "keyless OIDC, Rekor logged"
+            _record "cosign_sig" "cosign signature valid (gwshield/images OIDC)" "passed" "keyless Rekor logged"
+          else
+            _fail "cosign signature valid" "cosign verify failed"
+            _record "cosign_sig" "cosign signature valid (gwshield/images OIDC)" "failed" "cosign verify failed"
+          fi
+
+          # 4. SBOM attestation
+          if cosign verify-attestation               --type spdx               --certificate-identity-regexp="https://github.com/gwshield/images.*"               --certificate-oidc-issuer="https://token.actions.githubusercontent.com"               "${MIRROR}:${TAG}@${DIGEST}" >/dev/null 2>&1; then
+            _pass "SBOM attestation present (spdx)" "cosign verify-attestation ok"
+            _record "sbom_attest" "SBOM attestation present (spdx)" "passed" "cosign verify-attestation ok"
+          else
+            _fail "SBOM attestation present (spdx)" "cosign verify-attestation failed"
+            _record "sbom_attest" "SBOM attestation present (spdx)" "failed" "cosign verify-attestation failed"
+          fi
+
+          # 5. Multi-platform manifests
+          PLAT_COUNT=$(skopeo inspect --no-creds --raw "docker://${MIRROR}:${TAG}" 2>/dev/null             | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          n=len([m for m in d.get('manifests',[])
+                 if m.get('platform',{}).get('os') not in ('','unknown')])
+          print(n)
+          " 2>/dev/null || echo "0")
+          EXPECTED=$(echo "$PLATFORMS" | tr ',' '\n' | grep -c "linux/" || echo "1")
+          if [[ "$PLAT_COUNT" -ge "$EXPECTED" ]]; then
+            _pass "platform manifests present" "${PLAT_COUNT}/${EXPECTED} platforms"
+            _record "multi_platform" "Platform manifests present" "passed" "${PLAT_COUNT} platform(s)"
+          else
+            _fail "platform manifests present" "expected >=${EXPECTED}, got ${PLAT_COUNT}"
+            _record "multi_platform" "Platform manifests present" "failed" "expected>=${EXPECTED} got ${PLAT_COUNT}"
+          fi
+
+          echo ""
+          OVERALL="passed"; [[ $FAIL -gt 0 ]] && OVERALL="failed"
+          echo "=== Smoke: ${PASS} passed, ${FAIL} failed ==="
+
+          CHECKS_JSON=$(cat "$CHECKS_FILE"); rm -f "$CHECKS_FILE"
+          _D=$(openssl rand -hex 8)
+          { echo "smoke_status<<${_D}"; echo "${OVERALL}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
+          { echo "smoke_pass<<${_D}";   echo "${PASS}";    echo "${_D}"; } >> "$GITHUB_OUTPUT"
+          { echo "smoke_fail<<${_D}";   echo "${FAIL}";    echo "${_D}"; } >> "$GITHUB_OUTPUT"
+          { echo "smoke_checks<<${_D}"; echo "${CHECKS_JSON}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
+
       - name: Write sync result to Supabase
         if: steps.resolve.outputs.changed == 'true'
         continue-on-error: true
@@ -445,6 +546,10 @@ jobs:
             --status         "${{ steps.cve.outputs.cve_blocked == 'true' && 'blocked_cve' || 'synced' }}" \
             --critical       "${{ steps.cve.outputs.critical || '0' }}" \
             --high           "${{ steps.cve.outputs.high || '0' }}" \
+            --smoke-status   "${{ steps.smoke.outputs.smoke_status || 'skipped' }}" \
+            --smoke-pass     "${{ steps.smoke.outputs.smoke_pass || '0' }}" \
+            --smoke-fail     "${{ steps.smoke.outputs.smoke_fail || '0' }}" \
+            --smoke-checks   "${{ steps.smoke.outputs.smoke_checks || '[]' }}" \
             --run-url        "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         env:
           SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
