@@ -149,42 +149,42 @@ jobs:
           sudo mv /tmp/cosign /usr/local/bin/cosign
           cosign version 2>/dev/null | head -1
 
-      # ── Resolve current upstream digest ───────────────────────────────────
+      # ── Check if mirror already exists + determine src_ref ─────────────
       - name: Resolve upstream digest
         id: resolve
         run: |
           set -euo pipefail
           IMG="${{ steps.cfg.outputs.BASELINE_UPSTREAM_IMAGE }}"
           TAG="${{ steps.cfg.outputs.BASELINE_UPSTREAM_TAG }}"
-          PINNED="${{ steps.cfg.outputs.BASELINE_UPSTREAM_DIGEST }}"
+          DIGEST="${{ steps.cfg.outputs.BASELINE_UPSTREAM_DIGEST }}"
+          MIRROR="${{ steps.cfg.outputs.BASELINE_MIRROR_IMAGE }}"
+          MIRROR_TAG="${{ steps.cfg.outputs.BASELINE_MIRROR_TAG }}"
           FORCE="${{ github.event.inputs.force || github.event.client_payload.force || 'false' }}"
 
-          # Determine upstream registry prefix (some images are on gcr.io)
+          # Source ref — use digest-pinned upstream (no Docker Hub rate limit check needed)
           if echo "$IMG" | grep -q "^gcr\.io"; then
-            SRC_REF="docker://${IMG}:${TAG}"
+            SRC_REF="docker://${IMG}:${TAG}@${DIGEST}"
           else
-            SRC_REF="docker://docker.io/library/${IMG}:${TAG}"
+            SRC_REF="docker://docker.io/library/${IMG}:${TAG}@${DIGEST}"
           fi
 
-          CURRENT=$(skopeo inspect --raw "$SRC_REF" 2>/dev/null \
-            | python3 -c "
-          import json,sys,hashlib
-          d=sys.stdin.buffer.read()
-          print('sha256:'+hashlib.sha256(d).hexdigest())
-          " || echo "unknown")
+          echo "pinned_digest=${DIGEST}"  >> "$GITHUB_OUTPUT"
+          echo "current_digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "src_ref=${SRC_REF}"       >> "$GITHUB_OUTPUT"
 
-          echo "pinned_digest=${PINNED}"   >> "$GITHUB_OUTPUT"
-          echo "current_digest=${CURRENT}" >> "$GITHUB_OUTPUT"
-          echo "src_ref=${SRC_REF}"        >> "$GITHUB_OUTPUT"
+          # Check if mirror already exists in ghcr.io/gwshield
+          MIRROR_EXISTS=$(skopeo inspect \
+            --creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+            "docker://${MIRROR}:${MIRROR_TAG}" >/dev/null 2>&1 && echo "true" || echo "false")
 
-          if [[ "$CURRENT" == "$PINNED" && "$FORCE" != "true" ]]; then
+          if [[ "$MIRROR_EXISTS" == "true" && "$FORCE" != "true" ]]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "Digest unchanged (${CURRENT:0:19}...) — skip"
+            echo "Mirror ${MIRROR}:${MIRROR_TAG} already exists — skip (use force=true to re-sync)"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            [[ "$CURRENT" != "$PINNED" ]] && \
-              echo "Digest changed: ${PINNED:0:19}... → ${CURRENT:0:19}..." || \
-              echo "Force sync requested"
+            [[ "$MIRROR_EXISTS" == "false" ]] && \
+              echo "Mirror not yet in ghcr.io/gwshield — syncing from upstream" || \
+              echo "Force re-sync requested"
           fi
 
       # ── Trivy CRITICAL scan ───────────────────────────────────────────────
@@ -194,9 +194,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: >-
-            ${{ steps.cfg.outputs.BASELINE_UPSTREAM_IMAGE
-            }}:${{ steps.cfg.outputs.BASELINE_UPSTREAM_TAG
-            }}@${{ steps.cfg.outputs.BASELINE_UPSTREAM_DIGEST }}
+            ${{ steps.resolve.outputs.src_ref }}
           format: json
           output: trivy-${{ matrix.slug }}.json
           severity: CRITICAL,HIGH
