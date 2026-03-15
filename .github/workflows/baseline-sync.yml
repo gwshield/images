@@ -194,7 +194,9 @@ jobs:
         uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: >-
-            ${{ steps.resolve.outputs.src_ref }}
+            ${{ steps.cfg.outputs.BASELINE_UPSTREAM_IMAGE
+            }}:${{ steps.cfg.outputs.BASELINE_UPSTREAM_TAG
+            }}@${{ steps.cfg.outputs.BASELINE_UPSTREAM_DIGEST }}
           format: json
           output: trivy-${{ matrix.slug }}.json
           severity: CRITICAL,HIGH
