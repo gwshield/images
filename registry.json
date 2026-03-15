@@ -526,16 +526,16 @@
       "tags": [
         "ghcr.io/gwshield/postgres:v17.9-vector"
       ],
-      "digest": "sha256:b24a1269c11532c22ccf794543f2c088cbbb560a8cf3ecc3a0c0100126d45b73",
+      "digest": "sha256:0d65c610321279fd4af34bdda11df276fe5d69f1b1827b981e9b54c5dada206d",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-15T02:40:57Z",
+      "promoted_at": "2026-03-15T03:34:47Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-15T02:40:57Z"
+        "scanned_at": "2026-03-15T03:34:47Z"
       }
     },
     "rust-builder:v1.87": {
