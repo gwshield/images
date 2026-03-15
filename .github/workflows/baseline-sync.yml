@@ -70,37 +70,33 @@ jobs:
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Build sync matrix
         id: matrix
         run: |
           set -euo pipefail
           FILTER="${{ github.event.inputs.slug || github.event.client_payload.slug || '' }}"
 
-          # Fetch list of baseline slugs from RelicFrog/gwshield-images via API
-          # Uses RELICFROG_READ_PAT — GITHUB_TOKEN has no access to the private repo
-          SLUGS=$(gh api \
-            "repos/${SRC_REPO}/contents/images/baseline" \
-            --jq '.[].name' | sort)
+          SLUGS=$(find images/baseline -name "versions.env" | sort | while read f; do basename "$(dirname "$f")"; done)
 
           if [[ -z "$SLUGS" ]]; then
-            echo "ERROR: Could not fetch baseline slugs from ${SRC_REPO} — check RELICFROG_READ_PAT"
+            echo "ERROR: No baseline slugs found under images/baseline/"
             exit 1
           fi
 
           JSON=$(echo "$SLUGS" | python3 -c "
           import json,sys
           slugs=[l.strip() for l in sys.stdin if l.strip()]
-          filter_slug='${FILTER}'
-          if filter_slug:
-              slugs=[s for s in slugs if s==filter_slug]
+          filt='${FILTER}'
+          if filt:
+              slugs=[s for s in slugs if s==filt]
           print(json.dumps({'include':[{'slug':s} for s in slugs]}))
           ")
           echo "matrix=$JSON" >> "$GITHUB_OUTPUT"
-          echo "Discovered: $(echo "$JSON" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d['include']),'baselines')")"
-        env:
-          GH_TOKEN: ${{ secrets.RELICFROG_READ_PAT }}
-
-  # ---------------------------------------------------------------------------
+          COUNT=$(echo "$JSON" | python3 -c "import json,sys; print(len(json.load(sys.stdin)['include']))")
+          echo "Discovered: ${COUNT} baselines"  # ---------------------------------------------------------------------------
   # Sync: one job per baseline image
   # ---------------------------------------------------------------------------
   sync:
@@ -119,27 +115,22 @@ jobs:
       issues: write
 
     steps:
-      # ── Load versions.env from private repo via API ──────────────────────
+      # ── Checkout + load local versions.env (no PAT needed) ──────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Load baseline config
         id: cfg
         run: |
           set -euo pipefail
-          ENVFILE_CONTENT=$(gh api \
-            "repos/${SRC_REPO}/contents/images/baseline/${{ matrix.slug }}/versions.env" \
-            --jq '.content' | base64 -d)
-          [[ -z "$ENVFILE_CONTENT" ]] && { echo "ERROR: versions.env not found for ${{ matrix.slug }}"; exit 1; }
-
-          # Parse key=value
+          ENVFILE="images/baseline/${{ matrix.slug }}/versions.env"
+          [[ -f "$ENVFILE" ]] || { echo "ERROR: $ENVFILE not found"; exit 1; }
           while IFS='=' read -r key val; do
             [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
             echo "${key}=${val}" >> "$GITHUB_OUTPUT"
-          done <<< "$ENVFILE_CONTENT"
-
-          # Echo for log
+          done < "$ENVFILE"
           echo "---"
-          echo "$ENVFILE_CONTENT" | grep "^BASELINE_" | grep -v DIGEST
-        env:
-          GH_TOKEN: ${{ secrets.RELICFROG_READ_PAT }}
+          grep "^BASELINE_" "$ENVFILE" | grep -v DIGEST
 
       # ── Install skopeo ────────────────────────────────────────────────────
       - name: Install skopeo
@@ -351,12 +342,6 @@ jobs:
           GH_TOKEN: ${{ secrets.RELICFROG_DISPATCH_PAT }}
 
       # ── Supabase writeback (continue-on-error) ────────────────────────────
-      - name: Checkout scripts
-        if: steps.resolve.outputs.changed == 'true'
-        uses: actions/checkout@v4
-        with:
-          sparse-checkout: scripts/
-
       - name: Write sync result to Supabase
         if: steps.resolve.outputs.changed == 'true'
         continue-on-error: true
