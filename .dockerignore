@@ -1,0 +1,37 @@
+# =============================================================================
+# .dockerignore — gwshield-images
+# =============================================================================
+# Build context is the repo root (required so shared/banner/ is reachable from
+# every image Dockerfile). This file keeps the context lean by excluding
+# everything that is not needed inside any image build.
+#
+# Rule: include only what Dockerfiles actually COPY.
+#   - shared/banner/gwshield-init.c         (all images)
+#   - images/<name>/<version>/configs/      (per-image config files)
+#   - images/<name>/<version>/Dockerfile    (implicit — already the -f target)
+#
+# Everything else stays on the host.
+# =============================================================================
+
+# --- Version control ---
+.git
+.gitattributes
+.gitignore
+
+# --- IDE / editor ---
+.idea
+*.iml
+.vscode
+
+# --- Scan outputs, logs, secrets ---
+*.log
+*.json
+trivy-results*
+grype-results*
+.trivyignore
+.grype.yaml
+
+# Explicitly keep what we need:
+# (dockerignore has no "include" syntax — we exclude broad patterns above
+#  and rely on the fact that shared/banner/gwshield-init.c is NOT excluded
+#  by any of the above rules)
