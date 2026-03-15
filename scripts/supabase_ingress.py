@@ -1201,43 +1201,45 @@ def cmd_baseline(args, db: SupabaseClient):
             smoke_checks = []
 
     # ── Upsert image (image_type='baseline') ─────────────────────────────
-    # Use the SupabaseClient wrapper (db.upsert / db.insert / db.select)
-    # NOT the Supabase Python SDK (.table().upsert().execute()) — this script
-    # uses a custom HTTP wrapper to avoid the supabase-py SDK dependency.
-    image_row = db.upsert(
-        "images",
-        {"name": slug, "image_type": "baseline", "visibility": "public"},
-        on_conflict="name",
+    # slug is the unique key (not name). Use upsert_image() which does
+    # select + insert/update to preserve admin-set image_type overrides.
+    display_name = f"{upstream_image.capitalize()} {upstream_tag}"  # e.g. "Alpine 3.22"
+    image_row = db.upsert_image(
+        slug=slug,
+        insert_fields={"image_type": "baseline", "visibility": "public"},
+        update_fields={"name": display_name},
     )
     image_id = image_row.get("id") if image_row else None
-    if not image_id:
-        rows = db.select("images", {"name": slug})
-        image_id = rows[0]["id"] if rows else None
     if not image_id:
         raise RuntimeError(f"[baseline] could not resolve image_id for slug={slug}")
 
     print(f"  image_id={image_id[:8]}…")
 
     # ── Upsert image_version ──────────────────────────────────────────────
+    # Use select+insert/update pattern (same as upsert_image) — no image_type
+    # column exists on image_versions, and on_conflict multi-column upsert
+    # requires an explicit DB constraint which may not exist.
     version_tag = upstream_tag  # e.g. "3.22" or "12-slim"
-    version_row = db.upsert(
-        "image_versions",
-        {
-            "image_id":     image_id,
-            "tag":          version_tag,
-            "base_version": version_tag,
-            "profile":      "",
-            "digest":       mirror_digest or upstream_digest,
-            "image_type":   "baseline",
-        },
-        on_conflict="image_id,tag",
-    )
-    version_id = version_row.get("id") if version_row else None
-    if not version_id:
-        rows = db.select("image_versions", {"image_id": image_id, "tag": version_tag})
-        version_id = rows[0]["id"] if rows else None
-    if not version_id:
-        raise RuntimeError(f"[baseline] could not resolve version_id for {slug}:{version_tag}")
+    version_payload = {
+        "image_id":     image_id,
+        "tag":          version_tag,
+        "base_version": version_tag,
+        "profile":      "",
+        "digest":       mirror_digest or upstream_digest,
+    }
+    existing_versions = db.select("image_versions", {"image_id": image_id, "tag": version_tag})
+    if existing_versions:
+        version_id = existing_versions[0]["id"]
+        db.update("image_versions", {"id": version_id}, {
+            "digest": mirror_digest or upstream_digest,
+        })
+        print(f"  version {version_id[:8]}… updated")
+    else:
+        version_row = db.insert("image_versions", version_payload)
+        version_id = version_row.get("id") if version_row else None
+        if not version_id:
+            raise RuntimeError(f"[baseline] could not insert version for {slug}:{version_tag}")
+        print(f"  version {version_id[:8]}… inserted")
 
     print(f"  version_id={version_id[:8]}…")
 
