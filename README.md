@@ -38,7 +38,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `51771128878b` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `4e70a5d67f92` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `d39dda02bb04` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `950797401d10` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `b6508c5d7e64` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `a3c112aae13f` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `996d7fd96ff6` | 0 CVEs | 2026-03-15 |
 
@@ -59,7 +59,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `cd95d864c392` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `61abfa19bf89` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `4f982bbb4879` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `dac6f74a34f9` | 0 CVEs | 2026-03-15 |
 
@@ -67,7 +67,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/otelcol:v0.147.0` | `v0.147.0` | standard | `0b2c54707ee8` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/otelcol:v0.147.0` | `v0.147.0` | standard | `4f6aef8d90e9` | 0 CVEs | 2026-03-15 |
 
 ### pomerium
 
@@ -81,11 +81,11 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `1d77e266cc62` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `06c654ea59e1` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `824b2b34f020` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `27ae10767730` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `94051f55d2f3` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `6220a3b8aa4d` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `46f33da87239` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `c46f1b8ac138` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `eeb8aaae6c4b` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `2ba3093a2b6a` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `30ce42fcf221` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `59ee1c8b2682` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `f6f403319614` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `b24a1269c115` | 0 CVEs | 2026-03-15 |
@@ -111,7 +111,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `99cf71125034` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `5c0f15546f51` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `9428ce048fd7` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `5cdf92fc5d25` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `f07dc5034bb5` | 0 CVEs | 2026-03-15 |
 
 ---
@@ -139,7 +139,7 @@ ENTRYPOINT ["/myapp"]
 | `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `a770148665d2` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `d7dc61dfea3b` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `42ac94dfa89f` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `2386cafab05e` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `f07303127529` | 0 CVEs | 2026-03-15 |
 
 ### Python — reproducible wheel builds
 
