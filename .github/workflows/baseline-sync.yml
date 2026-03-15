@@ -80,7 +80,7 @@ jobs:
           # Uses RELICFROG_READ_PAT — GITHUB_TOKEN has no access to the private repo
           SLUGS=$(gh api \
             "repos/${SRC_REPO}/contents/images/baseline" \
-            --jq '.[].name' 2>/dev/null | sort)
+            --jq '.[].name' | sort)
 
           if [[ -z "$SLUGS" ]]; then
             echo "ERROR: Could not fetch baseline slugs from ${SRC_REPO} — check RELICFROG_READ_PAT"
@@ -126,7 +126,7 @@ jobs:
           set -euo pipefail
           ENVFILE_CONTENT=$(gh api \
             "repos/${SRC_REPO}/contents/images/baseline/${{ matrix.slug }}/versions.env" \
-            --jq '.content' | base64 -d 2>/dev/null)
+            --jq '.content' | base64 -d)
           [[ -z "$ENVFILE_CONTENT" ]] && { echo "ERROR: versions.env not found for ${{ matrix.slug }}"; exit 1; }
 
           # Parse key=value
