@@ -82,7 +82,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `6220a3b8aa4d` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
