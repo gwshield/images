@@ -77,9 +77,15 @@ jobs:
           FILTER="${{ github.event.inputs.slug || github.event.client_payload.slug || '' }}"
 
           # Fetch list of baseline slugs from RelicFrog/gwshield-images via API
+          # Uses RELICFROG_READ_PAT — GITHUB_TOKEN has no access to the private repo
           SLUGS=$(gh api \
             "repos/${SRC_REPO}/contents/images/baseline" \
             --jq '.[].name' 2>/dev/null | sort)
+
+          if [[ -z "$SLUGS" ]]; then
+            echo "ERROR: Could not fetch baseline slugs from ${SRC_REPO} — check RELICFROG_READ_PAT"
+            exit 1
+          fi
 
           JSON=$(echo "$SLUGS" | python3 -c "
           import json,sys
@@ -92,7 +98,7 @@ jobs:
           echo "matrix=$JSON" >> "$GITHUB_OUTPUT"
           echo "Discovered: $(echo "$JSON" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d['include']),'baselines')")"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELICFROG_READ_PAT }}
 
   # ---------------------------------------------------------------------------
   # Sync: one job per baseline image
@@ -133,7 +139,7 @@ jobs:
           echo "---"
           echo "$ENVFILE_CONTENT" | grep "^BASELINE_" | grep -v DIGEST
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELICFROG_READ_PAT }}
 
       # ── Install skopeo ────────────────────────────────────────────────────
       - name: Install skopeo
