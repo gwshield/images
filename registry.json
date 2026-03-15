@@ -571,16 +571,16 @@
       "tags": [
         "ghcr.io/gwshield/rust-builder:v1.87-dev"
       ],
-      "digest": "sha256:244e9206404dca17c69407e53fd166e0b38ec59c58a754c38fd1d9b46e648a51",
+      "digest": "sha256:be0aff636f95bccf9e04fd22549335349318f95bd4bc447773a5081233ee1b90",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-15T02:39:58Z",
+      "promoted_at": "2026-03-15T03:36:12Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-15T02:39:58Z"
+        "scanned_at": "2026-03-15T03:36:12Z"
       }
     },
     "haproxy:v3.1.16": {
