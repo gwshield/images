@@ -60,7 +60,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `cd95d864c392` | 0 CVEs | 2026-03-14 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `4f982bbb4879` | 0 CVEs | 2026-03-14 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `4f982bbb4879` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `dac6f74a34f9` | 0 CVEs | 2026-03-15 |
 
 ### otelcol
@@ -73,7 +73,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/pomerium:v0.32.2` | `v0.32.2` | standard | `9a626c2b75b4` | 0 CVEs | 2026-03-14 |
+| `ghcr.io/gwshield/pomerium:v0.32.2` | `v0.32.2` | standard | `9a626c2b75b4` | 0 CVEs | 2026-03-15 |
 
 ### PostgreSQL — relational database
 
