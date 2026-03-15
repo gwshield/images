@@ -335,6 +335,82 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: '1'
 
+
+      # ── SBOM + SLSA provenance attestation (Stufe 2 — Verified Mirror) ────
+      # syft generates SPDX SBOM from the mirrored image (same content as
+      # upstream, but now signed by us — attests we inspected it).
+      # continue-on-error: true — attestation outage must not block sync.
+      - name: Install syft
+        if: >-
+          always() && steps.resolve.outputs.changed == 'true' &&
+          steps.cve.outputs.cve_blocked != 'true' &&
+          steps.mirror.outputs.pushed_digest != ''
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Generate and attest SBOM
+        id: sbom
+        if: >-
+          always() && steps.resolve.outputs.changed == 'true' &&
+          steps.cve.outputs.cve_blocked != 'true' &&
+          steps.mirror.outputs.pushed_digest != ''
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          MIRROR="${{ steps.cfg.outputs.BASELINE_MIRROR_IMAGE }}"
+          TAG="${{ steps.cfg.outputs.BASELINE_MIRROR_TAG }}"
+          DIGEST="${{ steps.mirror.outputs.pushed_digest }}"
+          SLUG="${{ matrix.slug }}"
+          mkdir -p sbom-out
+
+          # Per-platform SBOM + attest (same pattern as promote.yml)
+          RAW=$(skopeo inspect --raw             --creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}"             "docker://${MIRROR}:${TAG}@${DIGEST}" 2>/dev/null || true)
+
+          IS_INDEX=$(echo "${RAW}" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          mt=d.get('mediaType','')
+          print('true' if ('index' in mt or 'list' in mt) else 'false')
+          " 2>/dev/null || echo "false")
+
+          if [[ "${IS_INDEX}" == "true" ]]; then
+            PLAT_DIGESTS=$(echo "${RAW}" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          for m in d.get('manifests',[]):
+              p=m.get('platform',{})
+              os_=p.get('os',''); arch=p.get('architecture','')
+              if os_ and arch and os_!='unknown' and arch!='unknown':
+                  print(f'{os_}/{arch}|{m.get("digest","")}')
+          " 2>/dev/null || true)
+
+            for ROW in $PLAT_DIGESTS; do
+              PLAT="${ROW%%|*}"; PDIGEST="${ROW##*|}"
+              [[ -z "${PDIGEST}" ]] && continue
+              PLAT_SAFE="${PLAT//\//-}"
+              SBOM_FILE="sbom-out/sbom-${SLUG}-${PLAT_SAFE}-spdx.json"
+
+              syft "${MIRROR}@${PDIGEST}" --output spdx-json="${SBOM_FILE}"
+              cosign attest --yes                 --predicate "${SBOM_FILE}" --type spdx                 "${MIRROR}@${PDIGEST}"
+              echo "  SBOM attested: ${PLAT} → ${MIRROR}@${PDIGEST}"
+            done
+          else
+            SBOM_FILE="sbom-out/sbom-${SLUG}-spdx.json"
+            syft "${MIRROR}:${TAG}@${DIGEST}" --output spdx-json="${SBOM_FILE}"
+            cosign attest --yes               --predicate "${SBOM_FILE}" --type spdx               "${MIRROR}:${TAG}@${DIGEST}"
+            echo "  SBOM attested: ${MIRROR}:${TAG}@${DIGEST}"
+          fi
+
+      - name: Upload SBOM artifacts
+        if: >-
+          always() && steps.sbom.conclusion != 'skipped' &&
+          steps.mirror.outputs.pushed_digest != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-baseline-${{ matrix.slug }}
+          path: sbom-out/
+          retention-days: 365
+          if-no-files-found: warn
+
       # ── Dispatch digest update to private repo if digest changed ──────────
       - name: Dispatch digest update to RelicFrog/gwshield-images
         if: >-
