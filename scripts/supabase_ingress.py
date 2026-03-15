@@ -1180,16 +1180,25 @@ def cmd_baseline(args, db: SupabaseClient):
     smoke_status   = getattr(args, "smoke_status", "skipped") or "skipped"
     smoke_pass     = int(getattr(args, "smoke_pass", 0) or 0)
     smoke_fail     = int(getattr(args, "smoke_fail", 0) or 0)
-    smoke_checks_raw = getattr(args, "smoke_checks", "[]") or "[]"
     run_url        = getattr(args, "run_url", "") or ""
 
     print(f"[baseline] {slug}  status={status}  crit={critical}  high={high}  smoke={smoke_status}")
 
-    # Parse smoke checks JSON (may arrive as inline string from GITHUB_OUTPUT)
-    try:
-        smoke_checks = json.loads(smoke_checks_raw) if smoke_checks_raw.strip() else []
-    except Exception:
-        smoke_checks = []
+    # Parse smoke checks JSON — prefer --smoke-checks-file (avoids shell quoting
+    # issues with { } ( ) characters in inline JSON from GITHUB_OUTPUT).
+    smoke_checks_file = getattr(args, "smoke_checks_file", None)
+    if smoke_checks_file:
+        try:
+            import pathlib
+            smoke_checks = json.loads(pathlib.Path(smoke_checks_file).read_text())
+        except Exception:
+            smoke_checks = []
+    else:
+        smoke_checks_raw = getattr(args, "smoke_checks", "[]") or "[]"
+        try:
+            smoke_checks = json.loads(smoke_checks_raw) if smoke_checks_raw.strip() else []
+        except Exception:
+            smoke_checks = []
 
     # ── Upsert image (image_type='baseline') ─────────────────────────────
     image_row = db.table("images").upsert(
@@ -1383,7 +1392,10 @@ def main():
     p_baseline.add_argument("--smoke-status",     default="skipped", dest="smoke_status")
     p_baseline.add_argument("--smoke-pass",       default="0",       dest="smoke_pass")
     p_baseline.add_argument("--smoke-fail",       default="0",       dest="smoke_fail")
-    p_baseline.add_argument("--smoke-checks",     default="[]",      dest="smoke_checks")
+    p_baseline.add_argument("--smoke-checks",      default="[]",      dest="smoke_checks",
+                            help="Smoke checks JSON inline string (use --smoke-checks-file to avoid shell quoting issues)")
+    p_baseline.add_argument("--smoke-checks-file", default=None,      dest="smoke_checks_file",
+                            help="Path to a file containing smoke checks JSON (preferred over --smoke-checks)")
     p_baseline.add_argument("--run-url",          default="",        dest="run_url")
 
     args = parser.parse_args()

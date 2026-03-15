@@ -535,9 +535,19 @@ jobs:
       - name: Write sync result to Supabase
         if: steps.resolve.outputs.changed == 'true'
         continue-on-error: true
+        env:
+          SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Pass smoke_checks JSON via env var — avoids bash syntax errors from
+          # unescaped { } ( ) characters when interpolated directly into run: shell.
+          SMOKE_CHECKS_JSON: ${{ steps.smoke.outputs.smoke_checks || '[]' }}
         run: |
+          # Write smoke_checks JSON to a temp file to avoid shell quoting issues
+          CHECKS_FILE=$(mktemp)
+          printf '%s' "${SMOKE_CHECKS_JSON}" > "${CHECKS_FILE}"
+
           python3 scripts/supabase_ingress.py baseline \
-            --slug          "${{ matrix.slug }}" \
+            --slug           "${{ matrix.slug }}" \
             --upstream-image "${{ steps.cfg.outputs.BASELINE_UPSTREAM_IMAGE }}" \
             --upstream-tag   "${{ steps.cfg.outputs.BASELINE_UPSTREAM_TAG }}" \
             --upstream-digest "${{ steps.resolve.outputs.current_digest }}" \
@@ -549,11 +559,10 @@ jobs:
             --smoke-status   "${{ steps.smoke.outputs.smoke_status || 'skipped' }}" \
             --smoke-pass     "${{ steps.smoke.outputs.smoke_pass || '0' }}" \
             --smoke-fail     "${{ steps.smoke.outputs.smoke_fail || '0' }}" \
-            --smoke-checks   "${{ steps.smoke.outputs.smoke_checks || '[]' }}" \
+            --smoke-checks-file "${CHECKS_FILE}" \
             --run-url        "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        env:
-          SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+          rm -f "${CHECKS_FILE}"
 
       # ── Job summary ───────────────────────────────────────────────────────
       - name: Job summary
