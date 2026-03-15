@@ -860,16 +860,16 @@
       "tags": [
         "ghcr.io/gwshield/valkey:v8.1.6-cluster"
       ],
-      "digest": "sha256:9428ce048fd7f2609bd37d5b6e499ae458388661dfd23b7fcc8c938c00bf0bbf",
+      "digest": "sha256:5cdf92fc5d25d0c7c853aa7ac3e23527242acb5003dd4a391f0e73c71d535eb0",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-15T02:41:12Z",
+      "promoted_at": "2026-03-15T03:34:39Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-15T02:41:12Z"
+        "scanned_at": "2026-03-15T03:34:39Z"
       }
     },
     "valkey:v8.1.6": {
