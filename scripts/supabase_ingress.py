@@ -1152,6 +1152,115 @@ def _parse_findings_arg(raw_arg: str, fmt: str = "trivy") -> list[dict]:
     raise ValueError(f"Unknown findings format: {fmt}")
 
 
+
+# ---------------------------------------------------------------------------
+# baseline subcommand — writes mirror sync + smoke results to Supabase
+# ---------------------------------------------------------------------------
+
+def cmd_baseline(args, db: SupabaseClient):
+    """
+    Write baseline image sync result (mirror + Trivy CVE + smoke test) to Supabase.
+
+    Creates or updates:
+      images                   row  (image_type='baseline')
+      image_versions           row  (base_version=tag, profile='')
+      baseline_sync_results    row  (sync outcome, CVE counts, smoke checks)
+
+    Idempotent: re-syncing the same slug+digest upserts the sync result row.
+    """
+    slug           = args.slug
+    upstream_image = args.upstream_image
+    upstream_tag   = args.upstream_tag
+    upstream_digest = args.upstream_digest
+    mirror_image   = args.mirror_image    # full ref incl. tag
+    mirror_digest  = args.mirror_digest or ""
+    status         = args.status          # synced | blocked_cve | skipped
+    critical       = int(args.critical or 0)
+    high           = int(args.high or 0)
+    smoke_status   = getattr(args, "smoke_status", "skipped") or "skipped"
+    smoke_pass     = int(getattr(args, "smoke_pass", 0) or 0)
+    smoke_fail     = int(getattr(args, "smoke_fail", 0) or 0)
+    smoke_checks_raw = getattr(args, "smoke_checks", "[]") or "[]"
+    run_url        = getattr(args, "run_url", "") or ""
+
+    print(f"[baseline] {slug}  status={status}  crit={critical}  high={high}  smoke={smoke_status}")
+
+    # Parse smoke checks JSON (may arrive as inline string from GITHUB_OUTPUT)
+    try:
+        smoke_checks = json.loads(smoke_checks_raw) if smoke_checks_raw.strip() else []
+    except Exception:
+        smoke_checks = []
+
+    # ── Upsert image (image_type='baseline') ─────────────────────────────
+    image_row = db.table("images").upsert(
+        {"name": slug, "image_type": "baseline", "visibility": "public"},
+        on_conflict="name",
+    ).execute()
+    image_id = (
+        (image_row.data or [{}])[0].get("id")
+        or db.table("images").select("id").eq("name", slug).single().execute().data["id"]
+    )
+
+    # ── Upsert image_version ──────────────────────────────────────────────
+    version_tag = upstream_tag  # e.g. "3.22" or "1.24-alpine3.22"
+    version_row = db.table("image_versions").upsert(
+        {
+            "image_id":     image_id,
+            "tag":          version_tag,
+            "base_version": version_tag,
+            "profile":      "",
+            "digest":       mirror_digest or upstream_digest,
+            "image_type":   "baseline",
+        },
+        on_conflict="image_id,tag",
+    ).execute()
+    version_id = (
+        (version_row.data or [{}])[0].get("id")
+        or db.table("image_versions")
+            .select("id").eq("image_id", image_id).eq("tag", version_tag)
+            .single().execute().data["id"]
+    )
+
+    print(f"  image_id={image_id[:8]}…  version_id={version_id[:8]}…")
+
+    # ── Insert baseline_sync_results row ──────────────────────────────────
+    # Table created by Hub migration 0055_baseline_sync_results.sql
+    # If table doesn't exist yet, skip gracefully
+    try:
+        db.table("baseline_sync_results").insert({
+            "image_version_id": version_id,
+            "synced_at":        _utcnow(),
+            "trigger":          "scheduled",
+            "status":           status,
+            "upstream_image":   upstream_image,
+            "upstream_tag":     upstream_tag,
+            "upstream_digest":  upstream_digest,
+            "mirror_image":     mirror_image,
+            "mirror_digest":    mirror_digest,
+            "critical_count":   critical,
+            "high_count":       high,
+            "smoke_status":     smoke_status,
+            "smoke_pass":       smoke_pass,
+            "smoke_fail":       smoke_fail,
+            "smoke_checks":     smoke_checks,
+            "run_url":          run_url,
+        }).execute()
+        print(f"[baseline] sync result written — {slug} {status} smoke={smoke_status} ({smoke_pass}/{smoke_pass+smoke_fail})")
+    except Exception as exc:
+        msg = str(exc)
+        if "baseline_sync_results" in msg and ("does not exist" in msg or "relation" in msg):
+            print(f"[baseline] WARNING: baseline_sync_results table not yet created — skipping writeback")
+            print(f"           Apply Hub migration 0055 to enable baseline sync tracking.")
+        else:
+            raise
+
+
+def _utcnow() -> str:
+    """Return current UTC timestamp as ISO 8601 string."""
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -1259,6 +1368,24 @@ def main():
                                  "Merged with --findings-json before the Supabase write."
                              ))
 
+    # baseline subcommand
+    p_baseline = sub.add_parser("baseline",
+        help="Write baseline image mirror sync result to Supabase")
+    p_baseline.add_argument("--slug",             required=True)
+    p_baseline.add_argument("--upstream-image",   required=True,  dest="upstream_image")
+    p_baseline.add_argument("--upstream-tag",     required=True,  dest="upstream_tag")
+    p_baseline.add_argument("--upstream-digest",  required=True,  dest="upstream_digest")
+    p_baseline.add_argument("--mirror-image",     required=True,  dest="mirror_image")
+    p_baseline.add_argument("--mirror-digest",    default="",     dest="mirror_digest")
+    p_baseline.add_argument("--status",           default="synced")
+    p_baseline.add_argument("--critical",         default="0")
+    p_baseline.add_argument("--high",             default="0")
+    p_baseline.add_argument("--smoke-status",     default="skipped", dest="smoke_status")
+    p_baseline.add_argument("--smoke-pass",       default="0",       dest="smoke_pass")
+    p_baseline.add_argument("--smoke-fail",       default="0",       dest="smoke_fail")
+    p_baseline.add_argument("--smoke-checks",     default="[]",      dest="smoke_checks")
+    p_baseline.add_argument("--run-url",          default="",        dest="run_url")
+
     args = parser.parse_args()
 
     if args.cmd == "promote":
@@ -1267,6 +1394,8 @@ def main():
         cmd_scan(args, db)
     elif args.cmd == "findings":
         cmd_findings(args, db)
+    elif args.cmd == "baseline":
+        cmd_baseline(args, db)
 
 
 if __name__ == "__main__":
