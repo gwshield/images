@@ -483,14 +483,14 @@
       ],
       "digest": "sha256:afc1be2f763f3c806382cd43b9114520a8e95b25eda97363f87ea8271a9785e7",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-15T03:35:21Z",
+      "promoted_at": "2026-03-15T03:42:35Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-15T03:35:21Z"
+        "scanned_at": "2026-03-15T03:42:35Z"
       }
     },
     "postgres:v17.9": {
