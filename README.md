@@ -35,7 +35,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `51771128878b` | 0 CVEs | 2026-03-14 |
+| `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `51771128878b` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `4e70a5d67f92` | 0 CVEs | 2026-03-14 |
 | `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `d39dda02bb04` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `950797401d10` | 0 CVEs | 2026-03-14 |
@@ -136,7 +136,7 @@ ENTRYPOINT ["/myapp"]
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `a770148665d2` | 0 CVEs | 2026-03-14 |
+| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `a770148665d2` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `d7dc61dfea3b` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `42ac94dfa89f` | 0 CVEs | 2026-03-15 |
 | `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `2386cafab05e` | 0 CVEs | 2026-03-14 |
