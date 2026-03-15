@@ -1201,18 +1201,27 @@ def cmd_baseline(args, db: SupabaseClient):
             smoke_checks = []
 
     # ── Upsert image (image_type='baseline') ─────────────────────────────
-    image_row = db.table("images").upsert(
+    # Use the SupabaseClient wrapper (db.upsert / db.insert / db.select)
+    # NOT the Supabase Python SDK (.table().upsert().execute()) — this script
+    # uses a custom HTTP wrapper to avoid the supabase-py SDK dependency.
+    image_row = db.upsert(
+        "images",
         {"name": slug, "image_type": "baseline", "visibility": "public"},
         on_conflict="name",
-    ).execute()
-    image_id = (
-        (image_row.data or [{}])[0].get("id")
-        or db.table("images").select("id").eq("name", slug).single().execute().data["id"]
     )
+    image_id = image_row.get("id") if image_row else None
+    if not image_id:
+        rows = db.select("images", {"name": slug})
+        image_id = rows[0]["id"] if rows else None
+    if not image_id:
+        raise RuntimeError(f"[baseline] could not resolve image_id for slug={slug}")
+
+    print(f"  image_id={image_id[:8]}…")
 
     # ── Upsert image_version ──────────────────────────────────────────────
-    version_tag = upstream_tag  # e.g. "3.22" or "1.24-alpine3.22"
-    version_row = db.table("image_versions").upsert(
+    version_tag = upstream_tag  # e.g. "3.22" or "12-slim"
+    version_row = db.upsert(
+        "image_versions",
         {
             "image_id":     image_id,
             "tag":          version_tag,
@@ -1222,46 +1231,43 @@ def cmd_baseline(args, db: SupabaseClient):
             "image_type":   "baseline",
         },
         on_conflict="image_id,tag",
-    ).execute()
-    version_id = (
-        (version_row.data or [{}])[0].get("id")
-        or db.table("image_versions")
-            .select("id").eq("image_id", image_id).eq("tag", version_tag)
-            .single().execute().data["id"]
     )
+    version_id = version_row.get("id") if version_row else None
+    if not version_id:
+        rows = db.select("image_versions", {"image_id": image_id, "tag": version_tag})
+        version_id = rows[0]["id"] if rows else None
+    if not version_id:
+        raise RuntimeError(f"[baseline] could not resolve version_id for {slug}:{version_tag}")
 
-    print(f"  image_id={image_id[:8]}…  version_id={version_id[:8]}…")
+    print(f"  version_id={version_id[:8]}…")
 
     # ── Insert baseline_sync_results row ──────────────────────────────────
     # Table created by Hub migration 0055_baseline_sync_results.sql
-    # If table doesn't exist yet, skip gracefully
-    try:
-        db.table("baseline_sync_results").insert({
-            "image_version_id": version_id,
-            "synced_at":        _utcnow(),
-            "trigger":          "scheduled",
-            "status":           status,
-            "upstream_image":   upstream_image,
-            "upstream_tag":     upstream_tag,
-            "upstream_digest":  upstream_digest,
-            "mirror_image":     mirror_image,
-            "mirror_digest":    mirror_digest,
-            "critical_count":   critical,
-            "high_count":       high,
-            "smoke_status":     smoke_status,
-            "smoke_pass":       smoke_pass,
-            "smoke_fail":       smoke_fail,
-            "smoke_checks":     smoke_checks,
-            "run_url":          run_url,
-        }).execute()
-        print(f"[baseline] sync result written — {slug} {status} smoke={smoke_status} ({smoke_pass}/{smoke_pass+smoke_fail})")
-    except Exception as exc:
-        msg = str(exc)
-        if "baseline_sync_results" in msg and ("does not exist" in msg or "relation" in msg):
-            print(f"[baseline] WARNING: baseline_sync_results table not yet created — skipping writeback")
-            print(f"           Apply Hub migration 0055 to enable baseline sync tracking.")
-        else:
-            raise
+    # If table doesn't exist yet, skip gracefully (continue-on-error in workflow)
+    if not db.table_exists("baseline_sync_results"):
+        print(f"[baseline] WARNING: baseline_sync_results table not yet created — skipping writeback")
+        print(f"           Apply Hub migration 0055 to enable baseline sync tracking.")
+        return
+
+    db.insert("baseline_sync_results", {
+        "image_version_id": version_id,
+        "synced_at":        _utcnow(),
+        "trigger":          "manual" if run_url else "scheduled",
+        "status":           status,
+        "upstream_image":   upstream_image,
+        "upstream_tag":     upstream_tag,
+        "upstream_digest":  upstream_digest,
+        "mirror_image":     mirror_image,
+        "mirror_digest":    mirror_digest,
+        "critical_count":   critical,
+        "high_count":       high,
+        "smoke_status":     smoke_status,
+        "smoke_pass":       smoke_pass,
+        "smoke_fail":       smoke_fail,
+        "smoke_checks":     smoke_checks,
+        "run_url":          run_url,
+    })
+    print(f"[baseline] sync result written — {slug} {status} smoke={smoke_status} ({smoke_pass}/{smoke_pass+smoke_fail})")
 
 
 def _utcnow() -> str:
