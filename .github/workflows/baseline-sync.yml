@@ -302,6 +302,7 @@ jobs:
 
           skopeo copy \
             --all \
+            --src-no-creds \
             --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
             "${SRC}" \
             "docker://${MIRROR_IMAGE}:${MIRROR_TAG}"
