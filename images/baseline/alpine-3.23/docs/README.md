@@ -1,15 +1,24 @@
-# gwshield/alpine:3.23 — Verified Mirror
+# gwshield/alpine:3.23 — Pending upstream CVE fix
 
 **Type:** OS-Baseline — verified upstream mirror
 **Registry:** `ghcr.io/gwshield/alpine:3.23`
 **Upstream:** `docker.io/library/alpine:3.23`
 **Sync:** Weekly (Monday 04:00 UTC) · cosign-signed · Trivy-scanned
+**Status:** **Not yet promoted — CVE gate blocked**
 
-> **This is not a production-hardened gwshield image.**
-> It is a bit-exact, cosign-signed mirror of the upstream Alpine 3.23 image,
-> published to eliminate Docker Hub rate limits in gwshield CI pipelines.
+> **This image is currently not available on `ghcr.io/gwshield`.**
 >
-> For production builds use the appropriate gwshield builder or runtime image.
+> Our weekly CVE gate detected **CVE-2026-22184** (CRITICAL) in
+> `zlib 1.3.1-r2` — the version currently shipped by Alpine 3.23.
+> A fix exists (`zlib 1.3.2-r0`) but has not yet landed in the Alpine 3.23
+> package repository as of 2026-03-15.
+>
+> The image will be promoted automatically on the next weekly sync
+> (Monday 04:00 UTC) once Alpine ships the patched package.
+>
+> **This is not a production-hardened gwshield image.** It is a bit-exact,
+> cosign-signed mirror of the upstream Alpine 3.23 image, published to
+> eliminate Docker Hub rate limits in gwshield CI pipelines.
 
 ---
 
@@ -35,8 +44,10 @@ compiler toolchain required for these C-source builds.
 | Platforms | `linux/amd64`, `linux/arm64` |
 | cosign signature | Yes — keyless Sigstore OIDC, Rekor transparency log |
 | SBOM attestation | Yes — syft SPDX |
-| Trivy scan | Weekly CRITICAL gate |
-| Supabase CVE record | Yes |
+| Trivy scan | Weekly CRITICAL gate — **currently blocked** |
+| Blocking CVE | `CVE-2026-22184` — zlib CRITICAL, fix in `1.3.2-r0` (not yet in Alpine 3.23) |
+| Supabase CVE record | Yes (status: `blocked_cve`) |
+| Expected promotion | Next weekly sync after Alpine ships `zlib 1.3.2-r0` |
 
 ---
 
