@@ -6,123 +6,85 @@ Built from source, signed with cosign, SBOM attached.
 All runtime images run as non-root (UID 65532) with no shell, no package
 manager, and no network utilities in the runtime layer.
 
-> **This registry is currently in early access (alpha).** We are actively
-> expanding the image catalogue and working on a dedicated landing page at
-> **gwshield.io** — featuring an interactive image database, CVE delta
-> comparisons, and a request form for new zero-CVE image targets.
->
-> Coming soon to this repository:
-> - **MCP server** — a Model Context Protocol server for querying and
->   consuming hardened image metadata directly from AI-assisted workflows
-> - **Extended tooling** — signing verification helpers, SBOM diffing,
->   and policy-as-code examples
->
-> Until the landing page launches, watch this repository or follow
-> [@RelicFrog](https://github.com/RelicFrog) for updates.
-
-> The source build pipeline is private. This registry is the public distribution
-> endpoint. Every image is built from upstream source with SHA-256 verification,
-> scanned with Trivy and Grype before promotion, and cosign-signed with a
-> keyless Sigstore OIDC identity.
+→ **[Full image catalog with CVE status and digests](CATALOG.md)**
 
 ---
 
-## Runtime images
+## What this repository is
 
-Production-hardened service images. Each image is compiled from upstream source with a patched toolchain, runs from a minimal `scratch` or distroless base, and ships with a cosign signature and SBOM.
+This is the **public distribution endpoint** for the Gatewarden Shield image stack.
 
-### caddy
+The build pipeline — Dockerfiles, CI workflows, scan configuration, allowlist
+management, and the promotion automation — is developed privately. This repository
+receives images after they have been built, scanned, and verified in that pipeline.
+It is intentionally a read-only view of the output: promoted images, their digests,
+CVE scan results, cosign signatures, and SBOMs.
 
-| Tag | Version | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|---|
-| `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `df49a22516ad` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `df49a22516ad` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `fff8b4b631e9` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `b6508c5d7e64` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `412ae88e2ec7` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `df49a22516ad` | 0 CVEs | 2026-03-15 |
+**This is an intermediate state.** The full pipeline will be open-sourced once the
+build stack reaches a stable, documented release. Until then this repository serves as:
 
-### haproxy
-
-| Tag | Version | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|---|
-| `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `78ddb006a52b` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `eec1eafc7d14` | 0 CVEs | 2026-03-15 |
-
-### nats
-
-| Tag | Version | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|---|
-| `ghcr.io/gwshield/nats:v2.12.5` | `v2.12.5` | standard | `cd70312103e5` | 0 CVEs | 2026-03-15 |
-
-### nginx — HTTP server / reverse proxy
-
-| Tag | Version | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|---|
-| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `61abfa19bf89` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `a06eea3e695a` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `1456ae4905ea` | 0 CVEs | 2026-03-15 |
-
-### otelcol
-
-| Tag | Version | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|---|
-| `ghcr.io/gwshield/otelcol:v0.147.0` | `v0.147.0` | standard | `4f6aef8d90e9` | 0 CVEs | 2026-03-15 |
-
-### pomerium
-
-| Tag | Version | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|---|
-| `ghcr.io/gwshield/pomerium:v0.32.2` | `v0.32.2` | standard | `44342614f447` | 0 CVEs | 2026-03-15 |
-
-### PostgreSQL — relational database
-
-| Tag | Version | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|---|
-| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `afc1be2f763f` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
-
-### Redis — in-memory data store
-
-| Tag | Version | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|---|
-| `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `3962a7bc6e90` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `3367ce7f3849` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `05d0fd9314b6` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `9e59c095981f` | 0 CVEs | 2026-03-15 |
-
-### Traefik — cloud-native edge router
-
-| Tag | Version | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|---|
-| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `35f163d29af7` | 0 CVEs | 2026-03-15 |
-
-### valkey
-
-| Tag | Version | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|---|
-| `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `609028421b92` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `bb1dd3435278` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `5cdf92fc5d25` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `2f6e3033bd3d` | 0 CVEs | 2026-03-15 |
+- the canonical registry for `ghcr.io/gwshield/*` images
+- the reference point for smoke tests, build patterns, and CVE transparency
+- the place to request new image targets or report issues
 
 ---
 
-## Builder images
+## What you can do with this repository
 
-Secure build baseline images — published to enable reproducible, CVE-free builds in downstream multi-stage Dockerfiles. Builder images are **not** deployed as runtime containers.
+### Pull and use images
+
+Every image is available at `ghcr.io/gwshield/<name>:<version>`. See [CATALOG.md](CATALOG.md)
+for the full list with digests and CVE status.
+
+```bash
+docker pull ghcr.io/gwshield/traefik:v3.6.9
+docker pull ghcr.io/gwshield/postgres:v15.17
+docker pull ghcr.io/gwshield/go-builder:v1.25
+```
+
+### Verify signatures and SBOMs
+
+All images are cosign-signed with a keyless Sigstore OIDC identity. No long-lived key material.
+
+```bash
+cosign verify \
+  --certificate-identity-regexp='https://github.com/gwshield/images.*' \
+  --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
+  ghcr.io/gwshield/traefik:v3.6.9
+
+cosign download sbom ghcr.io/gwshield/traefik:v3.6.9
+```
+
+See [CATALOG.md](CATALOG.md) for the full cosign verify table across all images.
+
+### Read and adapt smoke tests
+
+Each image ships with a smoke test under `images/<name>/<version>/tests/smoke.sh`.
+The smoke tests are the canonical reference for:
+
+- verifying the image starts correctly
+- asserting non-root execution (UID 65532)
+- confirming no shell is present in the runtime layer
+- checking the version string and binary reachability
+
+You can use these as a starting point for your own validation pipelines, adapt them
+to different container runtimes, or extend them with application-level checks.
+
+### Use build patterns as reference
+
+The multi-stage build pattern used across this stack is documented in each image's
+`images/<name>/<version>/docs/public/README.md`. These cover:
+
+- source pinning and SHA-256 verification
+- static linking decisions (which libraries, why)
+- runtime layer contents (exactly what is copied in)
+- known limitations and rebuild triggers
+
+The builder images (`go-builder`, `python-builder`, `rust-builder`) are designed for
+direct use in downstream multi-stage Dockerfiles:
 
 ```dockerfile
-# Example downstream usage
-FROM ghcr.io/gwshield/go-builder:1.24 AS builder
+FROM ghcr.io/gwshield/go-builder:v1.25 AS builder
 COPY . /build/myapp
 RUN go build -o /build/myapp .
 
@@ -132,30 +94,19 @@ USER 65532:65532
 ENTRYPOINT ["/myapp"]
 ```
 
-### Go — reproducible static builds (CGO_ENABLED=0)
+### Understand the CVE delta
 
-| Tag | Version | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|---|
-| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `5e9662410a15` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `56d6cb7f097d` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `0840c28ffb9f` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `f07303127529` | 0 CVEs | 2026-03-15 |
+Each image's `docs/public/README.md` contains a scan delta table showing:
 
-### Python — reproducible wheel builds
+- upstream image CVE count vs. hardened image CVE count
+- which specific CVEs were eliminated and how
+- any accepted findings with documented justification
 
-| Tag | Version | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|---|
-| `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `98f5ccda9cab` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `235c60a54f7a` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `c3af66243f10` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `402244de375c` | 0 CVEs | 2026-03-15 |
+### Request new image targets
 
-### rust-builder
-
-| Tag | Version | Profile | Digest | CVE status | Promoted |
-|---|---|---|---|---|---|
-| `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `18339a151d75` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `be0aff636f95` | 0 CVEs | 2026-03-15 |
+Open an issue with the image name, version, and use case. Priority is given to
+images that are commonly deployed in security-sensitive environments and have a
+significant CVE surface in their upstream form.
 
 ---
 
@@ -163,10 +114,10 @@ ENTRYPOINT ["/myapp"]
 
 ### From source, from scratch — no vendor base images
 
-Every image in this registry is compiled **directly from the upstream source tarball** (SHA-256
-verified, pinned to a specific release tag). We do not start from a vendor-supplied image and
-patch over it. Starting from a vendor base inherits its full CVE surface — including
-vulnerabilities in compiled binaries that OS package upgrades can never reach.
+Every image is compiled **directly from the upstream source tarball** (SHA-256
+verified, pinned to a specific release tag). We do not start from a vendor-supplied
+image and patch over it. Starting from a vendor base inherits its full CVE surface —
+including vulnerabilities in compiled binaries that OS package upgrades can never reach.
 
 The build follows a strict multi-stage pattern:
 
@@ -177,26 +128,29 @@ Stage 3 — banner             startup shim (exec-and-disappear, see below)
 Stage 4 — runtime            FROM scratch or distroless — binary only
 ```
 
-### Runtime base: scratch or distroless
+### Runtime base
 
 | Family | Runtime base | Reason |
 |---|---|---|
 | Traefik, Caddy | `FROM scratch` | Go + `CGO_ENABLED=0` → fully static, zero loader needed |
-| nginx, Redis, HAProxy | `FROM scratch` + musl loader | C binary, dynamically linked against musl only |
-| PostgreSQL | `FROM gcr.io/distroless/cc-debian12` | glibc dependency; distroless supplies the minimal runtime |
+| nginx, Redis, Valkey, HAProxy | `FROM scratch` + musl loader | C binary, dynamically linked against musl only |
+| PostgreSQL | `gcr.io/distroless/cc-debian12` | glibc dependency; distroless supplies the minimal runtime |
+| Pomerium, OTel Collector, NATS | `gcr.io/distroless/static-debian12` or `cc-debian12` | Go static or embedded C++ (Envoy) |
 
 ### Static linking
 
-Third-party libraries (OpenSSL, PCRE2, zlib, …) are linked **statically** where the build
-system allows it, so they cannot be replaced at runtime and do not appear as separate OS packages
-for scanners to report. Verification: `readelf -d <binary> | grep NEEDED` — only the musl loader
-(C images) or empty output (Go images) should appear.
+Third-party libraries (OpenSSL, PCRE2, zlib, …) are linked **statically** where the
+build system allows it, so they cannot be replaced at runtime and do not appear as
+separate OS packages for scanners to report.
+
+Verification: `readelf -d <binary> | grep NEEDED` — only the musl loader (C images)
+or empty output (Go images) should appear.
 
 ### Specialised profiles are independent images
 
-When a service has meaningful variants (TLS, extension sets, client-only), each variant is a
-**fully independent image build** — not a layer on top of a standard image. Every profile has
-its own CVE baseline, SBOM, and smoke test.
+When a service has meaningful variants (TLS, extension sets, client-only), each variant
+is a **fully independent image build** — not a layer on top of a standard image. Every
+profile has its own CVE baseline, SBOM, and smoke test.
 
 ### What we deliberately do not provide
 
@@ -211,18 +165,18 @@ Images in this registry are **security-first, not convenience-first**:
 | Package manager in runtime image | never |
 | Root start + privilege drop | never — UID 65532 from the start |
 
-Configuration is the operator's responsibility: mount a config file or rely on the service
-binary's own environment-variable support where it exists.
+Configuration is the operator's responsibility: mount a config file or rely on the
+service binary's own environment-variable support where it exists.
 
 ### Startup shim
 
-The only addition to every runtime image (excluding builder images) is a small C binary that
-prints a startup banner and immediately calls `execve()` on the service binary. After `exec()`,
-there is no extra process running. **PID 1 is the service itself.** Signal handling and
-Kubernetes lifecycle hooks behave exactly as with a direct entrypoint.
+The only addition to every runtime image (excluding builder images) is a small C binary
+(`gwshield-init`) that prints a startup banner and immediately calls `execve()` on the
+service binary. After `exec()`, there is no extra process running. **PID 1 is the
+service itself.** Signal handling and Kubernetes lifecycle hooks behave exactly as with
+a direct entrypoint.
 
 ---
-
 
 ## Hardening principles
 
@@ -234,7 +188,7 @@ Kubernetes lifecycle hooks behave exactly as with a direct entrypoint.
 - Hardened compiler flags: `-fstack-protector-strong`, `-D_FORTIFY_SOURCE=2`, RELRO, NOW
 
 **Builder images**
-- Digest-pinned toolchain base (golang:alpine, python:alpine, ...)
+- Digest-pinned toolchain base (golang:alpine, python:alpine, rust:alpine)
 - `CGO_ENABLED=0` and `-trimpath` set by default
 - Non-root execution: UID/GID 65532
 - No test runners or linters in compile-only profiles
@@ -247,86 +201,24 @@ Kubernetes lifecycle hooks behave exactly as with a direct entrypoint.
 
 ---
 
-## Verify an image
+## Repository layout
 
-```bash
-# Runtime image — pull and verify
-docker pull ghcr.io/gwshield/caddy:v2.11.2
-docker pull ghcr.io/gwshield/caddy@sha256:df49a22516ad6f7bb361cad3bf78a0b4d5db6ea00323232e71bbfdefd1257723
-
-cosign verify \
-  --certificate-identity-regexp='https://github.com/gwshield/images.*' \
-  --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
-  ghcr.io/gwshield/caddy:v2.11.2
-
-# Builder image — pull and verify
-docker pull ghcr.io/gwshield/go-builder:v1.24
-
-cosign verify \
-  --certificate-identity-regexp='https://github.com/gwshield/images.*' \
-  --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
-  ghcr.io/gwshield/go-builder:v1.24
-
-# Inspect attached SBOM
-cosign download sbom ghcr.io/gwshield/caddy:v2.11.2
 ```
-
----
-
-## Cosign verify — all images
-
-| Category | Image | Tag | Verify command |
-|---|---|---|---|
-| runtime | `ghcr.io/gwshield/caddy` | `v2.11.2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/caddy:v2.11.2` |
-| runtime | `ghcr.io/gwshield/caddy` | `v2.11.2-cloudflare` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/caddy:v2.11.2-cloudflare` |
-| runtime | `ghcr.io/gwshield/caddy` | `v2.11.2-crowdsec` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/caddy:v2.11.2-crowdsec` |
-| runtime | `ghcr.io/gwshield/caddy` | `v2.11.2-l4` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/caddy:v2.11.2-l4` |
-| runtime | `ghcr.io/gwshield/caddy` | `v2.11.2-ratelimit` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/caddy:v2.11.2-ratelimit` |
-| runtime | `ghcr.io/gwshield/caddy` | `v2.11.2-security` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/caddy:v2.11.2-security` |
-| runtime | `ghcr.io/gwshield/haproxy` | `v3.1.16` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/haproxy:v3.1.16` |
-| runtime | `ghcr.io/gwshield/haproxy` | `v3.1.16-ssl` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/haproxy:v3.1.16-ssl` |
-| runtime | `ghcr.io/gwshield/nats` | `v2.12.5` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nats:v2.12.5` |
-| runtime | `ghcr.io/gwshield/nginx` | `v1.28.2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2` |
-| runtime | `ghcr.io/gwshield/nginx` | `v1.28.2-http2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2-http2` |
-| runtime | `ghcr.io/gwshield/nginx` | `v1.28.2-http3` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2-http3` |
-| runtime | `ghcr.io/gwshield/otelcol` | `v0.147.0` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/otelcol:v0.147.0` |
-| runtime | `ghcr.io/gwshield/pomerium` | `v0.32.2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/pomerium:v0.32.2` |
-| runtime | `ghcr.io/gwshield/postgres` | `v15.17` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17` |
-| runtime | `ghcr.io/gwshield/postgres` | `v15.17-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17-cli` |
-| runtime | `ghcr.io/gwshield/postgres` | `v15.17-timescale` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17-timescale` |
-| runtime | `ghcr.io/gwshield/postgres` | `v15.17-tls` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17-tls` |
-| runtime | `ghcr.io/gwshield/postgres` | `v15.17-vector` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17-vector` |
-| runtime | `ghcr.io/gwshield/postgres` | `v17.9` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v17.9` |
-| runtime | `ghcr.io/gwshield/postgres` | `v17.9-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v17.9-cli` |
-| runtime | `ghcr.io/gwshield/postgres` | `v17.9-timescale` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v17.9-timescale` |
-| runtime | `ghcr.io/gwshield/postgres` | `v17.9-tls` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v17.9-tls` |
-| runtime | `ghcr.io/gwshield/postgres` | `v17.9-vector` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v17.9-vector` |
-| runtime | `ghcr.io/gwshield/redis` | `v7.4.8` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8` |
-| runtime | `ghcr.io/gwshield/redis` | `v7.4.8-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cli` |
-| runtime | `ghcr.io/gwshield/redis` | `v7.4.8-cluster` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cluster` |
-| runtime | `ghcr.io/gwshield/redis` | `v7.4.8-tls` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-tls` |
-| runtime | `ghcr.io/gwshield/traefik` | `v3.6.9` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/traefik:v3.6.9` |
-| runtime | `ghcr.io/gwshield/valkey` | `v8.1.6` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/valkey:v8.1.6` |
-| runtime | `ghcr.io/gwshield/valkey` | `v8.1.6-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/valkey:v8.1.6-cli` |
-| runtime | `ghcr.io/gwshield/valkey` | `v8.1.6-cluster` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/valkey:v8.1.6-cluster` |
-| runtime | `ghcr.io/gwshield/valkey` | `v8.1.6-tls` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/valkey:v8.1.6-tls` |
-| builder | `ghcr.io/gwshield/go-builder` | `v1.24` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/go-builder:v1.24` |
-| builder | `ghcr.io/gwshield/go-builder` | `v1.24-dev` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/go-builder:v1.24-dev` |
-| builder | `ghcr.io/gwshield/go-builder` | `v1.25` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/go-builder:v1.25` |
-| builder | `ghcr.io/gwshield/go-builder` | `v1.25-dev` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/go-builder:v1.25-dev` |
-| builder | `ghcr.io/gwshield/python-builder` | `v3.12` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/python-builder:v3.12` |
-| builder | `ghcr.io/gwshield/python-builder` | `v3.12-dev` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/python-builder:v3.12-dev` |
-| builder | `ghcr.io/gwshield/python-builder` | `v3.13` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/python-builder:v3.13` |
-| builder | `ghcr.io/gwshield/python-builder` | `v3.13-dev` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/python-builder:v3.13-dev` |
-| builder | `ghcr.io/gwshield/rust-builder` | `v1.87` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/rust-builder:v1.87` |
-| builder | `ghcr.io/gwshield/rust-builder` | `v1.87-dev` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/rust-builder:v1.87-dev` |
+images/
+  <name>/<version>/
+    docs/
+      public/README.md   per-image CVE delta, build decisions, source pins
+    tests/
+      smoke.sh           smoke test (startup, non-root, no-shell, version)
+CATALOG.md               auto-generated — image list, digests, CVE status
+README.md                this file — static, never auto-generated
+registry.json            machine-readable image metadata (auto-generated)
+CHANGELOG.md             release notes
+ROADMAP.md               planned targets
+```
 
 ---
 
 ## License
 
 Apache-2.0 — Gatewarden / RelicFrog Foundation
-
----
-
-*Registry last updated: 2026-03-15. This file is auto-generated — do not edit manually.*

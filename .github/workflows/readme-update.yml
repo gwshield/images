@@ -1,5 +1,5 @@
 # =============================================================================
-# README-UPDATE — Regenerate README.md from registry.json
+# CATALOG-UPDATE — Regenerate CATALOG.md from registry.json
 # =============================================================================
 # Triggered by:
 #   - repository_dispatch (event: registry-updated) — fired by promote.yml
@@ -8,8 +8,10 @@
 #
 # Steps:
 #   1. Checkout gwshield/images (with write token)
-#   2. Run generate-readme.py against registry.json
-#   3. Commit + push README.md if changed ([skip ci] to avoid loops)
+#   2. Run generate-readme.py against registry.json → writes CATALOG.md
+#   3. Commit + push CATALOG.md if changed ([skip ci] to avoid loops)
+#
+# README.md is static and never touched by this workflow.
 # =============================================================================
 
 name: readme-update
@@ -29,11 +31,11 @@ concurrency:
   cancel-in-progress: false   # queue, never drop — every update must land
 
 permissions:
-  contents: write   # push README.md commit
+  contents: write   # push CATALOG.md commit
 
 jobs:
   regenerate:
-    name: Regenerate README.md
+    name: Regenerate CATALOG.md
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -96,35 +98,34 @@ jobs:
             git push
           fi
 
-      - name: Generate README.md
+      - name: Generate CATALOG.md
         run: |
           python3 scripts/generate-readme.py \
             --registry registry.json \
-            --output README.md \
-            --static static_sections.json
+            --output CATALOG.md
 
       - name: Show diff
-        run: git diff README.md || true
+        run: git diff CATALOG.md || true
 
       - name: Commit and push if changed
         run: |
           git config user.name  "gwshield-builder[bot]"
           git config user.email "gwshield-builder[bot]@users.noreply.github.com"
 
-          if git diff --quiet README.md; then
-            echo "README.md unchanged — nothing to commit"
+          if git diff --quiet CATALOG.md; then
+            echo "CATALOG.md unchanged — nothing to commit"
             exit 0
           fi
 
-          git add README.md
-          git commit -m "chore(docs): auto-update README from registry.json [skip ci]"
+          git add CATALOG.md
+          git commit -m "chore(docs): auto-update CATALOG from registry.json [skip ci]"
           git push
 
       - name: Job summary
         if: always()
         run: |
           {
-            echo "## README update"
+            echo "## CATALOG update"
             echo ""
             if [[ -f registry.json ]]; then
               ENTRIES=$(python3 -c "import json; d=json.load(open('registry.json')); print(len(d.get('images', {})))")

@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 # =============================================================================
-# generate-readme.py — render README.md from registry.json
+# generate-readme.py — render CATALOG.md from registry.json
 # =============================================================================
-# Reads registry.json (single source of truth) and writes README.md.
+# Reads registry.json (single source of truth) and writes CATALOG.md.
 # Run by the readme-update workflow after every promote or scan event.
 #
 # Images are split into two sections:
-#   Runtime images  — production service images (traefik, nginx, redis, postgres)
-#   Builder images  — secure build baseline images (go-builder, python-builder)
+#   Runtime images  — production service images (traefik, nginx, redis, postgres, …)
+#   Builder images  — secure build baseline images (go-builder, python-builder, …)
+#
+# This script renders only dynamic content (image tables, CVE status, cosign
+# table, timestamp footer). Static content (intro, build philosophy, hardening
+# principles) lives in README.md and is never touched by this script.
 #
 # Usage:
 #   python3 scripts/generate-readme.py \
 #     --registry registry.json \
-#     --output README.md
+#     --output CATALOG.md
 # =============================================================================
 
 from __future__ import annotations
@@ -29,29 +33,35 @@ from datetime import datetime, timezone
 # ---------------------------------------------------------------------------
 
 PROFILE_LABEL = {
-    "":            "standard",
-    "tls":         "TLS",
-    "http2":       "HTTP/2",
-    "http3":       "HTTP/3 / QUIC",
-    "cluster":     "cluster mode",
-    "cli":         "client only",
-    "vector":      "pgvector",
-    "timescale":   "TimescaleDB",
+    "":             "standard",
+    "tls":          "TLS",
+    "http2":        "HTTP/2",
+    "http3":        "HTTP/3 / QUIC",
+    "cluster":      "cluster mode",
+    "cli":          "client only",
+    "vector":       "pgvector",
+    "timescale":    "TimescaleDB",
     "compile-only": "compile-only",
-    "dev":         "compile + test + lint",
+    "dev":          "compile + test + lint",
 }
 
 RUNTIME_DESCRIPTION = {
-    "postgres": "PostgreSQL — relational database",
-    "redis":    "Redis — in-memory data store",
-    "nginx":    "nginx — HTTP server / reverse proxy",
-    "traefik":  "Traefik — cloud-native edge router",
+    "caddy":     "Caddy — modern web server / reverse proxy",
+    "haproxy":   "HAProxy — high-performance TCP/HTTP load balancer",
+    "nats":      "NATS — cloud-native messaging and event streaming",
+    "nginx":     "nginx — HTTP server / reverse proxy",
+    "otelcol":   "OpenTelemetry Collector — observability pipeline",
+    "pomerium":  "Pomerium — identity-aware access proxy",
+    "postgres":  "PostgreSQL — relational database",
+    "redis":     "Redis — in-memory data store",
+    "traefik":   "Traefik — cloud-native edge router",
+    "valkey":    "Valkey — open-source Redis fork",
 }
 
 BUILDER_DESCRIPTION = {
     "go-builder":     "Go — reproducible static builds (CGO_ENABLED=0)",
     "python-builder": "Python — reproducible wheel builds",
-    "node-builder":   "Node.js — deterministic package builds",
+    "rust-builder":   "Rust — reproducible static musl builds",
 }
 
 
@@ -115,34 +125,16 @@ def split_by_category(images: dict) -> tuple[list[dict], list[dict]]:
 # Sections
 # ---------------------------------------------------------------------------
 
-def render_header() -> str:
-    return """\
-# Gatewarden Shield — Hardened Container Images
+def render_header(last_updated: str) -> str:
+    updated = fmt_date(last_updated) if last_updated else "—"
+    return f"""\
+# Gatewarden Shield — Image Catalog
 
-Zero-CVE, production-hardened container images and secure build baselines.
-Built from source, signed with cosign, SBOM attached.
+> **This file is auto-generated from `registry.json` after every promote and scan run.**
+> Do not edit manually — changes will be overwritten.
+> Static content and documentation live in [README.md](README.md).
 
-All runtime images run as non-root (UID 65532) with no shell, no package
-manager, and no network utilities in the runtime layer.
-
-> **This registry is currently in early access (alpha).** We are actively
-> expanding the image catalogue and working on a dedicated landing page at
-> **gwshield.io** — featuring an interactive image database, CVE delta
-> comparisons, and a request form for new zero-CVE image targets.
->
-> Coming soon to this repository:
-> - **MCP server** — a Model Context Protocol server for querying and
->   consuming hardened image metadata directly from AI-assisted workflows
-> - **Extended tooling** — signing verification helpers, SBOM diffing,
->   and policy-as-code examples
->
-> Until the landing page launches, watch this repository or follow
-> [@RelicFrog](https://github.com/RelicFrog) for updates.
-
-> The source build pipeline is private. This registry is the public distribution
-> endpoint. Every image is built from upstream source with SHA-256 verification,
-> scanned with Trivy and Grype before promotion, and cosign-signed with a
-> keyless Sigstore OIDC identity.
+*Last updated: {updated}*
 
 ---
 """
@@ -191,7 +183,7 @@ def render_builder_section(entries: list[dict]) -> str:
     )
     lines.append("```dockerfile")
     lines.append("# Example downstream usage")
-    lines.append("FROM ghcr.io/gwshield/go-builder:1.24 AS builder")
+    lines.append("FROM ghcr.io/gwshield/go-builder:v1.25 AS builder")
     lines.append("COPY . /build/myapp")
     lines.append("RUN go build -o /build/myapp .")
     lines.append("")
@@ -221,56 +213,7 @@ def render_builder_section(entries: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def render_pipeline_philosophy(static_path: pathlib.Path | None) -> str:
-    """
-    Inject the static 'Build philosophy' section from static_sections.json.
-
-    The JSON file holds plain Markdown under the key 'pipeline_philosophy'.
-    If the file is absent or the key is missing, this section is silently omitted.
-    Content is never interpolated with dynamic data — it is inserted verbatim.
-    """
-    if not static_path or not static_path.exists():
-        return ""
-    try:
-        data = json.loads(static_path.read_text())
-        content = data.get("pipeline_philosophy", "").strip()
-        if not content:
-            return ""
-        return content + "\n\n---\n\n"
-    except Exception as exc:
-        print(f"WARNING: could not read {static_path}: {exc}", file=sys.stderr)
-        return ""
-
-
-def render_hardening() -> str:
-    return """\
-## Hardening principles
-
-**Runtime images**
-- Compiled from upstream source tarballs with SHA-256 verification
-- Multi-stage builds — `FROM scratch` or distroless runtime layer
-- No shell, no package manager, no `curl`/`wget` in the runtime layer
-- Non-root execution: UID/GID 65532
-- Hardened compiler flags: `-fstack-protector-strong`, `-D_FORTIFY_SOURCE=2`, RELRO, NOW
-
-**Builder images**
-- Digest-pinned toolchain base (golang:alpine, python:alpine, ...)
-- `CGO_ENABLED=0` and `-trimpath` set by default
-- Non-root execution: UID/GID 65532
-- No test runners or linters in compile-only profiles
-- Shell retained intentionally for downstream `RUN` steps
-
-**All images**
-- Trivy + Grype CVE scan gate — 0 unfixed HIGH/CRITICAL at release time
-- cosign keyless signed (Sigstore / OIDC) — no long-lived key material
-- SBOM attached to OCI manifest (CycloneDX + SPDX)
-
----
-"""
-
-
 def render_verify(runtime: list[dict], builder: list[dict]) -> str:
-    # Pick one runtime + one builder as examples if available
     ex_rt = runtime[0] if runtime else None
     ex_bl = builder[0] if builder else None
 
@@ -280,7 +223,7 @@ def render_verify(runtime: list[dict], builder: list[dict]) -> str:
         n, v = ex_rt.get("name", "postgres"), ex_rt.get("version", "v15.17")
         d = ex_rt.get("digest", "sha256:<digest>")
         lines += [
-            f"# Runtime image — pull and verify",
+            "# Runtime image — pull and verify",
             f"docker pull ghcr.io/gwshield/{n}:{v}",
             f"docker pull ghcr.io/gwshield/{n}@{d}",
             "",
@@ -292,9 +235,9 @@ def render_verify(runtime: list[dict], builder: list[dict]) -> str:
         ]
 
     if ex_bl:
-        n, v = ex_bl.get("name", "go-builder"), ex_bl.get("version", "1.24")
+        n, v = ex_bl.get("name", "go-builder"), ex_bl.get("version", "v1.25")
         lines += [
-            f"# Builder image — pull and verify",
+            "# Builder image — pull and verify",
             f"docker pull ghcr.io/gwshield/{n}:{v}",
             "",
             "cosign verify \\",
@@ -306,7 +249,7 @@ def render_verify(runtime: list[dict], builder: list[dict]) -> str:
 
     if ex_rt:
         n, v = ex_rt.get("name", "postgres"), ex_rt.get("version", "v15.17")
-        lines.append(f"# Inspect attached SBOM")
+        lines.append("# Inspect attached SBOM")
         lines.append(f"cosign download sbom ghcr.io/gwshield/{n}:{v}")
 
     lines += ["```\n", "---\n"]
@@ -339,17 +282,8 @@ def render_cosign_table(runtime: list[dict], builder: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def render_footer(last_updated: str) -> str:
-    updated = fmt_date(last_updated) if last_updated else "—"
-    return f"""\
-## License
-
-Apache-2.0 — Gatewarden / RelicFrog Foundation
-
----
-
-*Registry last updated: {updated}. This file is auto-generated — do not edit manually.*
-"""
+def render_footer() -> str:
+    return "Apache-2.0 — Gatewarden / RelicFrog Foundation\n"
 
 
 # ---------------------------------------------------------------------------
@@ -359,15 +293,14 @@ Apache-2.0 — Gatewarden / RelicFrog Foundation
 def generate(
     registry_path: pathlib.Path,
     output_path: pathlib.Path,
-    static_path: pathlib.Path | None = None,
 ) -> None:
     if not registry_path.exists():
-        print(f"WARNING: {registry_path} not found — writing placeholder README", file=sys.stderr)
+        print(f"WARNING: {registry_path} not found — writing placeholder CATALOG", file=sys.stderr)
         output_path.write_text(
-            "# Gatewarden Shield — Hardened Container Images\n\n"
+            "# Gatewarden Shield — Image Catalog\n\n"
             "Registry initializing — image metadata will appear after the first promote run.\n"
         )
-        print(f"Placeholder README written to {output_path}")
+        print(f"Placeholder CATALOG written to {output_path}")
         return
 
     data = json.loads(registry_path.read_text())
@@ -375,42 +308,34 @@ def generate(
     last_updated = data.get("last_updated", "")
 
     if not images:
-        print("WARNING: registry.json has no image entries — README will be sparse", file=sys.stderr)
+        print("WARNING: registry.json has no image entries — CATALOG will be sparse", file=sys.stderr)
 
     runtime, builder = split_by_category(images)
 
     sections = [
-        render_header(),
+        render_header(last_updated),
         render_runtime_section(runtime),
         render_builder_section(builder),
-        render_pipeline_philosophy(static_path),
-        render_hardening(),
         render_verify(runtime, builder),
         render_cosign_table(runtime, builder),
-        render_footer(last_updated),
+        render_footer(),
     ]
 
-    readme = "\n".join(s for s in sections if s)
-    output_path.write_text(readme)
+    catalog = "\n".join(s for s in sections if s)
+    output_path.write_text(catalog)
     print(
-        f"README.md written "
+        f"{output_path.name} written "
         f"({len(runtime)} runtime + {len(builder)} builder images, "
         f"{output_path.stat().st_size} bytes)"
     )
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate README.md from registry.json")
+    parser = argparse.ArgumentParser(description="Generate CATALOG.md from registry.json")
     parser.add_argument("--registry", default="registry.json")
-    parser.add_argument("--output",   default="README.md")
-    parser.add_argument(
-        "--static",
-        default="static_sections.json",
-        help="Optional JSON file with static Markdown sections (default: static_sections.json)",
-    )
+    parser.add_argument("--output",   default="CATALOG.md")
     args = parser.parse_args()
-    static_path = pathlib.Path(args.static)
-    generate(pathlib.Path(args.registry), pathlib.Path(args.output), static_path)
+    generate(pathlib.Path(args.registry), pathlib.Path(args.output))
 
 
 if __name__ == "__main__":

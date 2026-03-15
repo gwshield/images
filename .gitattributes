@@ -1,0 +1,50 @@
+# Text - Set the default behavior, in case people don't have core.autocrlf set.
+* text eol=lf
+
+# Documents
+*.doc	 diff=astextplain
+*.DOC	 diff=astextplain
+*.docx diff=astextplain
+*.DOCX diff=astextplain
+*.dot  diff=astextplain
+*.DOT  diff=astextplain
+*.pdf  diff=astextplain
+*.PDF	 diff=astextplain
+*.rtf	 diff=astextplain
+*.RTF	 diff=astextplain
+*.md text
+*.adoc text
+*.textile text
+*.mustache text
+*.csv text
+*.tab text
+*.tsv text
+*.sql text
+
+# Graphics - denote all files that are truly binary and should not be modified.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.tif binary
+*.tiff binary
+*.eps binary
+*.svg text
+
+# Fonts - should also (always) be handled as binaries
+*.otf binary
+*.eot binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+
+# Binary archives
+*.zip binary
+*.rar binary
+*.tar binary
+*.tgz binary
+*.gzip binary
+*.7z binary
+*.war binary
+*.jar binary
