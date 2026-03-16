@@ -105,6 +105,7 @@
 import argparse
 import json
 import os
+import pathlib
 import re
 import sys
 import urllib.request
@@ -118,6 +119,7 @@ _VALID_IMAGE_TYPES = {"service", "builder", "tooling"}
 # ---------------------------------------------------------------------------
 # Slug derivation — must match gwshield-hub seed-images.ts CATALOG slugs
 # ---------------------------------------------------------------------------
+
 
 def derive_slug(name: str, profile: str, base_version: str) -> str:
     """
@@ -159,13 +161,19 @@ def derive_slug(name: str, profile: str, base_version: str) -> str:
         #   2. Strip any version-like prefix from profile to get the pure suffix
         #      (e.g. "dev" stays "dev"; "v3.12" → ""; "v3.12-dev" → "dev")
         #   3. Combine: "python-builder-v312" or "python-builder-v312-dev"
-        bv_norm = re.sub(r"v(\d+)\.(\d+)", r"v\1\2", base_version) if base_version else ""
+        bv_norm = (
+            re.sub(r"v(\d+)\.(\d+)", r"v\1\2", base_version) if base_version else ""
+        )
         # Strip version prefix from profile (handles legacy explicit profiles)
         suffix = re.sub(r"^v\d+\.\d+", "", p).lstrip("-")
         if not bv_norm:
             # No base_version at all — bare name or bare suffix
             return f"python-builder-{suffix}" if suffix else "python-builder"
-        return f"python-builder-{bv_norm}-{suffix}" if suffix else f"python-builder-{bv_norm}"
+        return (
+            f"python-builder-{bv_norm}-{suffix}"
+            if suffix
+            else f"python-builder-{bv_norm}"
+        )
 
     if name == "go-builder":
         # Hub slugs always embed the version number — same pattern as python-builder:
@@ -173,7 +181,9 @@ def derive_slug(name: str, profile: str, base_version: str) -> str:
         #   go-builder-v125        go-builder-v125-dev
         # Without versioned slugs, v1.24 and v1.25 collapse onto the same DB row
         # and the Hub cannot render them as separate version groups.
-        bv_norm = re.sub(r"v(\d+)\.(\d+)", r"v\1\2", base_version) if base_version else ""
+        bv_norm = (
+            re.sub(r"v(\d+)\.(\d+)", r"v\1\2", base_version) if base_version else ""
+        )
         suffix = re.sub(r"^v\d+\.\d+", "", p).lstrip("-")
         # "compile" is the internal canonical name → no suffix in slug
         if suffix == "compile":
@@ -185,13 +195,17 @@ def derive_slug(name: str, profile: str, base_version: str) -> str:
     if name == "rust-builder":
         # Same versioned-slug pattern as go-builder / python-builder:
         #   rust-builder-v187        rust-builder-v187-dev
-        bv_norm = re.sub(r"v(\d+)\.(\d+)", r"v\1\2", base_version) if base_version else ""
+        bv_norm = (
+            re.sub(r"v(\d+)\.(\d+)", r"v\1\2", base_version) if base_version else ""
+        )
         suffix = re.sub(r"^v\d+\.\d+", "", p).lstrip("-")
         if suffix == "compile":
             suffix = ""
         if not bv_norm:
             return f"rust-builder-{suffix}" if suffix else "rust-builder"
-        return f"rust-builder-{bv_norm}-{suffix}" if suffix else f"rust-builder-{bv_norm}"
+        return (
+            f"rust-builder-{bv_norm}-{suffix}" if suffix else f"rust-builder-{bv_norm}"
+        )
 
     # Default: name + optional profile suffix
     if p == "":
@@ -293,7 +307,7 @@ def derive_os_tag(name: str) -> str:
     - Scratch-based images (caddy, traefik) → 'scratch'
     """
     _DISTROLESS = {"postgres"}
-    _SCRATCH    = {"caddy", "traefik"}
+    _SCRATCH = {"caddy", "traefik"}
 
     if name in _DISTROLESS:
         return "distroless"
@@ -337,6 +351,7 @@ def derive_version_group(version_string: str) -> str:
 # ---------------------------------------------------------------------------
 # Platform helpers (migration 0053)
 # ---------------------------------------------------------------------------
+
 
 def parse_platforms(platforms_json: str | None) -> list[str]:
     """
@@ -393,6 +408,7 @@ def parse_ref_map(ref_json: str | None) -> dict[str, str]:
 # ---------------------------------------------------------------------------
 # CVE findings extraction from Trivy JSON output
 # ---------------------------------------------------------------------------
+
 
 def _build_layer_index(diff_ids: list[str], history: list) -> dict[str, str]:
     """
@@ -464,7 +480,7 @@ def extract_findings_from_trivy(trivy_json: dict) -> list[dict]:
       - component: 'alpine-pkg' | 'rust-crate' | 'go-module' | etc.
     """
     metadata = trivy_json.get("Metadata", {})
-    history  = metadata.get("ImageConfig", {}).get("history", [])
+    history = metadata.get("ImageConfig", {}).get("history", [])
     diff_ids = metadata.get("DiffIDs", [])
     layer_index = _build_layer_index(diff_ids, history)
 
@@ -472,28 +488,30 @@ def extract_findings_from_trivy(trivy_json: dict) -> list[dict]:
     for result in trivy_json.get("Results", []):
         vuln_type = result.get("Type", "")
         for v in result.get("Vulnerabilities") or []:
-            layer_info  = v.get("Layer", {})
-            layer_diff  = layer_info.get("DiffID", "")
+            layer_info = v.get("Layer", {})
+            layer_diff = layer_info.get("DiffID", "")
 
             layer = layer_index.get(layer_diff, "base_image")
 
-            fixed_ver       = v.get("FixedVersion") or None
+            fixed_ver = v.get("FixedVersion") or None
             mitigation_type = "pkg_upgrade" if fixed_ver else "not_applicable"
 
             pkg_id = v.get("PkgID", "") or v.get("PkgIdentifier", {}).get("PURL", "")
 
-            findings.append({
-                "cve_id":            v["VulnerabilityID"],
-                "severity":          v.get("Severity", "UNKNOWN"),
-                "package_name":      v.get("PkgName", ""),
-                "package_version":   v.get("InstalledVersion", ""),
-                "fixed_version":     fixed_ver,
-                "description":       (v.get("Title") or v.get("Description", ""))[:500],
-                "mitigation_type":   mitigation_type,
-                "mitigation_detail": None,
-                "layer":             layer,
-                "component":         _component_type(pkg_id, vuln_type),
-            })
+            findings.append(
+                {
+                    "cve_id": v["VulnerabilityID"],
+                    "severity": v.get("Severity", "UNKNOWN"),
+                    "package_name": v.get("PkgName", ""),
+                    "package_version": v.get("InstalledVersion", ""),
+                    "fixed_version": fixed_ver,
+                    "description": (v.get("Title") or v.get("Description", ""))[:500],
+                    "mitigation_type": mitigation_type,
+                    "mitigation_detail": None,
+                    "layer": layer,
+                    "component": _component_type(pkg_id, vuln_type),
+                }
+            )
 
     return findings
 
@@ -501,6 +519,7 @@ def extract_findings_from_trivy(trivy_json: dict) -> list[dict]:
 # ---------------------------------------------------------------------------
 # Supabase REST API client (no external deps — stdlib only)
 # ---------------------------------------------------------------------------
+
 
 class SupabaseClient:
     def __init__(self, url: str, service_role_key: str):
@@ -512,14 +531,18 @@ class SupabaseClient:
             "Prefer": "return=representation",
         }
 
-    def _request(self, method: str, path: str, body=None, params: dict = None) -> list | dict | None:
+    def _request(
+        self, method: str, path: str, body=None, params: dict = None
+    ) -> list | dict | None:
         url = self.base + path
         if params:
             qs = "&".join(f"{k}={v}" for k, v in params.items())
             url = f"{url}?{qs}"
 
         data = json.dumps(body).encode() if body is not None else None
-        req = urllib.request.Request(url, data=data, headers=self.headers, method=method)
+        req = urllib.request.Request(
+            url, data=data, headers=self.headers, method=method
+        )
 
         try:
             with urllib.request.urlopen(req) as resp:
@@ -527,14 +550,18 @@ class SupabaseClient:
                 return json.loads(raw) if raw else None
         except urllib.error.HTTPError as e:
             body_text = e.read().decode()
-            print(f"[ERROR] {method} {path} → HTTP {e.code}: {body_text}", file=sys.stderr)
+            print(
+                f"[ERROR] {method} {path} → HTTP {e.code}: {body_text}", file=sys.stderr
+            )
             raise
 
     def upsert(self, table: str, row: dict, on_conflict: str) -> dict:
         headers_extra = {"Prefer": "return=representation,resolution=merge-duplicates"}
         url = f"{self.base}/{table}?on_conflict={on_conflict}"
         data = json.dumps([row]).encode()
-        req = urllib.request.Request(url, data=data, headers={**self.headers, **headers_extra}, method="POST")
+        req = urllib.request.Request(
+            url, data=data, headers={**self.headers, **headers_extra}, method="POST"
+        )
         with urllib.request.urlopen(req) as resp:
             result = json.loads(resp.read())
             return result[0] if isinstance(result, list) else result
@@ -542,7 +569,9 @@ class SupabaseClient:
     def insert(self, table: str, row: dict) -> dict:
         url = f"{self.base}/{table}"
         data = json.dumps([row]).encode()
-        req = urllib.request.Request(url, data=data, headers=self.headers, method="POST")
+        req = urllib.request.Request(
+            url, data=data, headers=self.headers, method="POST"
+        )
         with urllib.request.urlopen(req) as resp:
             result = json.loads(resp.read())
             return result[0] if isinstance(result, list) else result
@@ -558,14 +587,21 @@ class SupabaseClient:
         params = {k: f"eq.{v}" for k, v in filters.items()}
         url = f"{self.base}/{table}?" + "&".join(f"{k}={v}" for k, v in params.items())
         data = json.dumps(row).encode()
-        req = urllib.request.Request(url, data=data, headers={**self.headers, "Prefer": "return=minimal"}, method="PATCH")
+        req = urllib.request.Request(
+            url,
+            data=data,
+            headers={**self.headers, "Prefer": "return=minimal"},
+            method="PATCH",
+        )
         with urllib.request.urlopen(req) as resp:
             resp.read()
 
     def delete(self, table: str, filters: dict) -> None:
         params = {k: f"eq.{v}" for k, v in filters.items()}
         url = f"{self.base}/{table}?" + "&".join(f"{k}={v}" for k, v in params.items())
-        req = urllib.request.Request(url, headers={**self.headers, "Prefer": "return=minimal"}, method="DELETE")
+        req = urllib.request.Request(
+            url, headers={**self.headers, "Prefer": "return=minimal"}, method="DELETE"
+        )
         with urllib.request.urlopen(req) as resp:
             resp.read()
 
@@ -587,14 +623,18 @@ class SupabaseClient:
     def update_latest_snapshot(self, version_id: str, patch: dict) -> str | None:
         """Update the most recent snapshot row for a given version_id.
         Returns the snapshot id, or None if not found."""
-        url = (f"{self.base}/image_metadata_snapshots"
-               f"?version_id=eq.{version_id}&order=created_at.desc&limit=1")
+        url = (
+            f"{self.base}/image_metadata_snapshots"
+            f"?version_id=eq.{version_id}&order=created_at.desc&limit=1"
+        )
         req = urllib.request.Request(url, headers=self.headers, method="GET")
         with urllib.request.urlopen(req) as resp:
             rows = json.loads(resp.read())
 
         if not rows:
-            print(f"[WARN] No snapshot found for version_id={version_id} — skipping CVE update")
+            print(
+                f"[WARN] No snapshot found for version_id={version_id} — skipping CVE update"
+            )
             return None
 
         snap_id = rows[0]["id"]
@@ -607,7 +647,9 @@ class SupabaseClient:
         version_rows = self.select("image_versions", {"tag": version})
         for vr in version_rows:
             img_rows = self.select("images", {"id": vr["image_id"]})
-            if img_rows and name.replace("-", "") in img_rows[0]["slug"].replace("-", ""):
+            if img_rows and name.replace("-", "") in img_rows[0]["slug"].replace(
+                "-", ""
+            ):
                 return vr["id"]
         return None
 
@@ -634,16 +676,20 @@ class SupabaseClient:
             # Row exists — update only the non-protected fields
             row_id = existing[0]["id"]
             self.update("images", {"id": row_id}, update_fields)
-            print(f"  image {row_id[:8]}… updated (image_type preserved: "
-                  f"{existing[0].get('image_type', '?')})")
+            print(
+                f"  image {row_id[:8]}… updated (image_type preserved: "
+                f"{existing[0].get('image_type', '?')})"
+            )
             return existing[0] | update_fields | {"id": row_id}
         else:
             # New row — write everything including insert_fields
             full_row = {"slug": slug, **insert_fields, **update_fields}
             result = self.insert("images", full_row)
             image_id = result["id"]
-            print(f"  image {image_id[:8]}… inserted  "
-                  f"(image_type={insert_fields.get('image_type', '?')})")
+            print(
+                f"  image {image_id[:8]}… inserted  "
+                f"(image_type={insert_fields.get('image_type', '?')})"
+            )
             return result
 
 
@@ -672,9 +718,9 @@ def _suppression_cols_exist(db: SupabaseClient) -> bool:
     # If the table is empty we can't introspect columns this way, so we fall
     # back to a known-safe approach: attempt a dry PATCH with limit=0.
     try:
-        url = (db.base + "/cve_findings"
-               "?select=is_suppressed&limit=1")
+        url = db.base + "/cve_findings?select=is_suppressed&limit=1"
         import urllib.request as _ur
+
         req = _ur.Request(url, headers=db.headers, method="GET")
         with _ur.urlopen(req) as resp:
             resp.read()
@@ -682,13 +728,18 @@ def _suppression_cols_exist(db: SupabaseClient) -> bool:
     except Exception:
         _suppression_columns_available = False
 
-    status = "available" if _suppression_columns_available else "not yet available (migration 0044 pending)"
+    status = (
+        "available"
+        if _suppression_columns_available
+        else "not yet available (migration 0044 pending)"
+    )
     print(f"  [suppress-probe] suppression columns: {status}")
     return _suppression_columns_available
 
 
-def _merge_with_allowlist(trivy_findings: list[dict],
-                          allowlist_findings: list[dict]) -> list[dict]:
+def _merge_with_allowlist(
+    trivy_findings: list[dict], allowlist_findings: list[dict]
+) -> list[dict]:
     """
     Merge real Trivy findings with suppressed allowlist findings.
 
@@ -716,20 +767,25 @@ def _merge_with_allowlist(trivy_findings: list[dict],
         if cve_id in trivy_cve_ids:
             # Trivy reported it despite .trivyignore — real finding wins
             skipped += 1
-            print(f"  [merge] {cve_id} — Trivy finding takes precedence over allowlist entry")
+            print(
+                f"  [merge] {cve_id} — Trivy finding takes precedence over allowlist entry"
+            )
             continue
         merged.append(entry)
         appended += 1
 
     if allowlist_findings:
-        print(f"  [merge] +{appended} suppressed / {skipped} skipped (Trivy precedence) "
-              f"/ {len(trivy_findings)} real → {len(merged)} total findings")
+        print(
+            f"  [merge] +{appended} suppressed / {skipped} skipped (Trivy precedence) "
+            f"/ {len(trivy_findings)} real → {len(merged)} total findings"
+        )
 
     return merged
 
 
-def write_findings(db: SupabaseClient, version_id: str, findings: list[dict],
-                   replace: bool = True) -> int:
+def write_findings(
+    db: SupabaseClient, version_id: str, findings: list[dict], replace: bool = True
+) -> int:
     """
     Write cve_findings rows for a given image_version_id.
 
@@ -750,12 +806,17 @@ def write_findings(db: SupabaseClient, version_id: str, findings: list[dict],
     Returns the number of rows written.
     """
     if not findings:
-        print("  No CVE findings to write (clean image — no real or suppressed findings)")
+        print(
+            "  No CVE findings to write (clean image — no real or suppressed findings)"
+        )
         return 0
 
     if not db.table_exists("cve_findings"):
-        print("[WARN] cve_findings table not found — migration pending. "
-              "Findings will be written once the schema is applied.", file=sys.stderr)
+        print(
+            "[WARN] cve_findings table not found — migration pending. "
+            "Findings will be written once the schema is applied.",
+            file=sys.stderr,
+        )
         return 0
 
     if replace:
@@ -775,32 +836,34 @@ def write_findings(db: SupabaseClient, version_id: str, findings: list[dict],
     for f in findings:
         # --- core columns (always present in current schema) ---
         row: dict = {
-            "image_version_id":  version_id,
-            "cve_id":            f["cve_id"],
-            "severity":          f["severity"],
-            "package_name":      f["package_name"],
-            "package_version":   f.get("package_version", ""),
-            "fixed_version":     f.get("fixed_version"),
-            "description":       f.get("description", ""),
-            "mitigation_type":   f.get("mitigation_type", "not_applicable"),
+            "image_version_id": version_id,
+            "cve_id": f["cve_id"],
+            "severity": f["severity"],
+            "package_name": f["package_name"],
+            "package_version": f.get("package_version", ""),
+            "fixed_version": f.get("fixed_version"),
+            "description": f.get("description", ""),
+            "mitigation_type": f.get("mitigation_type", "not_applicable"),
             "mitigation_detail": f.get("mitigation_detail"),
-            "layer":             f.get("layer", "base_image"),
-            "component":         f.get("component", "other"),
+            "layer": f.get("layer", "base_image"),
+            "component": f.get("component", "other"),
         }
 
         # --- suppression columns (migration 0044 — written only when available) ---
         if suppress_cols:
-            row["is_suppressed"]        = f.get("is_suppressed", False)
-            row["suppression_reason"]   = f.get("suppression_reason")
-            row["suppression_detail"]   = f.get("suppression_detail")
+            row["is_suppressed"] = f.get("is_suppressed", False)
+            row["suppression_reason"] = f.get("suppression_reason")
+            row["suppression_detail"] = f.get("suppression_detail")
             row["suppression_evidence"] = f.get("suppression_evidence")
-            row["review_date"]          = f.get("review_date")
+            row["review_date"] = f.get("review_date")
 
         db.upsert("cve_findings", row, on_conflict="image_version_id,cve_id")
         written += 1
 
-    print(f"  Wrote {written} CVE finding(s) to cve_findings "
-          f"(suppression metadata: {'yes' if suppress_cols else 'no — migration 0044 pending'})")
+    print(
+        f"  Wrote {written} CVE finding(s) to cve_findings "
+        f"(suppression metadata: {'yes' if suppress_cols else 'no — migration 0044 pending'})"
+    )
     return written
 
 
@@ -808,24 +871,25 @@ def write_findings(db: SupabaseClient, version_id: str, findings: list[dict],
 # Snapshot payload builder (shared by single-row + per-platform promote)
 # ---------------------------------------------------------------------------
 
+
 def _build_snapshot_payload(
-    image_id:            str,
-    version_id:          str,
-    sbom_ref:            str | None,
-    provenance:          str | None,
-    promoted_at:         str,
-    name:                str,
-    version:             str,
-    base_version:        str,
-    profile:             str,
-    digest:              str | None,
-    tags:                str,
-    cosign_id:           str | None,
-    image_type:          str,
+    image_id: str,
+    version_id: str,
+    sbom_ref: str | None,
+    provenance: str | None,
+    promoted_at: str,
+    name: str,
+    version: str,
+    base_version: str,
+    profile: str,
+    digest: str | None,
+    tags: str,
+    cosign_id: str | None,
+    image_type: str,
     # per-platform fields (migration 0053) — omitted from payload when None
-    platform:            str | None = None,
-    arch:                str | None = None,
-    image_size_bytes:    int | None = None,
+    platform: str | None = None,
+    arch: str | None = None,
+    image_size_bytes: int | None = None,
     runnable_size_bytes: int | None = None,
 ) -> dict:
     """
@@ -837,23 +901,23 @@ def _build_snapshot_payload(
     applied — the insert simply omits the new columns.
     """
     payload: dict = {
-        "image_id":       image_id,
-        "version_id":     version_id,
-        "cve_count":      None,
-        "scan_status":    "unknown",
-        "scanner":        None,
-        "sbom_ref":       sbom_ref,
+        "image_id": image_id,
+        "version_id": version_id,
+        "cve_count": None,
+        "scan_status": "unknown",
+        "scanner": None,
+        "sbom_ref": sbom_ref,
         "provenance_ref": provenance,
         "raw_payload": {
-            "name":            name,
-            "version":         version,
-            "base_version":    base_version,
-            "profile":         profile,
-            "digest":          digest,
-            "tags":            tags.split(),
+            "name": name,
+            "version": version,
+            "base_version": base_version,
+            "profile": profile,
+            "digest": digest,
+            "tags": tags.split(),
             "cosign_identity": cosign_id,
-            "promoted_at":     promoted_at,
-            "image_type":      image_type,
+            "promoted_at": promoted_at,
+            "image_type": image_type,
         },
         "snapshotted_at": promoted_at,
     }
@@ -873,32 +937,35 @@ def _build_snapshot_payload(
 # promote subcommand
 # ---------------------------------------------------------------------------
 
+
 def cmd_promote(args, db: SupabaseClient):
-    name         = args.name
-    version      = args.version
+    name = args.name
+    version = args.version
     base_version = args.base_version
-    profile      = args.profile or ""
-    digest       = args.digest or None
-    tags         = args.tags or ""
-    cosign_id    = args.cosign_identity or None
-    promoted_at  = args.promoted_at or datetime.now(timezone.utc).isoformat()
+    profile = args.profile or ""
+    digest = args.digest or None
+    tags = args.tags or ""
+    cosign_id = args.cosign_identity or None
+    promoted_at = args.promoted_at or datetime.now(timezone.utc).isoformat()
 
     # --- migration 0053 fields ---
-    platforms       = parse_platforms(getattr(args, "platforms", None))
-    image_sizes     = parse_size_map(getattr(args, "image_size_json", None))
-    runnable_sizes  = parse_size_map(getattr(args, "runnable_size_json", None))
-    sbom_refs       = parse_ref_map(getattr(args, "sbom_refs_json", None))
+    platforms = parse_platforms(getattr(args, "platforms", None))
+    image_sizes = parse_size_map(getattr(args, "image_size_json", None))
+    runnable_sizes = parse_size_map(getattr(args, "runnable_size_json", None))
+    sbom_refs = parse_ref_map(getattr(args, "sbom_refs_json", None))
     provenance_refs = parse_ref_map(getattr(args, "provenance_refs_json", None))
 
-    slug             = derive_slug(name, profile, base_version)
-    image_type       = resolve_image_type(getattr(args, "image_type", None), name, profile)
-    source_type      = derive_source_type(name)
-    summary          = derive_summary(name, profile, base_version)
+    slug = derive_slug(name, profile, base_version)
+    image_type = resolve_image_type(getattr(args, "image_type", None), name, profile)
+    source_type = derive_source_type(name)
+    summary = derive_summary(name, profile, base_version)
     default_sbom_ref = f"ghcr.io/gwshield/{name}:{version}" if version else None
-    os_tag           = derive_os_tag(name)
+    os_tag = derive_os_tag(name)
 
-    print(f"[promote] {name}:{version}  slug={slug}  profile={profile!r}  "
-          f"image_type={image_type}  platforms={platforms or '(legacy)'}")
+    print(
+        f"[promote] {name}:{version}  slug={slug}  profile={profile!r}  "
+        f"image_type={image_type}  platforms={platforms or '(legacy)'}"
+    )
 
     # 1. Insert-or-selective-update images table
     #
@@ -911,12 +978,14 @@ def cmd_promote(args, db: SupabaseClient):
         slug=slug,
         insert_fields={"image_type": image_type},
         update_fields={
-            "name":        f"{name.replace('-', ' ').title()} {base_version}" if base_version else name,
-            "summary":     summary,
+            "name": f"{name.replace('-', ' ').title()} {base_version}"
+            if base_version
+            else name,
+            "summary": summary,
             "source_type": source_type,
-            "visibility":  "public",
-            "status":      "active",
-            "featured":    False,
+            "visibility": "public",
+            "status": "active",
+            "featured": False,
         },
     )
     image_id = image_row["id"]
@@ -928,22 +997,27 @@ def cmd_promote(args, db: SupabaseClient):
 
     # 3. Upsert image_version — include platforms list (migration 0053)
     version_payload: dict = {
-        "image_id":        image_id,
-        "tag":             version,
-        "digest":          digest,
-        "promoted_at":     promoted_at,
-        "is_latest":       True,
+        "image_id": image_id,
+        "tag": version,
+        "digest": digest,
+        "promoted_at": promoted_at,
+        "is_latest": True,
         "cosign_identity": cosign_id,
-        "base_version":    base_version,
-        "profile":         profile,
+        "base_version": base_version,
+        "profile": profile,
     }
     if platforms:
         version_payload["platforms"] = platforms
 
-    version_row = db.upsert("image_versions", version_payload, on_conflict="image_id,tag")
-    version_id  = version_row["id"]
-    print(f"  version {version_id[:8]}… upserted (is_latest=True"
-          + (f", platforms={platforms}" if platforms else "") + ")")
+    version_row = db.upsert(
+        "image_versions", version_payload, on_conflict="image_id,tag"
+    )
+    version_id = version_row["id"]
+    print(
+        f"  version {version_id[:8]}… upserted (is_latest=True"
+        + (f", platforms={platforms}" if platforms else "")
+        + ")"
+    )
 
     # 4. Insert metadata snapshot(s)
     #
@@ -959,19 +1033,26 @@ def cmd_promote(args, db: SupabaseClient):
         for plat in platforms:
             arch = plat.split("/")[1] if "/" in plat else plat
             snap_payload = _build_snapshot_payload(
-                image_id=image_id, version_id=version_id,
+                image_id=image_id,
+                version_id=version_id,
                 sbom_ref=sbom_refs.get(plat, default_sbom_ref),
                 provenance=provenance_refs.get(plat, cosign_id),
                 promoted_at=promoted_at,
-                name=name, version=version, base_version=base_version,
-                profile=profile, digest=digest, tags=tags,
-                cosign_id=cosign_id, image_type=image_type,
-                platform=plat, arch=arch,
+                name=name,
+                version=version,
+                base_version=base_version,
+                profile=profile,
+                digest=digest,
+                tags=tags,
+                cosign_id=cosign_id,
+                image_type=image_type,
+                platform=plat,
+                arch=arch,
                 image_size_bytes=image_sizes.get(plat) or None,
                 runnable_size_bytes=runnable_sizes.get(plat) or None,
             )
             snap_row = db.insert("image_metadata_snapshots", snap_payload)
-            snap_id  = snap_row["id"]
+            snap_id = snap_row["id"]
             snapshot_ids.append(snap_id)
             size_info = ""
             if image_sizes.get(plat):
@@ -981,29 +1062,38 @@ def cmd_promote(args, db: SupabaseClient):
             print(f"  snapshot {snap_id[:8]}… created  platform={plat}{size_info}")
     else:
         snap_payload = _build_snapshot_payload(
-            image_id=image_id, version_id=version_id,
-            sbom_ref=default_sbom_ref, provenance=cosign_id,
+            image_id=image_id,
+            version_id=version_id,
+            sbom_ref=default_sbom_ref,
+            provenance=cosign_id,
             promoted_at=promoted_at,
-            name=name, version=version, base_version=base_version,
-            profile=profile, digest=digest, tags=tags,
-            cosign_id=cosign_id, image_type=image_type,
+            name=name,
+            version=version,
+            base_version=base_version,
+            profile=profile,
+            digest=digest,
+            tags=tags,
+            cosign_id=cosign_id,
+            image_type=image_type,
         )
         snap_row = db.insert("image_metadata_snapshots", snap_payload)
-        snap_id  = snap_row["id"]
+        snap_id = snap_row["id"]
         snapshot_ids.append(snap_id)
         print(f"  snapshot {snap_id[:8]}… created (legacy single-row)")
 
     # 5. Link most-recent snapshot back to version
-    db.update("image_versions", {"id": version_id}, {"metadata_snapshot_id": snapshot_ids[-1]})
+    db.update(
+        "image_versions", {"id": version_id}, {"metadata_snapshot_id": snapshot_ids[-1]}
+    )
 
     # 6. Upsert image_tags
     #    arch tag: reflects actual platforms when available, else legacy string
     arch_tag = ",".join(platforms) if platforms else "linux/amd64,linux/arm64"
     tags_to_write: list[dict] = [
-        {"image_id": image_id, "tag_key": "family",     "tag_value": name},
+        {"image_id": image_id, "tag_key": "family", "tag_value": name},
         {"image_id": image_id, "tag_key": "image_type", "tag_value": image_type},
-        {"image_id": image_id, "tag_key": "os",         "tag_value": os_tag},
-        {"image_id": image_id, "tag_key": "arch",       "tag_value": arch_tag},
+        {"image_id": image_id, "tag_key": "os", "tag_value": os_tag},
+        {"image_id": image_id, "tag_key": "arch", "tag_value": arch_tag},
     ]
     profile_tag = derive_profile_tag(name, profile)
     if profile_tag:
@@ -1016,61 +1106,79 @@ def cmd_promote(args, db: SupabaseClient):
         )
     for t in tags_to_write:
         db.upsert("image_tags", t, on_conflict="image_id,tag_key,tag_value")
-    print(f"  wrote {len(tags_to_write)} tag(s): "
-          f"{", ".join(t['tag_key'] + '=' + t['tag_value'] for t in tags_to_write)}")
+    print(
+        f"  wrote {len(tags_to_write)} tag(s): "
+        f"{', '.join(t['tag_key'] + '=' + t['tag_value'] for t in tags_to_write)}"
+    )
 
     # 7. Write version group tag
     version_group = derive_version_group(base_version)
     try:
         db.delete("image_tags", {"image_id": image_id, "tag_key": "version"})
-        db.insert("image_tags", {"image_id": image_id, "tag_key": "version", "tag_value": version_group})
+        db.insert(
+            "image_tags",
+            {"image_id": image_id, "tag_key": "version", "tag_value": version_group},
+        )
         print(f"  version tag set: version={version_group}")
     except Exception as e:
         print(f"[WARN] Could not write version tag: {e}", file=sys.stderr)
 
-    print(f"[promote] done — slug={slug}  image_type={image_type}  version={version_group}"
-          + (f"  snapshots={len(snapshot_ids)}" if len(snapshot_ids) > 1 else ""))
+    print(
+        f"[promote] done — slug={slug}  image_type={image_type}  version={version_group}"
+        + (f"  snapshots={len(snapshot_ids)}" if len(snapshot_ids) > 1 else "")
+    )
 
 
 # ---------------------------------------------------------------------------
 # scan subcommand
 # ---------------------------------------------------------------------------
 
+
 def cmd_scan(args, db: SupabaseClient):
-    name          = args.name
-    version       = args.version
-    cve_total     = int(args.cve_total)
-    cve_crit      = int(args.cve_critical)
-    cve_high      = int(args.cve_high)
-    scanner       = args.scanner or "trivy"
-    scanned_at    = args.scanned_at or datetime.now(timezone.utc).isoformat()
-    findings_arg  = getattr(args, "findings_json", None)
+    name = args.name
+    version = args.version
+    cve_total = int(args.cve_total)
+    cve_crit = int(args.cve_critical)
+    cve_high = int(args.cve_high)
+    scanner = args.scanner or "trivy"
+    scanned_at = args.scanned_at or datetime.now(timezone.utc).isoformat()
+    findings_arg = getattr(args, "findings_json", None)
     allowlist_arg = getattr(args, "allowlist_json", None)
 
     scan_status = "clean" if (cve_crit == 0 and cve_high == 0) else "findings"
 
-    print(f"[scan] {name}:{version}  total={cve_total} crit={cve_crit} high={cve_high}  status={scan_status}")
+    print(
+        f"[scan] {name}:{version}  total={cve_total} crit={cve_crit} high={cve_high}  status={scan_status}"
+    )
 
     version_id = db.resolve_version_id(name, version)
     if not version_id:
-        print(f"[ERROR] Could not resolve version_id for {name}:{version}", file=sys.stderr)
+        print(
+            f"[ERROR] Could not resolve version_id for {name}:{version}",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     print(f"  resolved version_id={version_id[:8]}…")
 
-    db.update_latest_snapshot(version_id, {
-        "cve_count":      cve_total,
-        "cve_critical":   cve_crit,
-        "cve_high":       cve_high,
-        "scan_status":    scan_status,
-        "scanner":        scanner,
-        "snapshotted_at": scanned_at,
-    })
+    db.update_latest_snapshot(
+        version_id,
+        {
+            "cve_count": cve_total,
+            "cve_critical": cve_crit,
+            "cve_high": cve_high,
+            "scan_status": scan_status,
+            "scanner": scanner,
+            "snapshotted_at": scanned_at,
+        },
+    )
 
     if findings_arg or allowlist_arg:
-        trivy_findings    = _parse_findings_arg(findings_arg) if findings_arg else []
-        allowlist_entries = _parse_findings_arg(allowlist_arg, fmt="findings") if allowlist_arg else []
-        findings          = _merge_with_allowlist(trivy_findings, allowlist_entries)
+        trivy_findings = _parse_findings_arg(findings_arg) if findings_arg else []
+        allowlist_entries = (
+            _parse_findings_arg(allowlist_arg, fmt="findings") if allowlist_arg else []
+        )
+        findings = _merge_with_allowlist(trivy_findings, allowlist_entries)
         write_findings(db, version_id, findings, replace=True)
 
     print(f"[scan] done — {name}:{version} → {scan_status}")
@@ -1079,6 +1187,7 @@ def cmd_scan(args, db: SupabaseClient):
 # ---------------------------------------------------------------------------
 # findings subcommand  (standalone — used by rescan-origin pipeline)
 # ---------------------------------------------------------------------------
+
 
 def cmd_findings(args, db: SupabaseClient):
     """
@@ -1093,24 +1202,29 @@ def cmd_findings(args, db: SupabaseClient):
     Optionally merge with suppressed entries from allowlist.yaml:
       --allowlist-json @/path/to/allowlist-findings.json
     """
-    name          = args.name
-    version       = args.version
-    fmt           = getattr(args, "findings_format", "trivy")
-    raw_arg       = args.findings_json
+    name = args.name
+    version = args.version
+    fmt = getattr(args, "findings_format", "trivy")
+    raw_arg = args.findings_json
     allowlist_arg = getattr(args, "allowlist_json", None)
 
     print(f"[findings] {name}:{version}  format={fmt}")
 
     version_id = db.resolve_version_id(name, version)
     if not version_id:
-        print(f"[ERROR] Could not resolve version_id for {name}:{version}", file=sys.stderr)
+        print(
+            f"[ERROR] Could not resolve version_id for {name}:{version}",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     print(f"  resolved version_id={version_id[:8]}…")
 
-    trivy_findings    = _parse_findings_arg(raw_arg, fmt)
-    allowlist_entries = _parse_findings_arg(allowlist_arg, fmt="findings") if allowlist_arg else []
-    findings          = _merge_with_allowlist(trivy_findings, allowlist_entries)
+    trivy_findings = _parse_findings_arg(raw_arg, fmt)
+    allowlist_entries = (
+        _parse_findings_arg(allowlist_arg, fmt="findings") if allowlist_arg else []
+    )
+    findings = _merge_with_allowlist(trivy_findings, allowlist_entries)
 
     count = write_findings(db, version_id, findings, replace=True)
     print(f"[findings] done — {count} finding(s) written for {name}:{version}")
@@ -1152,10 +1266,105 @@ def _parse_findings_arg(raw_arg: str, fmt: str = "trivy") -> list[dict]:
     raise ValueError(f"Unknown findings format: {fmt}")
 
 
+# ---------------------------------------------------------------------------
+# smoke subcommand — writes smoke_result.json content to smoke_results table
+# ---------------------------------------------------------------------------
+
+
+def cmd_smoke(args, db: SupabaseClient):
+    """
+    Write a smoke test result for a runtime image version to smoke_results.
+
+    Reads smoke-result.json (produced by shared/smoke-lib.sh smoke_end()) and
+    inserts one row into public.smoke_results for the resolved image_version_id.
+
+    Required: --name, --version, --base-version
+    Optional: --profile, --result-file, --run-url, --runner, --trigger
+    """
+    name = args.name
+    version = args.version
+    base_version = args.base_version
+    profile = args.profile or ""
+    result_file = args.result_file
+    run_url = getattr(args, "run_url", "") or ""
+    runner = getattr(args, "runner", "") or ""
+    trigger = getattr(args, "trigger", "post-build") or "post-build"
+
+    slug = derive_slug(name, profile, base_version)
+    print(
+        f"[smoke] {name}:{version}  slug={slug}  profile={profile!r}  result_file={result_file}"
+    )
+
+    # Resolve image_version_id via slug → image → image_versions
+    image_row = db.select("images", {"slug": slug})
+    if not image_row:
+        print(
+            f"[smoke] WARNING: no image found for slug={slug!r} — skipping Supabase write",
+            file=sys.stderr,
+        )
+        return
+    image_id = image_row[0]["id"]
+
+    version_rows = db.select("image_versions", {"image_id": image_id, "tag": version})
+    if not version_rows:
+        print(
+            f"[smoke] WARNING: no image_version found for {slug}:{version} — skipping Supabase write",
+            file=sys.stderr,
+        )
+        return
+    version_id = version_rows[0]["id"]
+
+    # Parse smoke-result.json
+    if not result_file or not pathlib.Path(result_file).exists():
+        print(
+            f"[smoke] WARNING: result file not found: {result_file!r} — skipping Supabase write",
+            file=sys.stderr,
+        )
+        return
+
+    try:
+        result = json.loads(pathlib.Path(result_file).read_text())
+    except Exception as e:
+        print(f"[smoke] ERROR reading {result_file}: {e}", file=sys.stderr)
+        return
+
+    overall_status = result.get("overall_status", "skipped")
+    pass_count = int(result.get("pass_count", 0))
+    fail_count = int(result.get("fail_count", 0))
+    duration_ms = result.get("duration_ms")
+    image_ref = result.get("image_ref", "")
+    ran_at = result.get("ran_at") or datetime.now(timezone.utc).isoformat()
+    checks = result.get("checks", [])
+
+    payload = {
+        "image_version_id": version_id,
+        "ran_at": ran_at,
+        "trigger": trigger,
+        "overall_status": overall_status,
+        "pass_count": pass_count,
+        "fail_count": fail_count,
+        "checks": checks,
+    }
+    if duration_ms is not None:
+        payload["duration_ms"] = int(duration_ms)
+    if image_ref:
+        payload["image_ref"] = image_ref
+    if run_url:
+        payload["run_url"] = run_url
+    if runner:
+        payload["runner"] = runner
+
+    db.insert("smoke_results", payload)
+    print(
+        f"[smoke] result written — {slug}:{version}  status={overall_status}  "
+        f"pass={pass_count}  fail={fail_count}"
+    )
+
 
 # ---------------------------------------------------------------------------
 # baseline subcommand — writes mirror sync + smoke results to Supabase
 # ---------------------------------------------------------------------------
+
 
 def cmd_baseline(args, db: SupabaseClient):
     """
@@ -1168,21 +1377,23 @@ def cmd_baseline(args, db: SupabaseClient):
 
     Idempotent: re-syncing the same slug+digest upserts the sync result row.
     """
-    slug           = args.slug
+    slug = args.slug
     upstream_image = args.upstream_image
-    upstream_tag   = args.upstream_tag
+    upstream_tag = args.upstream_tag
     upstream_digest = args.upstream_digest
-    mirror_image   = args.mirror_image    # full ref incl. tag
-    mirror_digest  = args.mirror_digest or ""
-    status         = args.status          # synced | blocked_cve | skipped
-    critical       = int(args.critical or 0)
-    high           = int(args.high or 0)
-    smoke_status   = getattr(args, "smoke_status", "skipped") or "skipped"
-    smoke_pass     = int(getattr(args, "smoke_pass", 0) or 0)
-    smoke_fail     = int(getattr(args, "smoke_fail", 0) or 0)
-    run_url        = getattr(args, "run_url", "") or ""
+    mirror_image = args.mirror_image  # full ref incl. tag
+    mirror_digest = args.mirror_digest or ""
+    status = args.status  # synced | blocked_cve | skipped
+    critical = int(args.critical or 0)
+    high = int(args.high or 0)
+    smoke_status = getattr(args, "smoke_status", "skipped") or "skipped"
+    smoke_pass = int(getattr(args, "smoke_pass", 0) or 0)
+    smoke_fail = int(getattr(args, "smoke_fail", 0) or 0)
+    run_url = getattr(args, "run_url", "") or ""
 
-    print(f"[baseline] {slug}  status={status}  crit={critical}  high={high}  smoke={smoke_status}")
+    print(
+        f"[baseline] {slug}  status={status}  crit={critical}  high={high}  smoke={smoke_status}"
+    )
 
     # Parse smoke checks JSON — prefer --smoke-checks-file (avoids shell quoting
     # issues with { } ( ) characters in inline JSON from GITHUB_OUTPUT).
@@ -1190,13 +1401,16 @@ def cmd_baseline(args, db: SupabaseClient):
     if smoke_checks_file:
         try:
             import pathlib
+
             smoke_checks = json.loads(pathlib.Path(smoke_checks_file).read_text())
         except Exception:
             smoke_checks = []
     else:
         smoke_checks_raw = getattr(args, "smoke_checks", "[]") or "[]"
         try:
-            smoke_checks = json.loads(smoke_checks_raw) if smoke_checks_raw.strip() else []
+            smoke_checks = (
+                json.loads(smoke_checks_raw) if smoke_checks_raw.strip() else []
+            )
         except Exception:
             smoke_checks = []
 
@@ -1221,24 +1435,32 @@ def cmd_baseline(args, db: SupabaseClient):
     # requires an explicit DB constraint which may not exist.
     version_tag = upstream_tag  # e.g. "3.22" or "12-slim"
     version_payload = {
-        "image_id":     image_id,
-        "tag":          version_tag,
+        "image_id": image_id,
+        "tag": version_tag,
         "base_version": version_tag,
-        "profile":      "",
-        "digest":       mirror_digest or upstream_digest,
+        "profile": "",
+        "digest": mirror_digest or upstream_digest,
     }
-    existing_versions = db.select("image_versions", {"image_id": image_id, "tag": version_tag})
+    existing_versions = db.select(
+        "image_versions", {"image_id": image_id, "tag": version_tag}
+    )
     if existing_versions:
         version_id = existing_versions[0]["id"]
-        db.update("image_versions", {"id": version_id}, {
-            "digest": mirror_digest or upstream_digest,
-        })
+        db.update(
+            "image_versions",
+            {"id": version_id},
+            {
+                "digest": mirror_digest or upstream_digest,
+            },
+        )
         print(f"  version {version_id[:8]}… updated")
     else:
         version_row = db.insert("image_versions", version_payload)
         version_id = version_row.get("id") if version_row else None
         if not version_id:
-            raise RuntimeError(f"[baseline] could not insert version for {slug}:{version_tag}")
+            raise RuntimeError(
+                f"[baseline] could not insert version for {slug}:{version_tag}"
+            )
         print(f"  version {version_id[:8]}… inserted")
 
     print(f"  version_id={version_id[:8]}…")
@@ -1247,40 +1469,49 @@ def cmd_baseline(args, db: SupabaseClient):
     # Table created by Hub migration 0055_baseline_sync_results.sql
     # If table doesn't exist yet, skip gracefully (continue-on-error in workflow)
     if not db.table_exists("baseline_sync_results"):
-        print(f"[baseline] WARNING: baseline_sync_results table not yet created — skipping writeback")
+        print(
+            f"[baseline] WARNING: baseline_sync_results table not yet created — skipping writeback"
+        )
         print(f"           Apply Hub migration 0055 to enable baseline sync tracking.")
         return
 
-    db.insert("baseline_sync_results", {
-        "image_version_id": version_id,
-        "synced_at":        _utcnow(),
-        "trigger":          "manual" if run_url else "scheduled",
-        "status":           status,
-        "upstream_image":   upstream_image,
-        "upstream_tag":     upstream_tag,
-        "upstream_digest":  upstream_digest,
-        "mirror_image":     mirror_image,
-        "mirror_digest":    mirror_digest,
-        "critical_count":   critical,
-        "high_count":       high,
-        "smoke_status":     smoke_status,
-        "smoke_pass":       smoke_pass,
-        "smoke_fail":       smoke_fail,
-        "smoke_checks":     smoke_checks,
-        "run_url":          run_url,
-    })
-    print(f"[baseline] sync result written — {slug} {status} smoke={smoke_status} ({smoke_pass}/{smoke_pass+smoke_fail})")
+    db.insert(
+        "baseline_sync_results",
+        {
+            "image_version_id": version_id,
+            "synced_at": _utcnow(),
+            "trigger": "manual" if run_url else "scheduled",
+            "status": status,
+            "upstream_image": upstream_image,
+            "upstream_tag": upstream_tag,
+            "upstream_digest": upstream_digest,
+            "mirror_image": mirror_image,
+            "mirror_digest": mirror_digest,
+            "critical_count": critical,
+            "high_count": high,
+            "smoke_status": smoke_status,
+            "smoke_pass": smoke_pass,
+            "smoke_fail": smoke_fail,
+            "smoke_checks": smoke_checks,
+            "run_url": run_url,
+        },
+    )
+    print(
+        f"[baseline] sync result written — {slug} {status} smoke={smoke_status} ({smoke_pass}/{smoke_pass + smoke_fail})"
+    )
 
 
 def _utcnow() -> str:
     """Return current UTC timestamp as ISO 8601 string."""
     from datetime import datetime, timezone
+
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
 
 def _validate_image_type(value: str) -> str:
     """argparse type validator for --image-type."""
@@ -1294,117 +1525,206 @@ def _validate_image_type(value: str) -> str:
 
 def main():
     supabase_url = os.environ.get("SUPABASE_URL", "").rstrip("/")
-    service_key  = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+    service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 
     if not supabase_url or not service_key:
-        print("[ERROR] SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set", file=sys.stderr)
+        print(
+            "[ERROR] SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     db = SupabaseClient(supabase_url, service_key)
 
-    parser = argparse.ArgumentParser(description="gwshield pipeline → Supabase writeback")
+    parser = argparse.ArgumentParser(
+        description="gwshield pipeline → Supabase writeback"
+    )
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     # --- promote ---
     p_promote = sub.add_parser("promote")
-    p_promote.add_argument("--name",             required=True)
-    p_promote.add_argument("--version",          required=True)
-    p_promote.add_argument("--base-version",     required=True, dest="base_version")
-    p_promote.add_argument("--profile",          default="")
-    p_promote.add_argument("--image-type",       default=None,  dest="image_type",
-                            type=_validate_image_type,
-                            help=(
-                                "Structural image classification written on first insert only. "
-                                "Admin overrides in the Hub are preserved on subsequent promotes. "
-                                f"Allowed: {', '.join(sorted(_VALID_IMAGE_TYPES))}. "
-                                "Default: auto-detected from --name/--profile."
-                            ))
-    p_promote.add_argument("--digest",           default=None)
-    p_promote.add_argument("--tags",             default="")
-    p_promote.add_argument("--cosign-identity",  default=None, dest="cosign_identity")
-    p_promote.add_argument("--promoted-at",      default=None, dest="promoted_at")
+    p_promote.add_argument("--name", required=True)
+    p_promote.add_argument("--version", required=True)
+    p_promote.add_argument("--base-version", required=True, dest="base_version")
+    p_promote.add_argument("--profile", default="")
+    p_promote.add_argument(
+        "--image-type",
+        default=None,
+        dest="image_type",
+        type=_validate_image_type,
+        help=(
+            "Structural image classification written on first insert only. "
+            "Admin overrides in the Hub are preserved on subsequent promotes. "
+            f"Allowed: {', '.join(sorted(_VALID_IMAGE_TYPES))}. "
+            "Default: auto-detected from --name/--profile."
+        ),
+    )
+    p_promote.add_argument("--digest", default=None)
+    p_promote.add_argument("--tags", default="")
+    p_promote.add_argument("--cosign-identity", default=None, dest="cosign_identity")
+    p_promote.add_argument("--promoted-at", default=None, dest="promoted_at")
     # migration 0053 — multi-platform fields
-    p_promote.add_argument("--platforms",
-                            default=None,
-                            help=(
-                                'JSON array of OCI platform strings, e.g. '
-                                '["linux/amd64","linux/arm64"]. '
-                                'When supplied, one snapshot row per platform is written '
-                                'and image_versions.platforms is populated. '
-                                'Omit for legacy single-arch images.'
-                            ))
-    p_promote.add_argument("--image-size-json",
-                            default=None, dest="image_size_json",
-                            help=('JSON object platform -> compressed size bytes '
-                                  '(skopeo inspect --raw, sum of layer sizes).'))
-    p_promote.add_argument("--runnable-size-json",
-                            default=None, dest="runnable_size_json",
-                            help=('JSON object platform -> uncompressed on-disk size bytes '
-                                  '(skopeo inspect without --raw, LayersData[].Size sum).'))
-    p_promote.add_argument("--sbom-refs-json",
-                            default=None, dest="sbom_refs_json",
-                            help=('JSON object platform -> per-platform OCI SBOM ref '
-                                  '(ghcr.io/gwshield/<name>:<tag>@sha256:<platform-digest>).'))
-    p_promote.add_argument("--provenance-refs-json",
-                            default=None, dest="provenance_refs_json",
-                            help=('JSON object platform -> per-platform provenance ref. '
-                                  'Defaults to cosign identity when not supplied.'))
+    p_promote.add_argument(
+        "--platforms",
+        default=None,
+        help=(
+            "JSON array of OCI platform strings, e.g. "
+            '["linux/amd64","linux/arm64"]. '
+            "When supplied, one snapshot row per platform is written "
+            "and image_versions.platforms is populated. "
+            "Omit for legacy single-arch images."
+        ),
+    )
+    p_promote.add_argument(
+        "--image-size-json",
+        default=None,
+        dest="image_size_json",
+        help=(
+            "JSON object platform -> compressed size bytes "
+            "(skopeo inspect --raw, sum of layer sizes)."
+        ),
+    )
+    p_promote.add_argument(
+        "--runnable-size-json",
+        default=None,
+        dest="runnable_size_json",
+        help=(
+            "JSON object platform -> uncompressed on-disk size bytes "
+            "(skopeo inspect without --raw, LayersData[].Size sum)."
+        ),
+    )
+    p_promote.add_argument(
+        "--sbom-refs-json",
+        default=None,
+        dest="sbom_refs_json",
+        help=(
+            "JSON object platform -> per-platform OCI SBOM ref "
+            "(ghcr.io/gwshield/<name>:<tag>@sha256:<platform-digest>)."
+        ),
+    )
+    p_promote.add_argument(
+        "--provenance-refs-json",
+        default=None,
+        dest="provenance_refs_json",
+        help=(
+            "JSON object platform -> per-platform provenance ref. "
+            "Defaults to cosign identity when not supplied."
+        ),
+    )
 
     # --- scan ---
     p_scan = sub.add_parser("scan")
-    p_scan.add_argument("--name",          required=True)
-    p_scan.add_argument("--version",       required=True)
-    p_scan.add_argument("--cve-total",     default="0", dest="cve_total")
-    p_scan.add_argument("--cve-critical",  default="0", dest="cve_critical")
-    p_scan.add_argument("--cve-high",      default="0", dest="cve_high")
-    p_scan.add_argument("--scanner",       default="trivy")
-    p_scan.add_argument("--scanned-at",    default=None, dest="scanned_at")
-    p_scan.add_argument("--findings-json", default=None, dest="findings_json",
-                        help="Inline JSON array of findings, or @/path/to/trivy.json")
-    p_scan.add_argument("--allowlist-json", default=None, dest="allowlist_json",
-                        help=(
-                            "Pre-formatted suppressed findings from gen-trivyignore.py "
-                            "--emit-findings-json, or @/path/to/allowlist-findings.json. "
-                            "Merged with --findings-json before the Supabase write so "
-                            "suppressed CVEs are stored transparently with is_suppressed=true."
-                        ))
+    p_scan.add_argument("--name", required=True)
+    p_scan.add_argument("--version", required=True)
+    p_scan.add_argument("--cve-total", default="0", dest="cve_total")
+    p_scan.add_argument("--cve-critical", default="0", dest="cve_critical")
+    p_scan.add_argument("--cve-high", default="0", dest="cve_high")
+    p_scan.add_argument("--scanner", default="trivy")
+    p_scan.add_argument("--scanned-at", default=None, dest="scanned_at")
+    p_scan.add_argument(
+        "--findings-json",
+        default=None,
+        dest="findings_json",
+        help="Inline JSON array of findings, or @/path/to/trivy.json",
+    )
+    p_scan.add_argument(
+        "--allowlist-json",
+        default=None,
+        dest="allowlist_json",
+        help=(
+            "Pre-formatted suppressed findings from gen-trivyignore.py "
+            "--emit-findings-json, or @/path/to/allowlist-findings.json. "
+            "Merged with --findings-json before the Supabase write so "
+            "suppressed CVEs are stored transparently with is_suppressed=true."
+        ),
+    )
 
     # --- findings ---
     p_findings = sub.add_parser("findings")
-    p_findings.add_argument("--name",            required=True)
-    p_findings.add_argument("--version",         required=True)
-    p_findings.add_argument("--findings-json",   required=True, dest="findings_json",
-                             help="Inline JSON array, or @/path/to/trivy.json")
-    p_findings.add_argument("--findings-format", default="trivy", dest="findings_format",
-                             choices=["trivy", "findings"],
-                             help="trivy = raw Trivy JSON output; findings = pre-formatted array")
-    p_findings.add_argument("--allowlist-json",  default=None, dest="allowlist_json",
-                             help=(
-                                 "Pre-formatted suppressed findings from gen-trivyignore.py "
-                                 "--emit-findings-json, or @/path/to/allowlist-findings.json. "
-                                 "Merged with --findings-json before the Supabase write."
-                             ))
+    p_findings.add_argument("--name", required=True)
+    p_findings.add_argument("--version", required=True)
+    p_findings.add_argument(
+        "--findings-json",
+        required=True,
+        dest="findings_json",
+        help="Inline JSON array, or @/path/to/trivy.json",
+    )
+    p_findings.add_argument(
+        "--findings-format",
+        default="trivy",
+        dest="findings_format",
+        choices=["trivy", "findings"],
+        help="trivy = raw Trivy JSON output; findings = pre-formatted array",
+    )
+    p_findings.add_argument(
+        "--allowlist-json",
+        default=None,
+        dest="allowlist_json",
+        help=(
+            "Pre-formatted suppressed findings from gen-trivyignore.py "
+            "--emit-findings-json, or @/path/to/allowlist-findings.json. "
+            "Merged with --findings-json before the Supabase write."
+        ),
+    )
+
+    # smoke subcommand
+    p_smoke = sub.add_parser(
+        "smoke", help="Write smoke-result.json to smoke_results table in Supabase"
+    )
+    p_smoke.add_argument("--name", required=True)
+    p_smoke.add_argument("--version", required=True)
+    p_smoke.add_argument("--base-version", required=True, dest="base_version")
+    p_smoke.add_argument("--profile", default="")
+    p_smoke.add_argument(
+        "--result-file",
+        required=True,
+        dest="result_file",
+        help="Path to smoke-result.json produced by smoke_end()",
+    )
+    p_smoke.add_argument(
+        "--run-url",
+        default="",
+        dest="run_url",
+        help="Public GitHub Actions run URL (gwshield/images)",
+    )
+    p_smoke.add_argument(
+        "--runner", default="", help="Runner label, e.g. blacksmith-2vcpu-ubuntu-2404"
+    )
+    p_smoke.add_argument(
+        "--trigger",
+        default="post-build",
+        help="Trigger type: post-build | post-promote | scheduled | manual",
+    )
 
     # baseline subcommand
-    p_baseline = sub.add_parser("baseline",
-        help="Write baseline image mirror sync result to Supabase")
-    p_baseline.add_argument("--slug",             required=True)
-    p_baseline.add_argument("--upstream-image",   required=True,  dest="upstream_image")
-    p_baseline.add_argument("--upstream-tag",     required=True,  dest="upstream_tag")
-    p_baseline.add_argument("--upstream-digest",  required=True,  dest="upstream_digest")
-    p_baseline.add_argument("--mirror-image",     required=True,  dest="mirror_image")
-    p_baseline.add_argument("--mirror-digest",    default="",     dest="mirror_digest")
-    p_baseline.add_argument("--status",           default="synced")
-    p_baseline.add_argument("--critical",         default="0")
-    p_baseline.add_argument("--high",             default="0")
-    p_baseline.add_argument("--smoke-status",     default="skipped", dest="smoke_status")
-    p_baseline.add_argument("--smoke-pass",       default="0",       dest="smoke_pass")
-    p_baseline.add_argument("--smoke-fail",       default="0",       dest="smoke_fail")
-    p_baseline.add_argument("--smoke-checks",      default="[]",      dest="smoke_checks",
-                            help="Smoke checks JSON inline string (use --smoke-checks-file to avoid shell quoting issues)")
-    p_baseline.add_argument("--smoke-checks-file", default=None,      dest="smoke_checks_file",
-                            help="Path to a file containing smoke checks JSON (preferred over --smoke-checks)")
-    p_baseline.add_argument("--run-url",          default="",        dest="run_url")
+    p_baseline = sub.add_parser(
+        "baseline", help="Write baseline image mirror sync result to Supabase"
+    )
+    p_baseline.add_argument("--slug", required=True)
+    p_baseline.add_argument("--upstream-image", required=True, dest="upstream_image")
+    p_baseline.add_argument("--upstream-tag", required=True, dest="upstream_tag")
+    p_baseline.add_argument("--upstream-digest", required=True, dest="upstream_digest")
+    p_baseline.add_argument("--mirror-image", required=True, dest="mirror_image")
+    p_baseline.add_argument("--mirror-digest", default="", dest="mirror_digest")
+    p_baseline.add_argument("--status", default="synced")
+    p_baseline.add_argument("--critical", default="0")
+    p_baseline.add_argument("--high", default="0")
+    p_baseline.add_argument("--smoke-status", default="skipped", dest="smoke_status")
+    p_baseline.add_argument("--smoke-pass", default="0", dest="smoke_pass")
+    p_baseline.add_argument("--smoke-fail", default="0", dest="smoke_fail")
+    p_baseline.add_argument(
+        "--smoke-checks",
+        default="[]",
+        dest="smoke_checks",
+        help="Smoke checks JSON inline string (use --smoke-checks-file to avoid shell quoting issues)",
+    )
+    p_baseline.add_argument(
+        "--smoke-checks-file",
+        default=None,
+        dest="smoke_checks_file",
+        help="Path to a file containing smoke checks JSON (preferred over --smoke-checks)",
+    )
+    p_baseline.add_argument("--run-url", default="", dest="run_url")
 
     args = parser.parse_args()
 
@@ -1414,6 +1734,8 @@ def main():
         cmd_scan(args, db)
     elif args.cmd == "findings":
         cmd_findings(args, db)
+    elif args.cmd == "smoke":
+        cmd_smoke(args, db)
     elif args.cmd == "baseline":
         cmd_baseline(args, db)
 
