@@ -27,7 +27,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `9a9750c810dc` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `a961ea1d23a3` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `5a5e00ee00ca` | 0 CVEs | 2026-03-16 |
 
 ### NATS — cloud-native messaging and event streaming
@@ -63,9 +63,9 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `e32e00751ef8` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `c41994ff665d` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `f40cfd37669b` | 1 findings (0 critical, 1 high) | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `bbc90e9e3a9f` | 1 findings (0 critical, 1 high) | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `51f34f0a4bc5` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `4b16703005f8` | 1 findings (0 critical, 1 high) | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `89714cb73fed` | 1 findings (0 critical, 1 high) | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `0bb4e7e118db` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `72f020078d38` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `33ffdceb05f6` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `e26f728ad7be` | 1 findings (0 critical, 1 high) | 2026-03-16 |
@@ -128,7 +128,7 @@ ENTRYPOINT ["/myapp"]
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `e7472ba44329` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `7e0ee72ca1a4` | 1 findings (0 critical, 1 high) | 2026-03-16 |
-| `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `5f0b96670d84` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `1316dab0a5dd` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `f9b7e34203df` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 
 ### Rust — reproducible static musl builds
