@@ -959,6 +959,105 @@ jobs:
             ${ALLOWLIST_ARG}
 
       # -----------------------------------------------------------------------
+      # Post-promote smoke test + Supabase writeback
+      #
+      # Runs the image-specific smoke.sh (images/<name>/<version>/tests/smoke.sh)
+      # against the already-pushed ghcr.io/gwshield image.  The script exit code
+      # determines overall_status (passed / failed).  A minimal smoke-result.json
+      # is synthesised from the captured output and written to smoke_results via
+      # supabase_ingress.py smoke.
+      #
+      # continue-on-error: true — smoke failure is informational, not a gate.
+      # Supabase outage also must not block readme-update or job summary.
+      # -----------------------------------------------------------------------
+      - name: Run post-promote smoke test
+        id: smoke
+        if: steps.push.outputs.digest != ''
+        continue-on-error: true
+        env:
+          DST_IMAGE: ${{ steps.tags.outputs.dst_image }}
+          NAME:      ${{ github.event.client_payload.name }}
+          VERSION:   ${{ github.event.client_payload.version }}
+        run: |
+          set -euo pipefail
+          SMOKE_SCRIPT="images/${NAME}/${VERSION}/tests/smoke.sh"
+          PUBLIC_IMAGE="${DST_IMAGE}:${{ github.event.client_payload.base_version }}"
+          [[ -n "${{ github.event.client_payload.profile }}" ]] && \
+            PUBLIC_IMAGE="${DST_IMAGE}:${{ github.event.client_payload.base_version }}-${{ github.event.client_payload.profile }}"
+
+          if [[ ! -f "${SMOKE_SCRIPT}" ]]; then
+            echo "No smoke test found at ${SMOKE_SCRIPT} — skipping"
+            echo "status=skipped" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Running smoke test: ${SMOKE_SCRIPT} ${PUBLIC_IMAGE}"
+          START_MS=$(($(date +%s%N)/1000000))
+          SMOKE_RC=0
+          SMOKE_OUT=$(bash "${SMOKE_SCRIPT}" "${PUBLIC_IMAGE}" 2>&1) || SMOKE_RC=$?
+          END_MS=$(($(date +%s%N)/1000000))
+          DURATION_MS=$(( END_MS - START_MS ))
+
+          echo "$SMOKE_OUT"
+
+          # Parse PASS/FAIL counts from smoke output lines
+          PASS_COUNT=$(echo "$SMOKE_OUT" | grep -c '^\s*\[PASS\]' || true)
+          FAIL_COUNT=$(echo "$SMOKE_OUT" | grep -c '^\s*\[FAIL\]' || true)
+          # Fallback: single-digit counters at the end line "N passed, N failed"
+          if [[ "$PASS_COUNT" -eq 0 && "$FAIL_COUNT" -eq 0 ]]; then
+            PASS_COUNT=$(echo "$SMOKE_OUT" | grep -oP '\d+ passed' | grep -oP '\d+' || echo 0)
+            FAIL_COUNT=$(echo "$SMOKE_OUT" | grep -oP '\d+ failed'  | grep -oP '\d+' || echo 0)
+          fi
+
+          if [[ "$SMOKE_RC" -eq 0 ]]; then
+            OVERALL="passed"
+          else
+            OVERALL="failed"
+          fi
+
+          echo "status=${OVERALL}"          >> "$GITHUB_OUTPUT"
+          echo "pass_count=${PASS_COUNT}"   >> "$GITHUB_OUTPUT"
+          echo "fail_count=${FAIL_COUNT}"   >> "$GITHUB_OUTPUT"
+          echo "duration_ms=${DURATION_MS}" >> "$GITHUB_OUTPUT"
+
+          # Write smoke-result.json for Supabase ingress.
+          # SMOKE_OUT is written to a tempfile to avoid shell-quoting hazards
+          # (quotes/backslashes in captured log lines).
+          # scripts/make_smoke_result.py parses [PASS]/[FAIL] lines into checks[].
+          IMAGE_REF="${DST_IMAGE}@${{ steps.push.outputs.digest }}"
+          SMOKE_OUT_FILE=$(mktemp /tmp/smoke-out-XXXXXX.txt)
+          printf '%s' "${SMOKE_OUT}" > "${SMOKE_OUT_FILE}"
+
+          python3 scripts/make_smoke_result.py \
+            "${SMOKE_OUT_FILE}" "${IMAGE_REF}" "${OVERALL}" \
+            "${PASS_COUNT}" "${FAIL_COUNT}" "${DURATION_MS}" \
+            /tmp/smoke-result.json
+
+          rm -f "${SMOKE_OUT_FILE}"
+
+      - name: Write smoke results to Supabase
+        if: steps.push.outputs.digest != '' && steps.smoke.outputs.status != 'skipped'
+        continue-on-error: true
+        env:
+          SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -euo pipefail
+          [[ -f /tmp/smoke-result.json ]] || { echo "No smoke-result.json — skipping"; exit 0; }
+
+          RUN_URL="https://github.com/gwshield/images/actions/runs/${{ github.run_id }}"
+
+          python3 scripts/supabase_ingress.py smoke \
+            --name         "${{ github.event.client_payload.name }}" \
+            --version      "${{ github.event.client_payload.version }}" \
+            --base-version "${{ github.event.client_payload.base_version }}" \
+            --profile      "${{ github.event.client_payload.profile }}" \
+            --result-file  "/tmp/smoke-result.json" \
+            --run-url      "${RUN_URL}" \
+            --runner       "ubuntu-latest" \
+            --trigger      "post-promote"
+
+      # -----------------------------------------------------------------------
       # Trigger readme-update workflow (via repository_dispatch to self)
       # -----------------------------------------------------------------------
       - name: Trigger README update
@@ -991,6 +1090,7 @@ jobs:
             echo "| SBOM | CycloneDX + SPDX attached |"
             echo "| SLSA provenance | slsaprovenance1 attested |"
             echo "| CVE total | ${{ steps.trivy.outputs.total }} (critical: ${{ steps.trivy.outputs.critical }}, high: ${{ steps.trivy.outputs.high }}) |"
+            echo "| Smoke test | ${{ steps.smoke.outputs.status || 'skipped' }} (${{ steps.smoke.outputs.pass_count || 0 }} passed / ${{ steps.smoke.outputs.fail_count || 0 }} failed) |"
             echo "| registry.json | updated |"
             echo ""
             echo "### Verify"
