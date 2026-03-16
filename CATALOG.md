@@ -34,7 +34,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/nats:v2.12.5` | `v2.12.5` | standard | `0adef0e21bfb` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/nats:v2.12.5` | `v2.12.5` | standard | `0c305eec3bfd` | 0 CVEs | 2026-03-16 |
 
 ### nginx — HTTP server / reverse proxy
 
