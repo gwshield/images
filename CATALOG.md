@@ -16,7 +16,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `df49a22516ad` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `77fc66732d32` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `8be0a07e723e` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `d7ae956e9ea7` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `1804e19d684c` | 0 CVEs | 2026-03-16 |
@@ -28,7 +28,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `9a9750c810dc` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `eec1eafc7d14` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `5a5e00ee00ca` | 0 CVEs | 2026-03-16 |
 
 ### NATS — cloud-native messaging and event streaming
 
@@ -64,12 +64,12 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `c41994ff665d` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `d29e835dc04a` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `bbc90e9e3a9f` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `2870e464d932` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `89714cb73fed` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `18a83227c66d` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `33ffdceb05f6` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `e26f728ad7be` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `3e83cfac801f` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `10ffb6c4bf1d` | 0 CVEs | 2026-03-16 |
 
 ### Redis — in-memory data store
 
@@ -77,7 +77,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `3962a7bc6e90` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `3367ce7f3849` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `05d0fd9314b6` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `05d0fd9314b6` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `9e59c095981f` | 0 CVEs | 2026-03-16 |
 
 ### Traefik — cloud-native edge router
@@ -91,7 +91,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `609028421b92` | 0 CVEs | 2026-03-15 |
-| `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `bb1dd3435278` | 0 CVEs | 2026-03-15 |
+| `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `bb1dd3435278` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `5cdf92fc5d25` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `2f6e3033bd3d` | 0 CVEs | 2026-03-16 |
 
@@ -145,7 +145,7 @@ ENTRYPOINT ["/myapp"]
 ```bash
 # Runtime image — pull and verify
 docker pull ghcr.io/gwshield/caddy:v2.11.2
-docker pull ghcr.io/gwshield/caddy@sha256:df49a22516ad6f7bb361cad3bf78a0b4d5db6ea00323232e71bbfdefd1257723
+docker pull ghcr.io/gwshield/caddy@sha256:77fc66732d32724e1831b5f16173228865f8c9d08af3a465c4017f06700ddd10
 
 cosign verify \
   --certificate-identity-regexp='https://github.com/gwshield/images.*' \
