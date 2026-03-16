@@ -13,10 +13,31 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 ### Planned
 - PHP hardened image (FPM profile — target version TBD)
 - Go builder v1.26 (compile-only + dev variants)
-- OCI provenance attestation (SLSA Level 3)
 - Hub → pipeline request promotion workflow (vote threshold definition + issue template)
 - MCP server exposing container hardening patterns to AI tools
 - `check-stage` and `check-prod` devbox run scripts (still stubs)
+
+---
+
+## [v0.3.5-alpha] — 2026-03-16
+
+### Fixed
+
+- **`nats:v2.12.5` functional test**: `/healthz` startup timeout resolved — `sleep 3` → `sleep 8`
+- **`postgres:v15.17-cli` + `v17.9-cli` wrong image content**: silent `:main` fallback in
+  `release-public.yml` caused the wrong image to be promoted when the version tag was absent
+  in the private registry; replaced with a hard-fail and actionable error message; both images
+  re-promoted with correct content
+
+### Added
+
+- **Post-promote smoke tests** for all 43 images: every `promote.yml` run now executes the
+  image-specific `smoke.sh` against the published `ghcr.io/gwshield` image and writes results
+  to the Hub `smoke_results` table (accessible via the security detail page and catalog badge)
+- **`scripts/make_smoke_result.py`**: helper that parses `[PASS]`/`[FAIL]` lines from smoke
+  output into structured `smoke-result.json`
+- **`images/*/tests/smoke.sh`**: smoke scripts for all 43 runtime + builder images added to
+  this repository; parametrised via `$1 IMAGE`
 
 ---
 
