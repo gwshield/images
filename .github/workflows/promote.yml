@@ -259,11 +259,11 @@ jobs:
               os_=p.get('os','')
               arch=p.get('architecture','')
               variant=p.get('variant','')
-               if os_ and arch and os_ != 'unknown' and arch != 'unknown':
-                   plat=f'{os_}/{arch}'
-                   if variant:
-                       plat+=f'/{variant}'
-                   result.append({'platform':plat,'digest':m.get('digest',''),'size':m.get('size',0)})
+              if os_ and arch and os_ != 'unknown' and arch != 'unknown':
+                  plat=f'{os_}/{arch}'
+                  if variant:
+                      plat+=f'/{variant}'
+                  result.append({'platform':plat,'digest':m.get('digest',''),'size':m.get('size',0)})
           print(json.dumps(result))
           " 2>/dev/null || echo "[]")
 
@@ -415,9 +415,9 @@ jobs:
               p=m.get('platform',{})
               os_=p.get('os','')
               arch=p.get('architecture','')
-               if os_ and arch and os_ != 'unknown' and arch != 'unknown':
-                   plat=f'{os_}/{arch}'
-                   print(plat+'|'+m.get('digest',''))
+              if os_ and arch and os_ != 'unknown' and arch != 'unknown':
+                  plat=f'{os_}/{arch}'
+                  print(plat+'|'+m.get('digest',''))
           " 2>/dev/null || true)
 
               for ROW in $PLAT_DIGESTS; do
@@ -734,7 +734,7 @@ jobs:
 
             API_RESP=$(gh api repos/gwshield/images/contents/registry.json 2>/dev/null || echo "NOT_FOUND")
 
-            if echo "${API_RESP}" | grep -q "NOT_FOUND"; then
+            if grep -q "NOT_FOUND" <<< "${API_RESP}"; then
               CURRENT_CONTENT=''
               FILE_SHA=''
             else
@@ -939,6 +939,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
+          set -euo pipefail
           FINDINGS_ARG=""
           if [[ -f trivy-results.json ]]; then
             FINDINGS_ARG="@trivy-results.json"
@@ -1009,13 +1010,15 @@ jobs:
 
           echo "$SMOKE_OUT"
 
-          # Parse PASS/FAIL counts from smoke output lines
-          PASS_COUNT=$(echo "$SMOKE_OUT" | grep -c '^\s*\[PASS\]' || true)
-          FAIL_COUNT=$(echo "$SMOKE_OUT" | grep -c '^\s*\[FAIL\]' || true)
+          # Parse PASS/FAIL counts from smoke output lines.
+          # Herestring avoids SIGPIPE under set -euo pipefail: grep -c consumes all
+          # input but grep -oP can exit early; <<< is always safe.
+          PASS_COUNT=$(grep -c '^\s*\[PASS\]' <<< "${SMOKE_OUT}" || true)
+          FAIL_COUNT=$(grep -c '^\s*\[FAIL\]' <<< "${SMOKE_OUT}" || true)
           # Fallback: single-digit counters at the end line "N passed, N failed"
           if [[ "$PASS_COUNT" -eq 0 && "$FAIL_COUNT" -eq 0 ]]; then
-            PASS_COUNT=$(echo "$SMOKE_OUT" | grep -oP '\d+ passed' | grep -oP '\d+' || echo 0)
-            FAIL_COUNT=$(echo "$SMOKE_OUT" | grep -oP '\d+ failed'  | grep -oP '\d+' || echo 0)
+            PASS_COUNT=$(grep -oP '\d+ passed' <<< "${SMOKE_OUT}" | grep -oP '\d+' || echo 0)
+            FAIL_COUNT=$(grep -oP '\d+ failed'  <<< "${SMOKE_OUT}" | grep -oP '\d+' || echo 0)
           fi
 
           if [[ "$SMOKE_RC" -eq 0 ]]; then

@@ -417,6 +417,7 @@ jobs:
           steps.resolve.outputs.changed == 'true' &&
           steps.cve.outputs.cve_blocked != 'true' &&
           steps.resolve.outputs.current_digest != steps.resolve.outputs.pinned_digest
+        continue-on-error: true
         run: |
           gh api repos/${SRC_REPO}/dispatches \
             --method POST \
