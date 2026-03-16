@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-16T08:42:44Z",
+  "last_updated": "2026-03-16T08:43:21Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -661,16 +661,16 @@
       "tags": [
         "ghcr.io/gwshield/caddy:v2.11.2-ratelimit"
       ],
-      "digest": "sha256:a04a3bae5a29336b2637b7b9e74ceba749703aff741d9f8d0bf055f12d54944d",
+      "digest": "sha256:ff7799de3283feec21618a4aefa483488f7ec0c61def648952623582c6c93840",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-16T08:09:52Z",
+      "promoted_at": "2026-03-16T08:43:19Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-16T08:09:52Z"
+        "scanned_at": "2026-03-16T08:43:19Z"
       }
     },
     "caddy:v2.11.2-security": {
