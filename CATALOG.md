@@ -120,7 +120,7 @@ ENTRYPOINT ["/myapp"]
 | `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `b14641959728` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `60f96534ce8e` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `091bb7cfee83` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `405c28e80cb7` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `c0f73e2c5983` | 0 CVEs | 2026-03-16 |
 
 ### Python — reproducible wheel builds
 
