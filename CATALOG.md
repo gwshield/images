@@ -18,50 +18,50 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `2e592ebaa0b3` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `dcf4a8e62d48` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `b53474b4c49e` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `66c2f3276a95` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `d876da02d0da` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `ff7799de3283` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `edbddeb4329a` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `68fa5d227aad` | 0 CVEs | 2026-03-16 |
 
 ### HAProxy — high-performance TCP/HTTP load balancer
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `a961ea1d23a3` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `5a5e00ee00ca` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `5952bfbca7e6` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `6c166eee9816` | 0 CVEs | 2026-03-16 |
 
 ### NATS — cloud-native messaging and event streaming
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/nats:v2.12.5` | `v2.12.5` | standard | `0c305eec3bfd` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/nats:v2.12.5` | `v2.12.5` | standard | `ed96eb442f86` | 0 CVEs | 2026-03-16 |
 
 ### nginx — HTTP server / reverse proxy
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `e9adf51f20fb` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `a06eea3e695a` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `1456ae4905ea` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `749a818fb85c` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `b5e93cdf31a3` | 0 CVEs | 2026-03-16 |
 
 ### OpenTelemetry Collector — observability pipeline
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/otelcol:v0.147.0` | `v0.147.0` | standard | `4f6aef8d90e9` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/otelcol:v0.147.0` | `v0.147.0` | standard | `26c848e7f27f` | 0 CVEs | 2026-03-16 |
 
 ### Pomerium — identity-aware access proxy
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/pomerium:v0.32.2` | `v0.32.2` | standard | `8c43d150b6b0` | 2 findings (0 critical, 2 high) | 2026-03-16 |
+| `ghcr.io/gwshield/pomerium:v0.32.2` | `v0.32.2` | standard | `1c9ee4b1d5b4` | 2 findings (0 critical, 2 high) | 2026-03-16 |
 
 ### PostgreSQL — relational database
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `e32e00751ef8` | 1 findings (0 critical, 1 high) | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `c41994ff665d` | 1 findings (0 critical, 1 high) | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `d21300a53700` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `f40cfd37669b` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `51f34f0a4bc5` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `4b16703005f8` | 1 findings (0 critical, 1 high) | 2026-03-16 |
@@ -76,23 +76,23 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `1801f9f4d362` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `3367ce7f3849` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `6b41b6dd1083` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `65f2109b28f8` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `9e59c095981f` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `b1a0010254a0` | 0 CVEs | 2026-03-16 |
 
 ### Traefik — cloud-native edge router
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `518c9150d20b` | 3 findings (0 critical, 3 high) | 2026-03-16 |
+| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `f763f4411dd2` | 0 CVEs | 2026-03-16 |
 
 ### Valkey — open-source Redis fork
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `737d76ba2e1f` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `bb1dd3435278` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `5cdf92fc5d25` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `94eaacafc825` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `de4fa8f63f21` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `bd13ce623be1` | 0 CVEs | 2026-03-16 |
 
 ---
