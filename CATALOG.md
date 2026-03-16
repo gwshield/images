@@ -54,22 +54,22 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/pomerium:v0.32.2` | `v0.32.2` | standard | `8c43d150b6b0` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/pomerium:v0.32.2` | `v0.32.2` | standard | `8c43d150b6b0` | 2 findings (0 critical, 2 high) | 2026-03-16 |
 
 ### PostgreSQL — relational database
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `3e0251304f00` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `3e0251304f00` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `c41994ff665d` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `d29e835dc04a` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `bbc90e9e3a9f` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `2870e464d932` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `89714cb73fed` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `18a83227c66d` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `d29e835dc04a` | 1 findings (0 critical, 1 high) | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `bbc90e9e3a9f` | 1 findings (0 critical, 1 high) | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `2870e464d932` | 1 findings (0 critical, 1 high) | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `89714cb73fed` | 1 findings (0 critical, 1 high) | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `18a83227c66d` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `33ffdceb05f6` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `e26f728ad7be` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `10ffb6c4bf1d` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `e26f728ad7be` | 1 findings (0 critical, 1 high) | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `10ffb6c4bf1d` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 
 ### Redis — in-memory data store
 
@@ -84,7 +84,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `df8d4c9d13ae` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `df8d4c9d13ae` | 3 findings (0 critical, 3 high) | 2026-03-16 |
 
 ### Valkey — open-source Redis fork
 
@@ -127,9 +127,9 @@ ENTRYPOINT ["/myapp"]
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `840ddf52c21f` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `7e0ee72ca1a4` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `7e0ee72ca1a4` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `5f0b96670d84` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `f9b7e34203df` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `f9b7e34203df` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 
 ### Rust — reproducible static musl builds
 
