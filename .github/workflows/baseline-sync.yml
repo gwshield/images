@@ -71,7 +71,7 @@ jobs:
       matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
       - name: Build sync matrix
         id: matrix
@@ -117,7 +117,7 @@ jobs:
     steps:
       # ── Checkout + load local versions.env (no PAT needed) ──────────────
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
       - name: Load baseline config
         id: cfg
@@ -138,16 +138,16 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq skopeo
 
-      # ── Install cosign (curl + verify, same pattern as promote.yml) ───────
+      # ── Install cosign (curl + SHA256 verify, aligned with promote.yml) ────
       - name: Install cosign
         run: |
-          COSIGN_VERSION="v2.4.3"
           curl -fsSL \
-            "https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-amd64" \
+            "https://github.com/sigstore/cosign/releases/download/v3.0.5/cosign-linux-amd64" \
             -o /tmp/cosign
-          chmod +x /tmp/cosign
-          sudo mv /tmp/cosign /usr/local/bin/cosign
-          cosign version 2>/dev/null | head -1
+          echo "db15cc99e6e4837daabab023742aaddc3841ce57f193d11b7c3e06c8003642b2  /tmp/cosign" \
+            | sha256sum -c -
+          sudo install -m 0755 /tmp/cosign /usr/local/bin/cosign
+          cosign version
 
       # ── Check if mirror already exists + determine src_ref ─────────────
       - name: Resolve upstream digest
@@ -206,7 +206,7 @@ jobs:
       - name: Trivy scan local OCI image
         id: trivy
         if: steps.resolve.outputs.changed == 'true'
-        uses: aquasecurity/trivy-action@0.35.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1  # 0.35.0
         with:
           input: ${{ steps.pull.outputs.oci_dir }}
           format: json
@@ -252,7 +252,7 @@ jobs:
         if: >-
           always() && steps.resolve.outputs.changed == 'true' &&
           steps.cve.outputs.cve_blocked == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
         with:
           script: |
             await github.rest.issues.create({
@@ -276,7 +276,7 @@ jobs:
         if: >-
           steps.resolve.outputs.changed == 'true' &&
           steps.cve.outputs.cve_blocked != 'true'
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
         with:
           registry: ${{ env.DST_REGISTRY }}
           username: ${{ github.actor }}
@@ -332,8 +332,8 @@ jobs:
           cosign sign --yes \
             "${{ steps.cfg.outputs.BASELINE_MIRROR_IMAGE }}:${{ steps.cfg.outputs.BASELINE_MIRROR_TAG }}@${{ steps.mirror.outputs.pushed_digest }}"
           echo "Signed: ${{ steps.cfg.outputs.BASELINE_MIRROR_IMAGE }}:${{ steps.cfg.outputs.BASELINE_MIRROR_TAG }}@${{ steps.mirror.outputs.pushed_digest }}"
-        env:
-          COSIGN_EXPERIMENTAL: '1'
+        # COSIGN_EXPERIMENTAL=1 is deprecated in cosign v2/v3 — keyless signing
+        # is the default when no --key flag is provided. Removed.
 
 
       # ── SBOM + SLSA provenance attestation (Stufe 2 — Verified Mirror) ────
@@ -345,7 +345,7 @@ jobs:
           always() && steps.resolve.outputs.changed == 'true' &&
           steps.cve.outputs.cve_blocked != 'true' &&
           steps.mirror.outputs.pushed_digest != ''
-        uses: anchore/sbom-action/download-syft@v0
+        uses: anchore/sbom-action/download-syft@57aae528053a48a3f6235f2d9461b05fbcb7366d  # v0.23.1
 
       - name: Generate and attest SBOM
         id: sbom
@@ -404,7 +404,7 @@ jobs:
         if: >-
           always() && steps.sbom.conclusion != 'skipped' &&
           steps.mirror.outputs.pushed_digest != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: sbom-baseline-${{ matrix.slug }}
           path: sbom-out/

@@ -53,12 +53,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
         with:
           python-version: '3.12'
 
@@ -139,7 +139,7 @@ jobs:
       # Used by cosign and syft. skopeo uses --dest-creds directly.
       # -----------------------------------------------------------------------
       - name: Log in to GHCR (gwshield — GITHUB_TOKEN)
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
         with:
           registry: ${{ env.DST_REGISTRY }}
           username: ${{ github.actor }}
@@ -380,7 +380,7 @@ jobs:
       # SBOM: CycloneDX + SPDX via syft, attested with cosign
       # -----------------------------------------------------------------------
       - name: Install syft
-        uses: anchore/sbom-action/download-syft@v0
+        uses: anchore/sbom-action/download-syft@57aae528053a48a3f6235f2d9461b05fbcb7366d  # v0.23.1
 
       - name: Generate and attest SBOM
         id: sbom
@@ -472,7 +472,7 @@ jobs:
           echo "SBOM refs: ${SBOM_REFS}"
 
       - name: Upload SBOM artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: sbom-${{ github.event.client_payload.name }}-${{ github.event.client_payload.version }}
           path: sbom-out/
@@ -627,7 +627,7 @@ jobs:
           echo "Provenance refs: ${PROVENANCE_REFS}"
 
       - name: Upload SLSA provenance artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: provenance-${{ github.event.client_payload.name }}-${{ github.event.client_payload.version }}
           path: provenance-out/
@@ -645,7 +645,7 @@ jobs:
         id: trivy_scan
         if: steps.push.outputs.digest != ''
         continue-on-error: true
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1  # 0.35.0
         with:
           image-ref: ${{ steps.tags.outputs.dst_image }}@${{ steps.push.outputs.digest }}
           format: json
@@ -691,7 +691,7 @@ jobs:
 
       - name: Upload Trivy scan report
         if: always() && steps.push.outputs.digest != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: trivy-${{ github.event.client_payload.name }}-${{ github.event.client_payload.version }}-${{ github.run_id }}
           path: trivy-results.json
