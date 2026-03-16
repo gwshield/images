@@ -48,7 +48,7 @@ env:
 jobs:
   promote:
     name: Promote ${{ github.event.client_payload.name }}:${{ github.event.client_payload.version }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     steps:
@@ -1066,7 +1066,7 @@ jobs:
             --profile      "${{ github.event.client_payload.profile }}" \
             --result-file  "/tmp/smoke-result.json" \
             --run-url      "${RUN_URL}" \
-            --runner       "ubuntu-latest" \
+            --runner       "ubuntu-24.04" \
             --trigger      "post-promote"
 
       # -----------------------------------------------------------------------

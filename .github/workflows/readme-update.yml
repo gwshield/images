@@ -36,7 +36,7 @@ permissions:
 jobs:
   regenerate:
     name: Regenerate CATALOG.md
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
@@ -52,8 +52,16 @@ jobs:
 
       # Ensure we have the latest commit — promote.yml may have just pushed
       # registry.json a few seconds before this workflow started.
+      # Retry loop guards against transient rebase conflicts when many promote
+      # runs dispatch registry-updated concurrently (up to 43 simultaneous pushes).
       - name: Pull latest commits
-        run: git pull --rebase --autostash
+        run: |
+          for attempt in 1 2 3; do
+            git pull --rebase --autostash && break
+            echo "git pull --rebase failed (attempt ${attempt}/3) — retrying in 5s..." >&2
+            git rebase --abort 2>/dev/null || true
+            sleep 5
+          done
 
       - name: Validate registry.json exists
         run: |
