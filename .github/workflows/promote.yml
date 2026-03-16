@@ -980,7 +980,16 @@ jobs:
           VERSION:   ${{ github.event.client_payload.version }}
         run: |
           set -euo pipefail
-          SMOKE_SCRIPT="images/${NAME}/${VERSION}/tests/smoke.sh"
+          # Builder images live at images/builders/<name>/<version>/tests/smoke.sh
+          # Runtime/tooling images live at images/<name>/<version>/tests/smoke.sh
+          # Use the 'category' field from the dispatch payload to resolve the correct path.
+          CATEGORY="${{ github.event.client_payload.category }}"
+          if [[ "${CATEGORY}" == "builder" ]]; then
+            SMOKE_SCRIPT="images/builders/${NAME}/${VERSION}/tests/smoke.sh"
+          else
+            SMOKE_SCRIPT="images/${NAME}/${VERSION}/tests/smoke.sh"
+          fi
+
           PUBLIC_IMAGE="${DST_IMAGE}:${{ github.event.client_payload.base_version }}"
           [[ -n "${{ github.event.client_payload.profile }}" ]] && \
             PUBLIC_IMAGE="${DST_IMAGE}:${{ github.event.client_payload.base_version }}-${{ github.event.client_payload.profile }}"
