@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-16T06:30:02Z",
+  "last_updated": "2026-03-16T06:30:13Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -692,7 +692,7 @@
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-16T05:44:46Z"
+        "scanned_at": "2026-03-16T06:30:00Z"
       }
     },
     "caddy:v2.11.2-cloudflare": {
