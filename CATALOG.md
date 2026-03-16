@@ -129,7 +129,7 @@ ENTRYPOINT ["/myapp"]
 | `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `e7472ba44329` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `28c8568d97b5` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `1316dab0a5dd` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `f9b7e34203df` | 1 findings (0 critical, 1 high) | 2026-03-16 |
+| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `de8254096791` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 
 ### Rust — reproducible static musl builds
 
