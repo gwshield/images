@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-16T08:45:00Z",
+  "last_updated": "2026-03-16T08:45:54Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -929,16 +929,16 @@
         "ghcr.io/gwshield/nats:v2.12.5",
         "ghcr.io/gwshield/nats:latest"
       ],
-      "digest": "sha256:0adef0e21bfb3f94b493719bdce71f9162a1663552d415cd149ea9d546a6e2ba",
+      "digest": "sha256:0c305eec3bfd32bdb852837aa9c5c0bd1671db2a085c42984f51cb3d564d4035",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-16T08:10:15Z",
+      "promoted_at": "2026-03-16T08:45:43Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-16T08:10:15Z"
+        "scanned_at": "2026-03-16T08:45:43Z"
       }
     },
     "otelcol:v0.147.0": {
