@@ -18,10 +18,10 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `77fc66732d32` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `8be0a07e723e` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `d7ae956e9ea7` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `b53474b4c49e` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `1804e19d684c` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `a04a3bae5a29` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `f83438ffbc0c` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `ff7799de3283` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `893b9cc9ad0d` | 0 CVEs | 2026-03-16 |
 
 ### HAProxy — high-performance TCP/HTTP load balancer
 
@@ -60,13 +60,13 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `3e0251304f00` | 1 findings (0 critical, 1 high) | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `e32e00751ef8` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `c41994ff665d` | 1 findings (0 critical, 1 high) | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `d29e835dc04a` | 1 findings (0 critical, 1 high) | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `f40cfd37669b` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `bbc90e9e3a9f` | 1 findings (0 critical, 1 high) | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `2870e464d932` | 1 findings (0 critical, 1 high) | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `4b16703005f8` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `89714cb73fed` | 1 findings (0 critical, 1 high) | 2026-03-16 |
-| `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `18a83227c66d` | 1 findings (0 critical, 1 high) | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `72f020078d38` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `33ffdceb05f6` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `e26f728ad7be` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `10ffb6c4bf1d` | 1 findings (0 critical, 1 high) | 2026-03-16 |
@@ -84,7 +84,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `df8d4c9d13ae` | 3 findings (0 critical, 3 high) | 2026-03-16 |
+| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `518c9150d20b` | 3 findings (0 critical, 3 high) | 2026-03-16 |
 
 ### Valkey — open-source Redis fork
 
@@ -117,8 +117,8 @@ ENTRYPOINT ["/myapp"]
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `07046af7bf43` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `283fbd8ba5e6` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `b14641959728` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `60f96534ce8e` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `edb035c7622c` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `405c28e80cb7` | 0 CVEs | 2026-03-16 |
 
@@ -126,7 +126,7 @@ ENTRYPOINT ["/myapp"]
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `840ddf52c21f` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `e7472ba44329` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `7e0ee72ca1a4` | 1 findings (0 critical, 1 high) | 2026-03-16 |
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `5f0b96670d84` | 0 CVEs | 2026-03-16 |
 | `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `f9b7e34203df` | 1 findings (0 critical, 1 high) | 2026-03-16 |
