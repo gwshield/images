@@ -27,28 +27,28 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `5952bfbca7e6` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `5952bfbca7e6` | 0 CVEs | 2026-03-17 |
 | `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `6c166eee9816` | 0 CVEs | 2026-03-17 |
 
 ### NATS — cloud-native messaging and event streaming
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/nats:v2.12.5` | `v2.12.5` | standard | `ed96eb442f86` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/nats:v2.12.5` | `v2.12.5` | standard | `ed96eb442f86` | 0 CVEs | 2026-03-17 |
 
 ### nginx — HTTP server / reverse proxy
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `e9adf51f20fb` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `749a818fb85c` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `b5e93cdf31a3` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `e9adf51f20fb` | 0 CVEs | 2026-03-17 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `749a818fb85c` | 0 CVEs | 2026-03-17 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `b5e93cdf31a3` | 0 CVEs | 2026-03-17 |
 
 ### OpenTelemetry Collector — observability pipeline
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/otelcol:v0.147.0` | `v0.147.0` | standard | `26c848e7f27f` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/otelcol:v0.147.0` | `v0.147.0` | standard | `26c848e7f27f` | 0 CVEs | 2026-03-17 |
 
 ### Pomerium — identity-aware access proxy
 
@@ -61,7 +61,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `e32e00751ef8` | 1 findings (0 critical, 1 high) | 2026-03-17 |
-| `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `d21300a53700` | 1 findings (0 critical, 1 high) | 2026-03-16 |
+| `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `d21300a53700` | 1 findings (0 critical, 1 high) | 2026-03-17 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `f40cfd37669b` | 1 findings (0 critical, 1 high) | 2026-03-17 |
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `51f34f0a4bc5` | 1 findings (0 critical, 1 high) | 2026-03-17 |
 | `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `4b16703005f8` | 1 findings (0 critical, 1 high) | 2026-03-16 |
@@ -90,10 +90,10 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `737d76ba2e1f` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `737d76ba2e1f` | 0 CVEs | 2026-03-17 |
 | `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `94eaacafc825` | 0 CVEs | 2026-03-17 |
-| `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `de4fa8f63f21` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `bd13ce623be1` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `de4fa8f63f21` | 0 CVEs | 2026-03-17 |
+| `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `bd13ce623be1` | 0 CVEs | 2026-03-17 |
 
 ---
 
@@ -135,8 +135,8 @@ ENTRYPOINT ["/myapp"]
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `18339a151d75` | 0 CVEs | 2026-03-16 |
-| `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `1b7e5141eb9f` | 0 CVEs | 2026-03-16 |
+| `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `18339a151d75` | 0 CVEs | 2026-03-17 |
+| `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `1b7e5141eb9f` | 0 CVEs | 2026-03-17 |
 
 ---
 
