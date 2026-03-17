@@ -438,7 +438,7 @@ jobs:
       #   reachable      skopeo inspect ok
       #   digest_match   mirror manifest digest recorded
       #   cosign_sig     keyless signature verifiable (gwshield/images OIDC)
-      #   sbom_attest    cosign verify-attestation --type spdx ok
+       #   sbom_attest    cosign verify-attestation --type spdxjson ok
       #   multi_platform linux/amd64 + linux/arm64 platform manifests present
       - name: Mirror verification smoke test
         id: smoke
@@ -497,12 +497,14 @@ jobs:
           fi
 
           # 4. SBOM attestation
-          if cosign verify-attestation               --type spdx               --certificate-identity-regexp="https://github.com/gwshield/images.*"               --certificate-oidc-issuer="https://token.actions.githubusercontent.com"               "${MIRROR}:${TAG}@${DIGEST}" >/dev/null 2>&1; then
-            _pass "SBOM attestation present (spdx)" "cosign verify-attestation ok"
-            _record "sbom_attest" "SBOM attestation present (spdx)" "passed" "cosign verify-attestation ok"
+          # syft --output spdx-json produces JSON; cosign stores it with
+          # predicateType spdxjson. verify-attestation must use --type spdxjson.
+          if cosign verify-attestation               --type spdxjson               --certificate-identity-regexp="https://github.com/gwshield/images.*"               --certificate-oidc-issuer="https://token.actions.githubusercontent.com"               "${MIRROR}:${TAG}@${DIGEST}" >/dev/null 2>&1; then
+            _pass "SBOM attestation present (spdxjson)" "cosign verify-attestation ok"
+            _record "sbom_attest" "SBOM attestation present (spdxjson)" "passed" "cosign verify-attestation ok"
           else
-            _fail "SBOM attestation present (spdx)" "cosign verify-attestation failed"
-            _record "sbom_attest" "SBOM attestation present (spdx)" "failed" "cosign verify-attestation failed"
+            _fail "SBOM attestation present (spdxjson)" "cosign verify-attestation failed"
+            _record "sbom_attest" "SBOM attestation present (spdxjson)" "failed" "cosign verify-attestation failed"
           fi
 
           # 5. Multi-platform manifests
