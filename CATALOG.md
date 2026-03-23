@@ -21,7 +21,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `66c2f3276a95` | 0 CVEs | 2026-03-17 |
 | `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `d876da02d0da` | 0 CVEs | 2026-03-17 |
 | `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `edbddeb4329a` | 0 CVEs | 2026-03-17 |
-| `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `68fa5d227aad` | 0 CVEs | 2026-03-17 |
+| `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `68fa5d227aad` | 2 findings (1 critical, 1 high) | 2026-03-17 |
 
 ### HAProxy — high-performance TCP/HTTP load balancer
 
