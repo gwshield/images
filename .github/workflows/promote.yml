@@ -73,10 +73,9 @@ jobs:
         id: token-src
         uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547  # v1.12.0
         with:
-          app-id:       ${{ secrets.GWSHIELD_BUILDER_APP_ID }}
-          private-key:  ${{ secrets.GWSHIELD_BUILDER_PRIVATE_KEY }}
-          owner:        gwshield
-          repositories: images-processor
+          app-id:      ${{ secrets.GWSHIELD_BUILDER_APP_ID }}
+          private-key: ${{ secrets.GWSHIELD_BUILDER_PRIVATE_KEY }}
+          owner:       gwshield
 
       # -----------------------------------------------------------------------
       # Unit-test supabase_ingress.py pure helpers before any DB write.
