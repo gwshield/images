@@ -184,15 +184,15 @@ jobs:
 
       # -----------------------------------------------------------------------
       # Copy source image to gwshield GHCR via skopeo.
-      # --src-creds: RELICFROG_READ_PAT (classic PAT, read:packages for
-      #   ghcr.io/gwshield private packages — App token lacks packages: read).
+      # --src-creds: gwshield-builder App token (owner: gwshield, packages: write).
+      #   Testing if packages:write permission on App now grants GHCR pull access.
       # --dest-creds: GITHUB_TOKEN (native write:packages for gwshield org).
       # Source addressed by tag — GHCR resolves tag refs reliably.
       # -----------------------------------------------------------------------
       - name: Copy image to ghcr.io/gwshield (skopeo)
         id: push
         env:
-          SRC_CREDS: x-access-token:${{ secrets.RELICFROG_READ_PAT }}
+          SRC_CREDS: x-access-token:${{ steps.token-src.outputs.token }}
           DST_CREDS: x-access-token:${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
