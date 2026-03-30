@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-30T08:53:28Z",
+  "last_updated": "2026-03-30T08:53:29Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -616,16 +616,16 @@
       "tags": [
         "ghcr.io/gwshield/haproxy:v3.1.16-ssl"
       ],
-      "digest": "sha256:6c166eee98162d10dd22249dc2f9c58daed71ddfb2e8c66c4394dfcb4e220183",
+      "digest": "",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:10Z",
+      "promoted_at": "2026-03-30T08:53:13Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:10Z"
+        "scanned_at": "2026-03-30T08:53:13Z"
       }
     },
     "caddy:v2.11.2": {
