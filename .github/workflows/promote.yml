@@ -1,12 +1,12 @@
 # =============================================================================
-# PROMOTE — Receive image promotion requests from RelicFrog/gwshield-images
+# PROMOTE — Receive image promotion requests from gwshield/images-processor
 # =============================================================================
 # Triggered by repository_dispatch (event: promote-image) from the private
-# build pipeline (RelicFrog/gwshield-images release-public workflow).
+# build pipeline (gwshield/images-processor release-public workflow).
 #
 # Auth strategy (no broad PATs, no credential leakage):
-#   - Src pull (ghcr.io/relicfrog): RELICFROG_READ_PAT — fine-grained PAT
-#     scoped to RelicFrog/gwshield-images with read:packages only
+#   - Src pull (ghcr.io/gwshield): gwshield-builder App token — fine-grained,
+#     scoped to gwshield org, read:packages for gwshield/images-processor
 #   - Dst push (ghcr.io/gwshield):  GITHUB_TOKEN — native write:packages for
 #     gwshield org (this workflow runs inside gwshield/images)
 #   - cosign OIDC:                  id-token: write — OIDC identity from
@@ -19,7 +19,7 @@
 #   profile      e.g. "" or "tls" or "cluster"
 #   src_digest   e.g. sha256:abc123...  (used for signing/SBOM ref)
 #   src_tag      e.g. v3.6.9 or main    (tag resolved upstream — used for copy)
-#   src_image    e.g. ghcr.io/relicfrog/gwshield-traefik
+#   src_image    e.g. ghcr.io/gwshield/gwshield-traefik
 #   platforms    e.g. ["linux/amd64","linux/arm64"] (from release-public.yml detection)
 #                Hint only — promote.yml re-detects from the pushed destination image.
 # =============================================================================
@@ -41,7 +41,7 @@ permissions:
 
 env:
   SRC_REGISTRY: ghcr.io
-  SRC_ORG:      relicfrog
+  SRC_ORG:      gwshield
   DST_REGISTRY: ghcr.io
   DST_ORG:      gwshield
 
@@ -63,6 +63,21 @@ jobs:
           python-version: '3.12'
 
       # -----------------------------------------------------------------------
+      # Generate gwshield-builder App token for gwshield org.
+      # Used for:
+      #   - src pull (ghcr.io/gwshield) via skopeo --src-creds
+      #   - API fetch from gwshield/images-processor (gwshield-init-test.c,
+      #     gen-trivyignore.py, allowlist.yaml files)
+      # -----------------------------------------------------------------------
+      - name: Generate token for gwshield org (src pull + API auth)
+        id: token-src
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547  # v1.12.0
+        with:
+          app-id:      ${{ secrets.GWSHIELD_BUILDER_APP_ID }}
+          private-key: ${{ secrets.GWSHIELD_BUILDER_PRIVATE_KEY }}
+          owner:       gwshield
+
+      # -----------------------------------------------------------------------
       # Unit-test supabase_ingress.py pure helpers before any DB write.
       # Tests cover slug derivation, image_type detection, version group
       # heuristic, OS tag, Trivy findings parsing, and env-guard behaviour.
@@ -74,21 +89,21 @@ jobs:
 
       # -----------------------------------------------------------------------
       # Unit-test gwshield-init argv protocol (v1.1) before any image promote.
-      # Fetches gwshield-init-test.c from RelicFrog/gwshield-images via API,
+      # Fetches gwshield-init-test.c from gwshield/images-processor via API,
       # compiles it with musl-gcc in Alpine, and runs 26 test cases covering
       # parse_gws_args() -- --gws-version, --gws-exec, passthrough, edge-cases.
-      # continue-on-error: true — RELICFROG_READ_PAT expiry must not block promote.
+      # continue-on-error: true — App token unavailability must not block promote.
       # -----------------------------------------------------------------------
       - name: Test gwshield-init (C unit tests)
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.RELICFROG_READ_PAT }}
+          GH_TOKEN: ${{ steps.token-src.outputs.token }}
         run: |
           set -euo pipefail
           curl -sSfL \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github.v3.raw" \
-            "https://api.github.com/repos/RelicFrog/gwshield-images/contents/shared/banner/gwshield-init-test.c" \
+            "https://api.github.com/repos/gwshield/images-processor/contents/shared/banner/gwshield-init-test.c" \
             -o /tmp/gwshield-init-test.c
           docker run --rm \
             -v /tmp/gwshield-init-test.c:/src/gwshield-init-test.c:ro \
@@ -168,15 +183,15 @@ jobs:
 
       # -----------------------------------------------------------------------
       # Copy source image to gwshield GHCR via skopeo.
-      # --src-creds: RELICFROG_READ_PAT (fine-grained, read:packages only,
-      #   scoped to RelicFrog/gwshield-images — the repo that owns the packages).
+      # --src-creds: gwshield-builder App token (gwshield org, read:packages
+      #   for gwshield/images-processor where the packages are owned).
       # --dest-creds: GITHUB_TOKEN (native write:packages for gwshield org).
       # Source addressed by tag — GHCR resolves tag refs reliably.
       # -----------------------------------------------------------------------
       - name: Copy image to ghcr.io/gwshield (skopeo)
         id: push
         env:
-          SRC_CREDS: x-access-token:${{ secrets.RELICFROG_READ_PAT }}
+          SRC_CREDS: x-access-token:${{ steps.token-src.outputs.token }}
           DST_CREDS: x-access-token:${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
@@ -840,15 +855,15 @@ jobs:
             --image-type      "${{ github.event.client_payload.image_type }}" \
             "${PLAT_ARGS[@]}"
 
-      # Fetch allowlist for this image from RelicFrog/gwshield-images so suppressed
+      # Fetch allowlist for this image from gwshield/images-processor so suppressed
       # CVEs can be written transparently alongside real Trivy findings.
       # gen-trivyignore.py + all allowlist.yaml files are fetched via API.
-      # Gracefully skipped if RELICFROG_READ_PAT is unavailable or fetch fails.
+      # Gracefully skipped if App token is unavailable or fetch fails.
       - name: Generate allowlist-findings.json
         if: always()
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.RELICFROG_READ_PAT }}
+          GH_TOKEN: ${{ steps.token-src.outputs.token }}
         run: |
           set -euo pipefail
           NAME="${{ github.event.client_payload.name }}"
@@ -858,7 +873,7 @@ jobs:
           curl -sSfL \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github.v3.raw" \
-            "https://api.github.com/repos/RelicFrog/gwshield-images/contents/shared/scripts/gen-trivyignore.py" \
+            "https://api.github.com/repos/gwshield/images-processor/contents/shared/scripts/gen-trivyignore.py" \
             -o /tmp/gen-trivyignore.py
 
           # Fetch all allowlist.yaml files and reconstruct the images/ tree locally
@@ -870,7 +885,7 @@ jobs:
           name  = os.environ["NAME"]
 
           def gh_get(path):
-              url = f"https://api.github.com/repos/RelicFrog/gwshield-images/contents/{path}"
+              url = f"https://api.github.com/repos/gwshield/images-processor/contents/{path}"
               req = urllib.request.Request(url, headers={
                   "Authorization": f"Bearer {token}",
                   "Accept": "application/vnd.github.v3+json",
