@@ -4,7 +4,7 @@
 > Do not edit manually — changes will be overwritten.
 > Static content and documentation live in [README.md](README.md).
 
-*Last updated: 2026-03-23*
+*Last updated: 2026-03-30*
 
 ---
 
@@ -84,7 +84,8 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `f763f4411dd2` | 0 CVEs | 2026-03-17 |
+| `ghcr.io/gwshield/traefik:v3.6.12` | `v3.6.12` | standard | `—` | 0 CVEs | 2026-03-30 |
+| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `—` | 0 CVEs | 2026-03-30 |
 
 ### Valkey — open-source Redis fork
 
@@ -198,6 +199,7 @@ cosign download sbom ghcr.io/gwshield/caddy:v2.11.2
 | runtime | `ghcr.io/gwshield/redis` | `v7.4.8-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cli` |
 | runtime | `ghcr.io/gwshield/redis` | `v7.4.8-cluster` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-cluster` |
 | runtime | `ghcr.io/gwshield/redis` | `v7.4.8-tls` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/redis:v7.4.8-tls` |
+| runtime | `ghcr.io/gwshield/traefik` | `v3.6.12` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/traefik:v3.6.12` |
 | runtime | `ghcr.io/gwshield/traefik` | `v3.6.9` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/traefik:v3.6.9` |
 | runtime | `ghcr.io/gwshield/valkey` | `v8.1.6` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/valkey:v8.1.6` |
 | runtime | `ghcr.io/gwshield/valkey` | `v8.1.6-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/valkey:v8.1.6-cli` |
