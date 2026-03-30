@@ -63,7 +63,7 @@ jobs:
           python-version: '3.12'
 
       # -----------------------------------------------------------------------
-      # Generate gwshield-builder App token for gwshield org.
+      # Generate gwshield-img-builder App token for gwshield org.
       # Used for:
       #   - src pull (ghcr.io/gwshield) via skopeo --src-creds
       #   - API fetch from gwshield/images-processor (gwshield-init-test.c,
@@ -73,8 +73,8 @@ jobs:
         id: token-src
         uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547  # v1.12.0
         with:
-          app-id:      ${{ secrets.GWSHIELD_BUILDER_APP_ID }}
-          private-key: ${{ secrets.GWSHIELD_BUILDER_PRIVATE_KEY }}
+          app-id:      ${{ secrets.GWSHIELD_IMG_BUILDER_GITHUB_APP_ID }}
+          private-key: ${{ secrets.GWSHIELD_IMG_BUILDER_PRIVATE_KEY }}
           owner:       gwshield
 
       # -----------------------------------------------------------------------
