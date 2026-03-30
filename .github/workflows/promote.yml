@@ -5,8 +5,8 @@
 # build pipeline (gwshield/images-processor release-public workflow).
 #
 # Auth strategy (no broad PATs, no credential leakage):
-#   - Src pull (ghcr.io/gwshield): gwshield-builder App token — fine-grained,
-#     scoped to gwshield org, read:packages for gwshield/images-processor
+#   - Src pull (ghcr.io/gwshield): RELICFROG_READ_PAT — classic PAT,
+#     read:packages for ghcr.io/gwshield private packages
 #   - Dst push (ghcr.io/gwshield):  GITHUB_TOKEN — native write:packages for
 #     gwshield org (this workflow runs inside gwshield/images)
 #   - cosign OIDC:                  id-token: write — OIDC identity from
@@ -184,15 +184,15 @@ jobs:
 
       # -----------------------------------------------------------------------
       # Copy source image to gwshield GHCR via skopeo.
-      # --src-creds: gwshield-builder App token (gwshield org, read:packages
-      #   for gwshield/images-processor where the packages are owned).
+      # --src-creds: RELICFROG_READ_PAT (classic PAT, read:packages for
+      #   ghcr.io/gwshield private packages — App token lacks packages: read).
       # --dest-creds: GITHUB_TOKEN (native write:packages for gwshield org).
       # Source addressed by tag — GHCR resolves tag refs reliably.
       # -----------------------------------------------------------------------
       - name: Copy image to ghcr.io/gwshield (skopeo)
         id: push
         env:
-          SRC_CREDS: x-access-token:${{ steps.token-src.outputs.token }}
+          SRC_CREDS: x-access-token:${{ secrets.RELICFROG_READ_PAT }}
           DST_CREDS: x-access-token:${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
