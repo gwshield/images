@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-30T07:49:58Z",
+  "last_updated": "2026-03-30T07:50:07Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -603,7 +603,7 @@
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:47Z"
+        "scanned_at": "2026-03-30T07:49:51Z"
       }
     },
     "haproxy:v3.1.16-ssl": {
