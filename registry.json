@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-30T08:56:25Z",
+  "last_updated": "2026-03-30T09:00:20Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -424,7 +424,7 @@
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-30T08:55:22Z"
+        "scanned_at": "2026-03-30T09:00:10Z"
       }
     },
     "postgres:v17.9-cli": {
