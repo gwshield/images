@@ -34,7 +34,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/nats:v2.12.5` | `v2.12.5` | standard | `ed96eb442f86` | 0 CVEs | 2026-03-17 |
+| `ghcr.io/gwshield/nats:v2.12.5` | `v2.12.5` | standard | `—` | 0 CVEs | 2026-03-30 |
 
 ### nginx — HTTP server / reverse proxy
 
@@ -68,14 +68,14 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `—` | 0 CVEs | 2026-03-30 |
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `—` | 0 CVEs | 2026-03-30 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `—` | 0 CVEs | 2026-03-30 |
-| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `1061ad1c5213` | 0 CVEs | 2026-03-17 |
+| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `—` | 0 CVEs | 2026-03-30 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `—` | 0 CVEs | 2026-03-30 |
 
 ### Redis — in-memory data store
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `1801f9f4d362` | 0 CVEs | 2026-03-17 |
+| `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `—` | 0 CVEs | 2026-03-30 |
 | `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `—` | 0 CVEs | 2026-03-30 |
 | `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `65f2109b28f8` | 0 CVEs | 2026-03-17 |
 | `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `—` | 0 CVEs | 2026-03-30 |
