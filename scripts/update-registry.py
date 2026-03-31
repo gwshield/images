@@ -15,6 +15,8 @@
 #     --digest sha256:abc123 \
 #     --tags "ghcr.io/gwshield/postgres:v15.17 ghcr.io/gwshield/postgres:latest" \
 #     --cosign-identity "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main" \
+#     --sbom-ref '{"linux/amd64": "ghcr.io/gwshield/postgres@sha256:abc123"}' \
+#     --provenance-ref '{"linux/amd64": "ghcr.io/gwshield/postgres@sha256:abc123"}' \
 #     --promoted-at "2026-03-08T12:00:00Z"
 #
 #   # After a scan:
@@ -47,6 +49,8 @@
 #     "tags":             ["ghcr.io/gwshield/postgres:v15.17", ...],
 #     "digest":           "sha256:...",
 #     "cosign_identity":  "https://github.com/gwshield/images/...",
+#     "sbom_ref":         {"linux/amd64": "ghcr.io/gwshield/postgres@sha256:..."},
+#     "provenance_ref":   {"linux/amd64": "ghcr.io/gwshield/postgres@sha256:..."},
 #     "promoted_at":      "2026-03-08T12:00:00Z",
 #     "scan": {
 #       "status":         "clean",        # clean | findings | unknown
@@ -75,6 +79,7 @@ SCHEMA_VERSION = "1"
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def now_utc() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -90,7 +95,10 @@ def load_registry() -> dict:
                 data["schema_version"] = SCHEMA_VERSION
             return data
         except json.JSONDecodeError as exc:
-            print(f"WARNING: registry.json is invalid JSON ({exc}) — starting fresh", file=sys.stderr)
+            print(
+                f"WARNING: registry.json is invalid JSON ({exc}) — starting fresh",
+                file=sys.stderr,
+            )
     return {
         "schema_version": SCHEMA_VERSION,
         "last_updated": now_utc(),
@@ -120,6 +128,20 @@ def parse_tags(tags_str: str) -> list[str]:
 # Subcommand: promote
 # ---------------------------------------------------------------------------
 
+
+def parse_json_or_empty(val: str) -> dict | None:
+    """Parse a JSON string; return None for empty/invalid input."""
+    if not val or val.strip() in ("", "{}", "null"):
+        return None
+    try:
+        parsed = json.loads(val)
+        if isinstance(parsed, dict) and parsed:
+            return parsed
+    except (json.JSONDecodeError, TypeError):
+        pass
+    return None
+
+
 def cmd_promote(args: argparse.Namespace) -> None:
     registry = load_registry()
     key = image_key(args.name, args.version)
@@ -127,26 +149,36 @@ def cmd_promote(args: argparse.Namespace) -> None:
 
     existing = registry["images"].get(key, {})
 
+    sbom_ref = parse_json_or_empty(args.sbom_ref) or existing.get("sbom_ref")
+    provenance_ref = parse_json_or_empty(args.provenance_ref) or existing.get(
+        "provenance_ref"
+    )
+
     entry: dict = {
-        "name":            args.name,
-        "version":         args.version,
-        "base_version":    args.base_version or args.version.split("-")[0],
-        "profile":         args.profile or "",
-        "category":        args.category or "runtime",
-        "public_image":    f"ghcr.io/gwshield/{args.name}",
-        "tags":            tags,
-        "digest":          args.digest,
+        "name": args.name,
+        "version": args.version,
+        "base_version": args.base_version or args.version.split("-")[0],
+        "profile": args.profile or "",
+        "category": args.category or "runtime",
+        "public_image": f"ghcr.io/gwshield/{args.name}",
+        "tags": tags,
+        "digest": args.digest,
         "cosign_identity": args.cosign_identity or "",
-        "promoted_at":     args.promoted_at or now_utc(),
+        "sbom_ref": sbom_ref,
+        "provenance_ref": provenance_ref,
+        "promoted_at": args.promoted_at or now_utc(),
         # Preserve existing scan data if not overwritten
-        "scan":            existing.get("scan", {
-            "status":     "unknown",
-            "total":      None,
-            "critical":   None,
-            "high":       None,
-            "scanner":    None,
-            "scanned_at": None,
-        }),
+        "scan": existing.get(
+            "scan",
+            {
+                "status": "unknown",
+                "total": None,
+                "critical": None,
+                "high": None,
+                "scanner": None,
+                "scanned_at": None,
+            },
+        ),
     }
 
     registry["images"][key] = entry
@@ -158,6 +190,7 @@ def cmd_promote(args: argparse.Namespace) -> None:
 # Subcommand: scan
 # ---------------------------------------------------------------------------
 
+
 def cmd_scan(args: argparse.Namespace) -> None:
     registry = load_registry()
     key = image_key(args.name, args.version)
@@ -166,21 +199,21 @@ def cmd_scan(args: argparse.Namespace) -> None:
         # Create a minimal skeleton if the image was never promoted
         # (e.g. scan runs before first promote — unlikely but safe)
         registry["images"][key] = {
-            "name":            args.name,
-            "version":         args.version,
-            "base_version":    args.version.split("-")[0],
-            "profile":         "",
-            "public_image":    f"ghcr.io/gwshield/{args.name}",
-            "tags":            [],
-            "digest":          "",
+            "name": args.name,
+            "version": args.version,
+            "base_version": args.version.split("-")[0],
+            "profile": "",
+            "public_image": f"ghcr.io/gwshield/{args.name}",
+            "tags": [],
+            "digest": "",
             "cosign_identity": "",
-            "promoted_at":     None,
-            "scan":            {},
+            "promoted_at": None,
+            "scan": {},
         }
 
-    total    = int(args.cve_total)
+    total = int(args.cve_total)
     critical = int(args.cve_critical)
-    high     = int(args.cve_high)
+    high = int(args.cve_high)
 
     if total == 0:
         status = "clean"
@@ -188,21 +221,24 @@ def cmd_scan(args: argparse.Namespace) -> None:
         status = "findings"
 
     registry["images"][key]["scan"] = {
-        "status":     status,
-        "total":      total,
-        "critical":   critical,
-        "high":       high,
-        "scanner":    args.scanner or "trivy",
+        "status": status,
+        "total": total,
+        "critical": critical,
+        "high": high,
+        "scanner": args.scanner or "trivy",
         "scanned_at": args.scanned_at or now_utc(),
     }
 
     save_registry(registry)
-    print(f"scan: updated {key} → status={status}, total={total}, critical={critical}, high={high}")
+    print(
+        f"scan: updated {key} → status={status}, total={total}, critical={critical}, high={high}"
+    )
 
 
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -211,26 +247,54 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     # --- promote ---
-    p = sub.add_parser("promote", help="Upsert an image entry after a successful promote")
-    p.add_argument("--name",             required=True,  help="Image name (e.g. postgres)")
-    p.add_argument("--version",          required=True,  help="Full version tag (e.g. v15.17-tls)")
-    p.add_argument("--base-version",     default="",     help="Base version without profile suffix (e.g. v15.17)")
-    p.add_argument("--profile",          default="",     help="Profile suffix (e.g. tls, cluster, '')")
-    p.add_argument("--category",         default="runtime", help="Image category: runtime | builder")
-    p.add_argument("--digest",           required=True,  help="OCI digest of the pushed image (sha256:...)")
-    p.add_argument("--tags",             default="",     help="Space- or comma-separated list of public tags")
-    p.add_argument("--cosign-identity",  default="",     help="cosign OIDC identity URL")
-    p.add_argument("--promoted-at",      default="",     help="ISO8601 timestamp (default: now)")
+    p = sub.add_parser(
+        "promote", help="Upsert an image entry after a successful promote"
+    )
+    p.add_argument("--name", required=True, help="Image name (e.g. postgres)")
+    p.add_argument(
+        "--version", required=True, help="Full version tag (e.g. v15.17-tls)"
+    )
+    p.add_argument(
+        "--base-version",
+        default="",
+        help="Base version without profile suffix (e.g. v15.17)",
+    )
+    p.add_argument(
+        "--profile", default="", help="Profile suffix (e.g. tls, cluster, '')"
+    )
+    p.add_argument(
+        "--category", default="runtime", help="Image category: runtime | builder"
+    )
+    p.add_argument(
+        "--digest", required=True, help="OCI digest of the pushed image (sha256:...)"
+    )
+    p.add_argument(
+        "--tags", default="", help="Space- or comma-separated list of public tags"
+    )
+    p.add_argument("--cosign-identity", default="", help="cosign OIDC identity URL")
+    p.add_argument(
+        "--sbom-ref",
+        default="",
+        help="JSON map platform→OCI digest ref for SBOM attestation",
+    )
+    p.add_argument(
+        "--provenance-ref",
+        default="",
+        help="JSON map platform→OCI digest ref for SLSA provenance attestation",
+    )
+    p.add_argument("--promoted-at", default="", help="ISO8601 timestamp (default: now)")
 
     # --- scan ---
     s = sub.add_parser("scan", help="Update CVE scan status for an image entry")
-    s.add_argument("--name",         required=True,  help="Image name (e.g. postgres)")
-    s.add_argument("--version",      required=True,  help="Full version tag (e.g. v15.17)")
-    s.add_argument("--cve-total",    required=True,  help="Total findings after false-positive filter")
-    s.add_argument("--cve-critical", default="0",    help="CRITICAL findings count")
-    s.add_argument("--cve-high",     default="0",    help="HIGH findings count")
-    s.add_argument("--scanner",      default="trivy", help="Scanner name")
-    s.add_argument("--scanned-at",   default="",     help="ISO8601 timestamp (default: now)")
+    s.add_argument("--name", required=True, help="Image name (e.g. postgres)")
+    s.add_argument("--version", required=True, help="Full version tag (e.g. v15.17)")
+    s.add_argument(
+        "--cve-total", required=True, help="Total findings after false-positive filter"
+    )
+    s.add_argument("--cve-critical", default="0", help="CRITICAL findings count")
+    s.add_argument("--cve-high", default="0", help="HIGH findings count")
+    s.add_argument("--scanner", default="trivy", help="Scanner name")
+    s.add_argument("--scanned-at", default="", help="ISO8601 timestamp (default: now)")
 
     return parser
 
