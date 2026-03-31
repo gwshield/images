@@ -473,7 +473,7 @@ jobs:
                 syft "${DST_IMAGE}@${PDIGEST}" \
                   --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json
 
-                if cosign attest --yes \
+                if cosign attest --yes --tlog-upload=false \
                   --predicate sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json \
                   --type spdx \
                   "${DST_IMAGE}@${PDIGEST}"; then
@@ -489,7 +489,7 @@ jobs:
               # Single-arch — attest to manifest digest
               syft "${DST_IMAGE}@${DIGEST}" \
                 --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
-              if cosign attest --yes \
+              if cosign attest --yes --tlog-upload=false \
                 --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
                 --type spdx \
                 "${DST_IMAGE}@${DIGEST}"; then
@@ -507,12 +507,12 @@ jobs:
             syft "${DST_IMAGE}@${DIGEST}" \
               --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
 
-            cosign attest --yes \
+            cosign attest --yes --tlog-upload=false \
               --predicate sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json \
               --type cyclonedx \
               "${DST_IMAGE}@${DIGEST}" || true
 
-            if cosign attest --yes \
+            if cosign attest --yes --tlog-upload=false \
               --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
               --type spdx \
               "${DST_IMAGE}@${DIGEST}"; then
