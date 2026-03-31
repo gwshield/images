@@ -426,6 +426,20 @@ jobs:
 
           PLATFORMS_JSON="${{ steps.plat.outputs.platforms_json }}"
           SBOM_REFS="{}"
+          SBOM_ERRORS=0
+
+          # Ensure step outputs are always written, even on failure.
+          # Without this, continue-on-error produces an empty output and
+          # downstream steps (registry update) silently get null refs.
+          write_output() {
+            _D=$(openssl rand -hex 8)
+            { echo "sbom_refs_json<<${_D}"; echo "${SBOM_REFS}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
+            echo "SBOM refs: ${SBOM_REFS}"
+            if [[ "${SBOM_ERRORS}" -gt 0 ]]; then
+              echo "WARNING: ${SBOM_ERRORS} platform(s) failed SBOM attestation"
+            fi
+          }
+          trap write_output EXIT
 
           # If we have per-platform platform list, attest SBOM per platform digest
           if [[ -n "${PLATFORMS_JSON}" && "${PLATFORMS_JSON}" != "[]" ]]; then
@@ -459,24 +473,31 @@ jobs:
                 syft "${DST_IMAGE}@${PDIGEST}" \
                   --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json
 
-                cosign attest --yes \
+                if cosign attest --yes \
                   --predicate sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json \
                   --type spdx \
-                  "${DST_IMAGE}@${PDIGEST}"
-
-                SBOM_REF="${DST_IMAGE}@${PDIGEST}"
-                SBOM_REFS=$(echo "${SBOM_REFS}" | jq -c --arg k "${PLAT}" --arg v "${SBOM_REF}" '. + {($k): $v}')
-                echo "  SBOM attested for ${PLAT}: ${DST_IMAGE}@${PDIGEST}"
+                  "${DST_IMAGE}@${PDIGEST}"; then
+                  SBOM_REF="${DST_IMAGE}@${PDIGEST}"
+                  SBOM_REFS=$(echo "${SBOM_REFS}" | jq -c --arg k "${PLAT}" --arg v "${SBOM_REF}" '. + {($k): $v}')
+                  echo "  SBOM attested for ${PLAT}: ${DST_IMAGE}@${PDIGEST}"
+                else
+                  echo "  WARNING: SBOM attestation failed for ${PLAT} — continuing"
+                  SBOM_ERRORS=$((SBOM_ERRORS + 1))
+                fi
               done
             else
               # Single-arch — attest to manifest digest
               syft "${DST_IMAGE}@${DIGEST}" \
                 --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
-              cosign attest --yes \
+              if cosign attest --yes \
                 --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
                 --type spdx \
-                "${DST_IMAGE}@${DIGEST}"
-              SBOM_REFS=$(jq -cn --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
+                "${DST_IMAGE}@${DIGEST}"; then
+                SBOM_REFS=$(jq -cn --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
+              else
+                echo "  WARNING: SBOM attestation failed for single-arch — continuing"
+                SBOM_ERRORS=$((SBOM_ERRORS + 1))
+              fi
             fi
           else
             # Legacy / fallback — single SBOM on manifest list digest
@@ -489,19 +510,18 @@ jobs:
             cosign attest --yes \
               --predicate sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json \
               --type cyclonedx \
-              "${DST_IMAGE}@${DIGEST}"
+              "${DST_IMAGE}@${DIGEST}" || true
 
-            cosign attest --yes \
+            if cosign attest --yes \
               --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
               --type spdx \
-              "${DST_IMAGE}@${DIGEST}"
-
-            SBOM_REFS=$(jq -cn --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
+              "${DST_IMAGE}@${DIGEST}"; then
+              SBOM_REFS=$(jq -cn --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
+            else
+              echo "  WARNING: SBOM attestation failed for legacy fallback — continuing"
+              SBOM_ERRORS=$((SBOM_ERRORS + 1))
+            fi
           fi
-
-          _D=$(openssl rand -hex 8)
-          { echo "sbom_refs_json<<${_D}"; echo "${SBOM_REFS}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
-          echo "SBOM refs: ${SBOM_REFS}"
 
       - name: Upload SBOM artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
@@ -742,6 +762,11 @@ jobs:
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Pass JSON via env to avoid shell-quoting issues with ${{ }} inline
+          # expansion (inner " chars would cancel the outer bash quotes and
+          # destroy the JSON structure).
+          _SBOM_REFS_JSON: ${{ steps.sbom.outputs.sbom_refs_json }}
+          _PROVENANCE_REFS_JSON: ${{ steps.provenance.outputs.provenance_refs_json }}
         run: |
           set -euo pipefail
           NAME="${{ github.event.client_payload.name }}"
@@ -753,8 +778,8 @@ jobs:
           TAGS="${{ steps.tags.outputs.tags }}"
           PROMOTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           COSIGN_IDENTITY="https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main"
-          SBOM_REFS_JSON="${{ steps.sbom.outputs.sbom_refs_json }}"
-          PROVENANCE_REFS_JSON="${{ steps.provenance.outputs.provenance_refs_json }}"
+          SBOM_REFS_JSON="${_SBOM_REFS_JSON:-}"
+          PROVENANCE_REFS_JSON="${_PROVENANCE_REFS_JSON:-}"
           COMMIT_MSG="chore(registry): promote ${NAME}:${VERSION} [skip ci]"
 
           CVE_TOTAL="${{ steps.trivy.outputs.total }}"
