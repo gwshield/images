@@ -4,7 +4,7 @@
 > Do not edit manually — changes will be overwritten.
 > Static content and documentation live in [README.md](README.md).
 
-*Last updated: 2026-03-30*
+*Last updated: 2026-03-31*
 
 ---
 
@@ -34,7 +34,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/nats:v2.12.5` | `v2.12.5` | standard | `—` | 0 CVEs | 2026-03-30 |
+| `ghcr.io/gwshield/nats:v2.12.5` | `v2.12.5` | standard | `7f584957c8fa` | 4 findings (0 critical, 4 high) | 2026-03-31 |
 
 ### nginx — HTTP server / reverse proxy
 
