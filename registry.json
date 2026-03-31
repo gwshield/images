@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-31T07:50:37Z",
+  "last_updated": "2026-03-31T07:51:44Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -684,14 +684,14 @@
       "provenance_ref": {
         "linux/amd64": "ghcr.io/gwshield/postgres@sha256:d19d53c73dac4d60bd2c0d7074759c1493125ae76ef6d94cf65d0cb5a423b990"
       },
-      "promoted_at": "2026-03-31T07:31:57Z",
+      "promoted_at": "2026-03-31T07:51:44Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-03-31T07:31:57Z"
+        "scanned_at": "2026-03-31T07:51:44Z"
       }
     },
     "rust-builder:v1.87": {
