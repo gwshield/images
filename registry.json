@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-31T07:54:20Z",
+  "last_updated": "2026-03-31T07:56:37Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -715,14 +715,22 @@
       ],
       "digest": "sha256:794de5727ca1d72cbd126776a6bb70705c4af1059b361dbcc34d5109d65316d8",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-31T01:51:29Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/rust-builder@sha256:8f91e50f65b1d21e5a9d981340d23f0049208390ec972092639a0fdabe8aa63f",
+        "linux/arm64": "ghcr.io/gwshield/rust-builder@sha256:e9589802cf6e03386a11b85ca041c0df41221de87b38c037c359625dfdb8d9ba"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/rust-builder@sha256:8f91e50f65b1d21e5a9d981340d23f0049208390ec972092639a0fdabe8aa63f",
+        "linux/arm64": "ghcr.io/gwshield/rust-builder@sha256:e9589802cf6e03386a11b85ca041c0df41221de87b38c037c359625dfdb8d9ba"
+      },
+      "promoted_at": "2026-03-31T07:56:36Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-31T01:51:29Z"
+        "scanned_at": "2026-03-31T07:56:36Z"
       }
     },
     "rust-builder:v1.87-dev": {
