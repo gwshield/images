@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-31T07:07:35Z",
+  "last_updated": "2026-03-31T07:08:42Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -709,14 +709,22 @@
       ],
       "digest": "sha256:9d6ab1d7fc6719d0cb08b4b17df5e77669c67c1564c2a9206502e450b354c710",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-31T01:51:07Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:dbe796e4680d5161881d9be1a920b3b404c56af46cb4b3c18e8035c6673d59e3",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:581a30f4f66e6992b7d951c5d5b564886dfb3d1707ecdbe84aafec213998a452"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:dbe796e4680d5161881d9be1a920b3b404c56af46cb4b3c18e8035c6673d59e3",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:581a30f4f66e6992b7d951c5d5b564886dfb3d1707ecdbe84aafec213998a452"
+      },
+      "promoted_at": "2026-03-31T07:08:42Z",
       "scan": {
         "status": "findings",
         "total": 2,
         "critical": 2,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-31T01:51:07Z"
+        "scanned_at": "2026-03-31T07:08:42Z"
       }
     },
     "caddy:v2.11.2-security": {
