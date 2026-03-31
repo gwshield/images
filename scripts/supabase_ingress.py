@@ -621,11 +621,18 @@ class SupabaseClient:
             return False
 
     def update_latest_snapshot(self, version_id: str, patch: dict) -> str | None:
-        """Update the most recent snapshot row for a given version_id.
-        Returns the snapshot id, or None if not found."""
+        """Update ALL snapshot rows for a given version_id with scan results.
+
+        With per-platform snapshots (migration 0053), a single version may have
+        multiple snapshot rows (one per platform).  The CVE scan runs against the
+        manifest list digest and the results apply to all platforms equally, so
+        every snapshot row should receive the same scan data.
+
+        Returns the first snapshot id, or None if no snapshots found.
+        """
         url = (
             f"{self.base}/image_metadata_snapshots"
-            f"?version_id=eq.{version_id}&order=created_at.desc&limit=1"
+            f"?version_id=eq.{version_id}&order=created_at.desc"
         )
         req = urllib.request.Request(url, headers=self.headers, method="GET")
         with urllib.request.urlopen(req) as resp:
@@ -637,10 +644,13 @@ class SupabaseClient:
             )
             return None
 
-        snap_id = rows[0]["id"]
-        self.update("image_metadata_snapshots", {"id": snap_id}, patch)
-        print(f"  snapshot {snap_id[:8]}… updated")
-        return snap_id
+        first_id = rows[0]["id"]
+        for row in rows:
+            snap_id = row["id"]
+            self.update("image_metadata_snapshots", {"id": snap_id}, patch)
+        plat_info = f" ({len(rows)} platform rows)" if len(rows) > 1 else ""
+        print(f"  snapshot {first_id[:8]}… updated{plat_info}")
+        return first_id
 
     def resolve_version_id(self, name: str, version: str) -> str | None:
         """Resolve image_version.id from name + tag. Returns None if not found."""
@@ -959,7 +969,15 @@ def cmd_promote(args, db: SupabaseClient):
     image_type = resolve_image_type(getattr(args, "image_type", None), name, profile)
     source_type = derive_source_type(name)
     summary = derive_summary(name, profile, base_version)
-    default_sbom_ref = f"ghcr.io/gwshield/{name}:{version}" if version else None
+    # Default sbom_ref: use digest-pinned reference when digest is available,
+    # falling back to tag-based reference only as a last resort.
+    # Digest-pinned refs are immutable and verifiable; tag-based refs are mutable.
+    if digest:
+        default_sbom_ref = f"ghcr.io/gwshield/{name}@{digest}"
+    elif version:
+        default_sbom_ref = f"ghcr.io/gwshield/{name}:{version}"
+    else:
+        default_sbom_ref = None
     os_tag = derive_os_tag(name)
 
     print(
