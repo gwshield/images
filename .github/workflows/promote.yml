@@ -5,12 +5,22 @@
 # build pipeline (gwshield/images-processor release-public workflow).
 #
 # Auth strategy (no broad PATs, no credential leakage):
-#   - Src pull (ghcr.io/gwshield): gwshield-img-builder App token — same-org
-#     App (owner: gwshield), packages: read+write for gwshield GHCR
+#   - Src pull (ghcr.io/gwshield): GWSHIELD_PACKAGES_READ_PAT — fine-grained
+#     PAT with read:packages scope on the gwshield org. Required because
+#     GitHub App tokens cannot authenticate to the GHCR Docker registry
+#     protocol for private packages (OCI token exchange fails for Apps).
+#   - API calls (gwshield/images-processor): gwshield-img-builder App token —
+#     same-org App (owner: gwshield), contents: read for fetching files
+#     (gwshield-init-test.c, gen-trivyignore.py, allowlist.yaml)
 #   - Dst push (ghcr.io/gwshield):  GITHUB_TOKEN — native write:packages for
 #     gwshield org (this workflow runs inside gwshield/images)
 #   - cosign OIDC:                  id-token: write — OIDC identity from
 #     https://github.com/gwshield/images/.github/workflows/promote.yml
+#
+# Enterprise Overlay Architecture (planned):
+#   promote.yml will evolve to support external customer registries via
+#   reusable workflows, enabling enterprise tenants to receive promoted
+#   images in their own GHCR namespaces or external OCI registries.
 #
 # Payload fields (client_payload — no credentials):
 #   name         e.g. traefik
@@ -65,11 +75,12 @@ jobs:
       # -----------------------------------------------------------------------
       # Generate gwshield-img-builder App token for gwshield org.
       # Used for:
-      #   - src pull (ghcr.io/gwshield) via skopeo --src-creds
       #   - API fetch from gwshield/images-processor (gwshield-init-test.c,
       #     gen-trivyignore.py, allowlist.yaml files)
+      # NOT used for GHCR pulls — App tokens cannot authenticate to the
+      # Docker registry protocol for private packages; see SRC_CREDS below.
       # -----------------------------------------------------------------------
-      - name: Generate token for gwshield org (src pull + API auth)
+      - name: Generate token for gwshield org (API auth)
         id: token-src
         uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547  # v1.12.0
         with:
@@ -183,15 +194,19 @@ jobs:
 
       # -----------------------------------------------------------------------
       # Copy source image to gwshield GHCR via skopeo.
-      # --src-creds: gwshield-img-builder App token (owner: gwshield org,
-      #   packages: read+write — same org as private GHCR packages).
+      # --src-creds: GWSHIELD_PACKAGES_READ_PAT — fine-grained PAT with
+      #   read:packages scope on gwshield org. App tokens cannot authenticate
+      #   to the GHCR Docker registry protocol for private packages (OCI
+      #   token exchange fails), so a PAT is required for registry pulls.
       # --dest-creds: GITHUB_TOKEN (native write:packages for gwshield org).
       # Source addressed by tag — GHCR resolves tag refs reliably.
       # -----------------------------------------------------------------------
       - name: Copy image to ghcr.io/gwshield (skopeo)
         id: push
         env:
-          SRC_CREDS: x-access-token:${{ steps.token-src.outputs.token }}
+          # PAT for GHCR Docker registry pull (App tokens cannot authenticate
+          # to GHCR registry protocol for private packages)
+          SRC_CREDS: x-access-token:${{ secrets.GWSHIELD_PACKAGES_READ_PAT }}
           DST_CREDS: x-access-token:${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
