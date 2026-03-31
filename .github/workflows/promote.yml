@@ -481,7 +481,7 @@ jobs:
 
                 if cosign attest --yes --signing-config="${SBOM_SIGNING_CONFIG}" \
                   --predicate sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json \
-                  --type spdx \
+                  --type spdxjson \
                   "${DST_IMAGE}@${PDIGEST}"; then
                   SBOM_REF="${DST_IMAGE}@${PDIGEST}"
                   SBOM_REFS=$(echo "${SBOM_REFS}" | jq -c --arg k "${PLAT}" --arg v "${SBOM_REF}" '. + {($k): $v}')
@@ -497,7 +497,7 @@ jobs:
                 --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
               if cosign attest --yes --signing-config="${SBOM_SIGNING_CONFIG}" \
                 --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
-                --type spdx \
+                --type spdxjson \
                 "${DST_IMAGE}@${DIGEST}"; then
                 SBOM_REFS=$(jq -cn --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
               else
@@ -520,7 +520,7 @@ jobs:
 
             if cosign attest --yes --signing-config="${SBOM_SIGNING_CONFIG}" \
               --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
-              --type spdx \
+              --type spdxjson \
               "${DST_IMAGE}@${DIGEST}"; then
               SBOM_REFS=$(jq -cn --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
             else
