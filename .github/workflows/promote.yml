@@ -424,6 +424,12 @@ jobs:
           [[ -z "${DIGEST}" ]] && { echo "ERROR: no digest -- cannot generate SBOM"; exit 1; }
           mkdir -p sbom-out
 
+          # SBOM predicates are too large for Rekor tlog (~721KB vs ~128KB limit).
+          # Create a signing config that excludes the transparency log service.
+          SBOM_SIGNING_CONFIG=$(mktemp)
+          curl -sL https://raw.githubusercontent.com/sigstore/root-signing/refs/heads/main/targets/signing_config.v0.2.json \
+            | jq 'del(.rekorTlogUrls)' > "${SBOM_SIGNING_CONFIG}"
+
           PLATFORMS_JSON="${{ steps.plat.outputs.platforms_json }}"
           SBOM_REFS="{}"
           SBOM_ERRORS=0
@@ -473,7 +479,7 @@ jobs:
                 syft "${DST_IMAGE}@${PDIGEST}" \
                   --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json
 
-                if cosign attest --yes --tlog-upload=false \
+                if cosign attest --yes --signing-config="${SBOM_SIGNING_CONFIG}" \
                   --predicate sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json \
                   --type spdx \
                   "${DST_IMAGE}@${PDIGEST}"; then
@@ -489,7 +495,7 @@ jobs:
               # Single-arch — attest to manifest digest
               syft "${DST_IMAGE}@${DIGEST}" \
                 --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
-              if cosign attest --yes --tlog-upload=false \
+              if cosign attest --yes --signing-config="${SBOM_SIGNING_CONFIG}" \
                 --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
                 --type spdx \
                 "${DST_IMAGE}@${DIGEST}"; then
@@ -507,12 +513,12 @@ jobs:
             syft "${DST_IMAGE}@${DIGEST}" \
               --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
 
-            cosign attest --yes --tlog-upload=false \
+            cosign attest --yes --signing-config="${SBOM_SIGNING_CONFIG}" \
               --predicate sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json \
               --type cyclonedx \
               "${DST_IMAGE}@${DIGEST}" || true
 
-            if cosign attest --yes --tlog-upload=false \
+            if cosign attest --yes --signing-config="${SBOM_SIGNING_CONFIG}" \
               --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
               --type spdx \
               "${DST_IMAGE}@${DIGEST}"; then
