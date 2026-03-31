@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-31T01:51:02Z",
+  "last_updated": "2026-03-31T01:51:05Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -906,16 +906,16 @@
         "ghcr.io/gwshield/pomerium:v0.32.2",
         "ghcr.io/gwshield/pomerium:latest"
       ],
-      "digest": "",
+      "digest": "sha256:9184266de0c615ddff13ab49688d15a3a96fd245629594ba842f7b33b1f5c972",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-30T08:55:14Z",
+      "promoted_at": "2026-03-31T01:50:57Z",
       "scan": {
-        "status": "clean",
-        "total": 0,
-        "critical": 0,
-        "high": 0,
+        "status": "findings",
+        "total": 5,
+        "critical": 1,
+        "high": 4,
         "scanner": "trivy",
-        "scanned_at": "2026-03-30T08:55:14Z"
+        "scanned_at": "2026-03-31T01:50:57Z"
       }
     },
     "nats:v2.12.5": {
