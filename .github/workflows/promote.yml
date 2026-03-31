@@ -391,7 +391,7 @@ jobs:
           set -euo pipefail
           DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
           DIGEST="${{ steps.push.outputs.digest }}"
-          [[ -z "${DIGEST}" ]] && { echo "WARNING: no digest -- skip cosign"; exit 0; }
+          [[ -z "${DIGEST}" ]] && { echo "ERROR: no digest -- cannot sign (push likely failed)"; exit 1; }
           echo "Signing ${DST_IMAGE}@${DIGEST} ..."
           cosign sign --yes "${DST_IMAGE}@${DIGEST}"
 
@@ -400,7 +400,7 @@ jobs:
           set -euo pipefail
           DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
           DIGEST="${{ steps.push.outputs.digest }}"
-          [[ -z "${DIGEST}" ]] && { echo "No digest -- skip verify"; exit 0; }
+          [[ -z "${DIGEST}" ]] && { echo "ERROR: no digest -- cannot verify"; exit 1; }
           cosign verify \
             --certificate-identity-regexp="https://github.com/gwshield/images.*" \
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
@@ -421,7 +421,7 @@ jobs:
           DIGEST="${{ steps.push.outputs.digest }}"
           NAME="${{ github.event.client_payload.name }}"
           VERSION="${{ github.event.client_payload.version }}"
-          [[ -z "${DIGEST}" ]] && { echo "No digest -- skip SBOM"; exit 0; }
+          [[ -z "${DIGEST}" ]] && { echo "ERROR: no digest -- cannot generate SBOM"; exit 1; }
           mkdir -p sbom-out
 
           PLATFORMS_JSON="${{ steps.plat.outputs.platforms_json }}"
@@ -535,7 +535,7 @@ jobs:
           DIGEST="${{ steps.push.outputs.digest }}"
           NAME="${{ github.event.client_payload.name }}"
           VERSION="${{ github.event.client_payload.version }}"
-          [[ -z "${DIGEST}" ]] && { echo "No digest -- skip SLSA provenance"; exit 0; }
+          [[ -z "${DIGEST}" ]] && { echo "ERROR: no digest -- cannot generate SLSA provenance"; exit 1; }
 
           PLATFORMS_JSON="${{ steps.plat.outputs.platforms_json }}"
           PROVENANCE_REFS="{}"
@@ -751,6 +751,8 @@ jobs:
           TAGS="${{ steps.tags.outputs.tags }}"
           PROMOTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           COSIGN_IDENTITY="https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main"
+          SBOM_REFS_JSON="${{ steps.sbom.outputs.sbom_refs_json }}"
+          PROVENANCE_REFS_JSON="${{ steps.provenance.outputs.provenance_refs_json }}"
           COMMIT_MSG="chore(registry): promote ${NAME}:${VERSION} [skip ci]"
 
           CVE_TOTAL="${{ steps.trivy.outputs.total }}"
@@ -776,6 +778,15 @@ jobs:
               echo "${CURRENT_CONTENT}" > registry.json
             fi
 
+            # Guard: only write promote entry if we have a valid digest.
+            # Without a digest, signing/SBOM/provenance all skipped — writing
+            # a registry entry with empty digest creates a broken trust record.
+            if [[ -z "${DIGEST}" ]]; then
+              echo "WARNING: no digest — skipping registry.json promote (push likely failed)"
+              echo "promoted_at=" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
             python3 scripts/update-registry.py promote \
               --name            "${NAME}" \
               --version         "${VERSION}" \
@@ -785,6 +796,8 @@ jobs:
               --digest          "${DIGEST}" \
               --tags            "${TAGS}" \
               --cosign-identity "${COSIGN_IDENTITY}" \
+              --sbom-ref        "${SBOM_REFS_JSON:-}" \
+              --provenance-ref  "${PROVENANCE_REFS_JSON:-}" \
               --promoted-at     "${PROMOTED_AT}"
 
             python3 scripts/update-registry.py scan \
