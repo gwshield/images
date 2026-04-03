@@ -384,14 +384,16 @@ jobs:
 
       - name: Generate and attest SBOM
         id: sbom
-        continue-on-error: true
         run: |
           set -euo pipefail
           DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
           DIGEST="${{ steps.push.outputs.digest }}"
           NAME="${{ github.event.client_payload.name }}"
           VERSION="${{ github.event.client_payload.version }}"
-          [[ -z "${DIGEST}" ]] && { echo "No digest -- skip SBOM"; exit 0; }
+          if [[ -z "${DIGEST}" ]]; then
+            echo "ERROR: no digest available -- cannot attest SBOM" >&2
+            exit 1
+          fi
           mkdir -p sbom-out
 
           PLATFORMS_JSON="${{ steps.plat.outputs.platforms_json }}"
@@ -479,6 +481,22 @@ jobs:
           retention-days: 365
           if-no-files-found: warn
 
+      # -----------------------------------------------------------------------
+      # Verify SBOM attestation (post-attest check — ADR-0008 Phase 2)
+      # -----------------------------------------------------------------------
+      - name: Verify SBOM attestation
+        run: |
+          set -euo pipefail
+          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+          [[ -z "${DIGEST}" ]] && { echo "ERROR: no digest for SBOM verify" >&2; exit 1; }
+          cosign verify-attestation \
+            --type spdx \
+            --certificate-identity-regexp="https://github.com/gwshield/images.*" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            "${DST_IMAGE}@${DIGEST}" \
+            > /dev/null
+          echo "SBOM attestation verified for ${DST_IMAGE}@${DIGEST}"
 
       # -----------------------------------------------------------------------
       # SLSA Provenance Attestation (Level 3)
@@ -494,18 +512,20 @@ jobs:
       # provenance_refs_json step output: JSON map platform → OCI ref
       #   (written to Supabase image_metadata_snapshots.provenance_ref)
       #
-      # continue-on-error: true — attestation outage must not block promote.
+      # ADR-0008 Phase 2: pipeline-breaking (no continue-on-error).
       # -----------------------------------------------------------------------
       - name: Generate and attest SLSA provenance
         id: provenance
-        continue-on-error: true
         run: |
           set -euo pipefail
           DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
           DIGEST="${{ steps.push.outputs.digest }}"
           NAME="${{ github.event.client_payload.name }}"
           VERSION="${{ github.event.client_payload.version }}"
-          [[ -z "${DIGEST}" ]] && { echo "No digest -- skip SLSA provenance"; exit 0; }
+          if [[ -z "${DIGEST}" ]]; then
+            echo "ERROR: no digest available -- cannot attest SLSA provenance" >&2
+            exit 1
+          fi
 
           PLATFORMS_JSON="${{ steps.plat.outputs.platforms_json }}"
           PROVENANCE_REFS="{}"
@@ -633,6 +653,23 @@ jobs:
           path: provenance-out/
           retention-days: 365
           if-no-files-found: warn
+
+      # -----------------------------------------------------------------------
+      # Verify SLSA provenance attestation (post-attest check — ADR-0008 Phase 2)
+      # -----------------------------------------------------------------------
+      - name: Verify SLSA provenance attestation
+        run: |
+          set -euo pipefail
+          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+          [[ -z "${DIGEST}" ]] && { echo "ERROR: no digest for provenance verify" >&2; exit 1; }
+          cosign verify-attestation \
+            --type slsaprovenance1 \
+            --certificate-identity-regexp="https://github.com/gwshield/images.*" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            "${DST_IMAGE}@${DIGEST}" \
+            > /dev/null
+          echo "SLSA provenance attestation verified for ${DST_IMAGE}@${DIGEST}"
 
       # -----------------------------------------------------------------------
       # CVE scan -- Trivy on the public image (digest-pinned).
