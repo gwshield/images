@@ -1,0 +1,757 @@
+# =============================================================================
+# PROMOTE-REUSABLE — Generic image promotion core (ADR-0007 Phase 1)
+# =============================================================================
+# Reusable workflow: skopeo copy, cosign keyless sign+verify, syft SBOM
+# generate+attest+verify, SLSA provenance generate+attest+verify, Trivy CVE scan.
+#
+# Called by promote.yml (gwshield/images) and by enterprise customer config repos:
+#   uses: gwshield/images/.github/workflows/promote-reusable.yml@v1
+#
+# Auth model:
+#   - SRC_READ_PAT  : fine-grained PAT for src registry pull (caller provides)
+#   - GITHUB_TOKEN  : dst registry push + cosign OIDC (GitHub native, auto-mounted)
+#
+# Outputs (consumed by caller's post-processing job):
+#   digest               pushed manifest digest
+#   first_tag            first applied tag (dst_image:tag)
+#   tags                 space-separated list of applied tags
+#   dst_image            base image ref without tag (dst_registry/dst_org/name)
+#   platforms_json       JSON array of detected platforms
+#   image_size_json      JSON map platform -> compressed bytes
+#   sbom_refs_json       JSON map platform -> OCI ref
+#   provenance_refs_json JSON map platform -> OCI ref
+#   cve_total            total Trivy HIGH+CRITICAL findings
+#   cve_critical         critical Trivy findings
+#   cve_high             high Trivy findings
+#   promoted_at          RFC3339 timestamp of push
+# =============================================================================
+
+name: promote-reusable
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        description: 'Image name (e.g. traefik)'
+        required: true
+        type: string
+      version:
+        description: 'Image version (e.g. v3.6.9)'
+        required: true
+        type: string
+      base_version:
+        description: 'Base version for tag computation (e.g. v3.6.9)'
+        required: true
+        type: string
+      profile:
+        description: 'Optional image profile (e.g. tls, cluster)'
+        required: false
+        type: string
+        default: ''
+      src_image:
+        description: 'Source image ref without tag (e.g. ghcr.io/relicfrog/gwshield-traefik)'
+        required: true
+        type: string
+      src_tag:
+        description: 'Source tag (e.g. v3.6.9 or main)'
+        required: true
+        type: string
+      src_digest:
+        description: 'Source manifest digest for SLSA predicate (e.g. sha256:abc...)'
+        required: true
+        type: string
+      dst_registry:
+        description: 'Destination registry host'
+        required: false
+        type: string
+        default: 'ghcr.io'
+      dst_org:
+        description: 'Destination registry org'
+        required: false
+        type: string
+        default: 'gwshield'
+      cosign_identity_regexp:
+        description: 'Regexp for cosign verify --certificate-identity-regexp (defaults to caller workflow pattern)'
+        required: false
+        type: string
+        default: ''
+      category:
+        description: 'Image category (runtime, builder, tooling) — affects tag format'
+        required: false
+        type: string
+        default: 'runtime'
+
+    secrets:
+      SRC_READ_PAT:
+        description: 'Fine-grained PAT with read:packages on the source registry'
+        required: true
+
+    outputs:
+      digest:
+        description: 'Pushed manifest digest'
+        value: ${{ jobs.promote-core.outputs.digest }}
+      first_tag:
+        description: 'First applied tag (full ref)'
+        value: ${{ jobs.promote-core.outputs.first_tag }}
+      tags:
+        description: 'Space-separated list of applied tags'
+        value: ${{ jobs.promote-core.outputs.tags }}
+      dst_image:
+        description: 'Base image ref without tag'
+        value: ${{ jobs.promote-core.outputs.dst_image }}
+      platforms_json:
+        description: 'JSON array of detected platforms'
+        value: ${{ jobs.promote-core.outputs.platforms_json }}
+      image_size_json:
+        description: 'JSON map platform -> compressed bytes'
+        value: ${{ jobs.promote-core.outputs.image_size_json }}
+      sbom_refs_json:
+        description: 'JSON map platform -> OCI ref'
+        value: ${{ jobs.promote-core.outputs.sbom_refs_json }}
+      provenance_refs_json:
+        description: 'JSON map platform -> OCI ref'
+        value: ${{ jobs.promote-core.outputs.provenance_refs_json }}
+      cve_total:
+        description: 'Total Trivy HIGH+CRITICAL findings'
+        value: ${{ jobs.promote-core.outputs.cve_total }}
+      cve_critical:
+        description: 'Critical Trivy findings'
+        value: ${{ jobs.promote-core.outputs.cve_critical }}
+      cve_high:
+        description: 'High Trivy findings'
+        value: ${{ jobs.promote-core.outputs.cve_high }}
+      promoted_at:
+        description: 'RFC3339 timestamp of push'
+        value: ${{ jobs.promote-core.outputs.promoted_at }}
+
+jobs:
+  promote-core:
+    name: Promote core ${{ inputs.name }}:${{ inputs.version }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+      packages: write       # GITHUB_TOKEN write:packages for dst org
+      id-token: write       # cosign OIDC keyless signing
+
+    outputs:
+      digest:               ${{ steps.push.outputs.digest }}
+      first_tag:            ${{ steps.push.outputs.first_tag }}
+      tags:                 ${{ steps.tags.outputs.tags }}
+      dst_image:            ${{ steps.tags.outputs.dst_image }}
+      platforms_json:       ${{ steps.plat.outputs.platforms_json }}
+      image_size_json:      ${{ steps.plat.outputs.image_size_json }}
+      sbom_refs_json:       ${{ steps.sbom.outputs.sbom_refs_json }}
+      provenance_refs_json: ${{ steps.provenance.outputs.provenance_refs_json }}
+      cve_total:            ${{ steps.trivy.outputs.total }}
+      cve_critical:         ${{ steps.trivy.outputs.critical }}
+      cve_high:             ${{ steps.trivy.outputs.high }}
+      promoted_at:          ${{ steps.push.outputs.promoted_at }}
+
+    steps:
+      - name: Validate inputs
+        run: |
+          set -euo pipefail
+          NAME="${{ inputs.name }}"
+          VERSION="${{ inputs.version }}"
+          SRC_DIGEST="${{ inputs.src_digest }}"
+          SRC_TAG="${{ inputs.src_tag }}"
+          if [[ -z "${NAME}" || -z "${VERSION}" || -z "${SRC_DIGEST}" || -z "${SRC_TAG}" ]]; then
+            echo "ERROR: missing required inputs (name, version, src_digest, src_tag)" >&2
+            exit 1
+          fi
+          echo "Promoting ${NAME}:${VERSION} from :${SRC_TAG} (digest: ${SRC_DIGEST})"
+
+      - name: Install cosign
+        run: |
+          curl -sL -o /tmp/cosign \
+            "https://github.com/sigstore/cosign/releases/download/v3.0.5/cosign-linux-amd64"
+          echo "db15cc99e6e4837daabab023742aaddc3841ce57f193d11b7c3e06c8003642b2  /tmp/cosign" \
+            | sha256sum -c -
+          sudo install -m 0755 /tmp/cosign /usr/local/bin/cosign
+          cosign version
+
+      - name: Install skopeo
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends skopeo
+
+      # -----------------------------------------------------------------------
+      # Log in to dst GHCR with GITHUB_TOKEN — gives write:packages for dst org.
+      # Used by cosign and syft. skopeo uses --dest-creds directly.
+      # -----------------------------------------------------------------------
+      - name: Log in to dst registry (GITHUB_TOKEN)
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
+        with:
+          registry: ${{ inputs.dst_registry }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # -----------------------------------------------------------------------
+      # Compute destination tags.
+      # -----------------------------------------------------------------------
+      - name: Compute destination tags
+        id: tags
+        run: |
+          set -euo pipefail
+          DST="${{ inputs.dst_registry }}/${{ inputs.dst_org }}/${{ inputs.name }}"
+          BASE="${{ inputs.base_version }}"
+          PROFILE="${{ inputs.profile }}"
+
+          if [[ -n "${PROFILE}" ]]; then
+            TAGS="${DST}:${BASE}-${PROFILE}"
+          else
+            TAGS="${DST}:${BASE} ${DST}:latest"
+          fi
+
+          echo "tags=${TAGS}"         >> "$GITHUB_OUTPUT"
+          echo "dst_image=${DST}"     >> "$GITHUB_OUTPUT"
+          echo "Destination tags: ${TAGS}"
+
+      # -----------------------------------------------------------------------
+      # Copy source image to dst registry via skopeo.
+      # --src-creds: SRC_READ_PAT (fine-grained, read:packages only).
+      # --dest-creds: GITHUB_TOKEN (native write:packages for dst org).
+      # Source addressed by tag — GHCR resolves tag refs reliably.
+      # -----------------------------------------------------------------------
+      - name: Copy image via skopeo
+        id: push
+        env:
+          SRC_CREDS: x-access-token:${{ secrets.SRC_READ_PAT }}
+          DST_CREDS: x-access-token:${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          SRC_REF="docker://${{ inputs.src_image }}:${{ inputs.src_tag }}"
+          FIRST_TAG=""
+
+          for TAG in ${{ steps.tags.outputs.tags }}; do
+            echo "skopeo copy ${SRC_REF} -> docker://${TAG}"
+            skopeo copy --all \
+              --src-creds  "${SRC_CREDS}" \
+              --dest-creds "${DST_CREDS}" \
+              "${SRC_REF}" \
+              "docker://${TAG}"
+            [[ -z "${FIRST_TAG}" ]] && FIRST_TAG="${TAG}"
+          done
+
+          PUSHED_DIGEST=$(skopeo inspect --format '{{.Digest}}' \
+            --creds "${DST_CREDS}" \
+            "docker://${FIRST_TAG}" 2>/dev/null || true)
+
+          PROMOTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          echo "digest=${PUSHED_DIGEST}"     >> "$GITHUB_OUTPUT"
+          echo "first_tag=${FIRST_TAG}"      >> "$GITHUB_OUTPUT"
+          echo "promoted_at=${PROMOTED_AT}"  >> "$GITHUB_OUTPUT"
+          echo "Pushed digest: ${PUSHED_DIGEST}"
+
+      # -----------------------------------------------------------------------
+      # Collect per-platform image sizes and platform list.
+      # Inspects the manifest list that was just pushed.
+      #   --raw  -> OCI manifest JSON -> sum layer sizes -> image_size_bytes (compressed)
+      # Gracefully skipped if the inspect fails (e.g. single-arch image).
+      # -----------------------------------------------------------------------
+      - name: Collect per-platform metadata
+        id: plat
+        env:
+          DST_CREDS: x-access-token:${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          FIRST_TAG="${{ steps.push.outputs.first_tag }}"
+          [[ -z "${FIRST_TAG}" ]] && { echo "No tag — skip platform metadata"; exit 0; }
+
+          PLATFORMS_JSON="[]"
+          IMAGE_SIZE_JSON="{}"
+
+          RAW_MANIFEST=$(skopeo inspect --raw --creds "${DST_CREDS}" \
+            "docker://${FIRST_TAG}" 2>/dev/null || true)
+
+          if [[ -z "${RAW_MANIFEST}" ]]; then
+            echo "Could not inspect manifest — falling back to no platform metadata"
+            _D=$(openssl rand -hex 8)
+            { echo "platforms_json<<${_D}";  echo "${PLATFORMS_JSON}";  echo "${_D}"; } >> "$GITHUB_OUTPUT"
+            { echo "image_size_json<<${_D}"; echo "${IMAGE_SIZE_JSON}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          IS_INDEX=$(echo "${RAW_MANIFEST}" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          mt=d.get('mediaType','')
+          print('true' if ('index' in mt or 'list' in mt) else 'false')
+          " 2>/dev/null || echo "false")
+
+          if [[ "${IS_INDEX}" == "true" ]]; then
+            echo "Manifest list detected — collecting per-platform sizes"
+            PLAT_DATA=$(echo "${RAW_MANIFEST}" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          manifests=d.get('manifests',[])
+          result=[]
+          for m in manifests:
+              p=m.get('platform',{})
+              os_=p.get('os','')
+              arch=p.get('architecture','')
+              variant=p.get('variant','')
+              if os_ and arch and os_ != 'unknown' and arch != 'unknown':
+                  plat=f'{os_}/{arch}'
+                  if variant:
+                      plat+=f'/{variant}'
+                  result.append({'platform':plat,'digest':m.get('digest',''),'size':m.get('size',0)})
+          print(json.dumps(result))
+          " 2>/dev/null || echo "[]")
+
+            DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+
+            PLAT_LIST=$(echo "${PLAT_DATA}" | python3 -c "
+          import json,sys
+          d=json.loads(sys.stdin.read())
+          print(json.dumps([x['platform'] for x in d]))
+          " 2>/dev/null || echo "[]")
+
+            IMG_MAP="{}"
+            for ROW in $(echo "${PLAT_DATA}" | python3 -c "
+          import json,sys
+          d=json.loads(sys.stdin.read())
+          for x in d:
+              print(x['platform']+'|'+x['digest'])
+          " 2>/dev/null); do
+              PLAT="${ROW%%|*}"
+              DIGEST="${ROW##*|}"
+              [[ -z "${DIGEST}" ]] && continue
+
+              IMG_SIZE=$(skopeo inspect --raw --creds "${DST_CREDS}" \
+                "docker://${DST_IMAGE}@${DIGEST}" 2>/dev/null | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          print(sum(l.get('size',0) for l in d.get('layers',[])))
+          " 2>/dev/null || echo "0")
+
+              IMG_MAP=$(echo "${IMG_MAP}" | jq -c --arg k "${PLAT}" --argjson v "${IMG_SIZE}" '. + {($k): $v}')
+              echo "  ${PLAT}: image_size=${IMG_SIZE}"
+            done
+
+            if [[ "${PLAT_LIST}" == "[]" || -z "${PLAT_LIST}" ]]; then
+              echo "No real platform manifests after filtering — treating as single-arch linux/amd64"
+              IS_INDEX="false"
+            else
+              PLATFORMS_JSON="${PLAT_LIST}"
+              IMAGE_SIZE_JSON="${IMG_MAP}"
+            fi
+          fi
+
+          if [[ "${IS_INDEX}" == "false" ]]; then
+            echo "Single-arch manifest — collecting sizes for linux/amd64"
+            DIGEST="${{ steps.push.outputs.digest }}"
+            DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+
+            PLAT_DIGEST=$(echo "${RAW_MANIFEST}" | python3 -c "
+          import json,sys
+          d=json.loads(sys.stdin.read())
+          mt=d.get('mediaType','')
+          if 'index' not in mt and 'list' not in mt:
+              print('')
+          else:
+              for m in d.get('manifests',[]):
+                  p=m.get('platform',{})
+                  if p.get('os')=='linux' and p.get('architecture')=='amd64':
+                      print(m.get('digest',''))
+                      break
+          " 2>/dev/null || echo "")
+
+            if [[ -n "${PLAT_DIGEST}" ]]; then
+              INSPECT_REF="docker://${DST_IMAGE}@${PLAT_DIGEST}"
+            else
+              INSPECT_REF="docker://${DST_IMAGE}@${DIGEST}"
+            fi
+
+            IMG_SIZE=$(skopeo inspect --raw --creds "${DST_CREDS}" "${INSPECT_REF}" 2>/dev/null | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          print(sum(l.get('size',0) for l in d.get('layers',[])))
+          " 2>/dev/null || echo "0")
+
+            PLATFORMS_JSON='["linux/amd64"]'
+            IMAGE_SIZE_JSON=$(jq -cn --argjson v "${IMG_SIZE}" '{"linux/amd64": $v}')
+            echo "  linux/amd64: image_size=${IMG_SIZE}"
+          fi
+
+          _D=$(openssl rand -hex 8)
+          { echo "platforms_json<<${_D}";  echo "${PLATFORMS_JSON}";  echo "${_D}"; } >> "$GITHUB_OUTPUT"
+          { echo "image_size_json<<${_D}"; echo "${IMAGE_SIZE_JSON}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
+          echo "Platforms: ${PLATFORMS_JSON}"
+
+      - name: Sign image (cosign keyless)
+        run: |
+          set -euo pipefail
+          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+          [[ -z "${DIGEST}" ]] && { echo "WARNING: no digest -- skip cosign"; exit 0; }
+          echo "Signing ${DST_IMAGE}@${DIGEST} ..."
+          cosign sign --yes "${DST_IMAGE}@${DIGEST}"
+
+      - name: Verify cosign signature
+        run: |
+          set -euo pipefail
+          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+          [[ -z "${DIGEST}" ]] && { echo "No digest -- skip verify"; exit 0; }
+          # Use caller-supplied regexp if provided, otherwise derive from workflow ref
+          IDENTITY_REGEXP="${{ inputs.cosign_identity_regexp }}"
+          if [[ -z "${IDENTITY_REGEXP}" ]]; then
+            IDENTITY_REGEXP="https://github.com/${{ github.repository }}.*"
+          fi
+          cosign verify \
+            --certificate-identity-regexp="${IDENTITY_REGEXP}" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            "${DST_IMAGE}@${DIGEST}"
+
+      # -----------------------------------------------------------------------
+      # SBOM: CycloneDX + SPDX via syft, attested with cosign
+      # -----------------------------------------------------------------------
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@57aae528053a48a3f6235f2d9461b05fbcb7366d  # v0.23.1
+
+      - name: Generate and attest SBOM
+        id: sbom
+        run: |
+          set -euo pipefail
+          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+          NAME="${{ inputs.name }}"
+          VERSION="${{ inputs.version }}"
+          if [[ -z "${DIGEST}" ]]; then
+            echo "ERROR: no digest available -- cannot attest SBOM" >&2
+            exit 1
+          fi
+          mkdir -p sbom-out
+
+          PLATFORMS_JSON="${{ steps.plat.outputs.platforms_json }}"
+          SBOM_REFS="{}"
+
+          if [[ -n "${PLATFORMS_JSON}" && "${PLATFORMS_JSON}" != "[]" ]]; then
+            RAW_MANIFEST=$(skopeo inspect --raw \
+              --creds "x-access-token:${{ secrets.GITHUB_TOKEN }}" \
+              "docker://${DST_IMAGE}@${DIGEST}" 2>/dev/null || true)
+            IS_INDEX=$(echo "${RAW_MANIFEST}" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          mt=d.get('mediaType','')
+          print('true' if ('index' in mt or 'list' in mt) else 'false')
+          " 2>/dev/null || echo "false")
+
+            if [[ "${IS_INDEX}" == "true" ]]; then
+              PLAT_DIGESTS=$(echo "${RAW_MANIFEST}" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          for m in d.get('manifests',[]):
+              p=m.get('platform',{})
+              os_=p.get('os','')
+              arch=p.get('architecture','')
+              if os_ and arch and os_ != 'unknown' and arch != 'unknown':
+                  plat=f'{os_}/{arch}'
+                  print(plat+'|'+m.get('digest',''))
+          " 2>/dev/null || true)
+
+              for ROW in $PLAT_DIGESTS; do
+                PLAT="${ROW%%|*}"
+                PDIGEST="${ROW##*|}"
+                [[ -z "${PDIGEST}" ]] && continue
+                PLAT_SAFE="${PLAT//\//-}"
+
+                syft "${DST_IMAGE}@${PDIGEST}" \
+                  --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json
+
+                cosign attest --yes \
+                  --predicate sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json \
+                  --type spdx \
+                  "${DST_IMAGE}@${PDIGEST}"
+
+                SBOM_REFS=$(echo "${SBOM_REFS}" | jq -c --arg k "${PLAT}" --arg v "${DST_IMAGE}@${PDIGEST}" '. + {($k): $v}')
+                echo "  SBOM attested for ${PLAT}: ${DST_IMAGE}@${PDIGEST}"
+              done
+            else
+              syft "${DST_IMAGE}@${DIGEST}" \
+                --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
+              cosign attest --yes \
+                --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
+                --type spdx \
+                "${DST_IMAGE}@${DIGEST}"
+              SBOM_REFS=$(jq -cn --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
+            fi
+          else
+            syft "${DST_IMAGE}@${DIGEST}" \
+              --output cyclonedx-json=sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json
+
+            syft "${DST_IMAGE}@${DIGEST}" \
+              --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
+
+            cosign attest --yes \
+              --predicate sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json \
+              --type cyclonedx \
+              "${DST_IMAGE}@${DIGEST}"
+
+            cosign attest --yes \
+              --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
+              --type spdx \
+              "${DST_IMAGE}@${DIGEST}"
+          fi
+
+          _D=$(openssl rand -hex 8)
+          { echo "sbom_refs_json<<${_D}"; echo "${SBOM_REFS}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
+          echo "SBOM refs: ${SBOM_REFS}"
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: sbom-${{ inputs.name }}-${{ inputs.version }}
+          path: sbom-out/
+          retention-days: 365
+          if-no-files-found: warn
+
+      # -----------------------------------------------------------------------
+      # Verify SBOM attestation (post-attest check)
+      # -----------------------------------------------------------------------
+      - name: Verify SBOM attestation
+        run: |
+          set -euo pipefail
+          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+          [[ -z "${DIGEST}" ]] && { echo "ERROR: no digest for SBOM verify" >&2; exit 1; }
+          IDENTITY_REGEXP="${{ inputs.cosign_identity_regexp }}"
+          if [[ -z "${IDENTITY_REGEXP}" ]]; then
+            IDENTITY_REGEXP="https://github.com/${{ github.repository }}.*"
+          fi
+          cosign verify-attestation \
+            --type spdx \
+            --certificate-identity-regexp="${IDENTITY_REGEXP}" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            "${DST_IMAGE}@${DIGEST}" \
+            > /dev/null
+          echo "SBOM attestation verified for ${DST_IMAGE}@${DIGEST}"
+
+      # -----------------------------------------------------------------------
+      # SLSA Provenance Attestation (Level 3)
+      # Generates and attests an SLSA v1.0 BuildDefinition predicate per platform.
+      # provenance_refs_json output: JSON map platform -> OCI ref
+      # -----------------------------------------------------------------------
+      - name: Generate and attest SLSA provenance
+        id: provenance
+        run: |
+          set -euo pipefail
+          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+          NAME="${{ inputs.name }}"
+          VERSION="${{ inputs.version }}"
+          if [[ -z "${DIGEST}" ]]; then
+            echo "ERROR: no digest available -- cannot attest SLSA provenance" >&2
+            exit 1
+          fi
+
+          PLATFORMS_JSON="${{ steps.plat.outputs.platforms_json }}"
+          PROVENANCE_REFS="{}"
+          mkdir -p provenance-out
+
+          COSIGN_IDENTITY="https://github.com/${{ github.repository }}/.github/workflows/promote-reusable.yml@${{ github.ref }}"
+          BUILD_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          generate_predicate() {
+            local PLAT_DIGEST="$1"
+            local PLAT_SAFE="$2"
+            local PRED_FILE="provenance-out/provenance-${NAME}-${VERSION}-${PLAT_SAFE}.json"
+
+            python3 - <<INNER_PY "${PLAT_DIGEST}" "${PRED_FILE}" "${BUILD_TS}" "${COSIGN_IDENTITY}"
+          import json, sys
+
+          plat_digest  = sys.argv[1]
+          pred_file    = sys.argv[2]
+          build_ts     = sys.argv[3]
+          workflow_ref = sys.argv[4]
+
+          predicate = {
+            "buildDefinition": {
+              "buildType": "https://github.com/gwshield/images/build@v1",
+              "externalParameters": {
+                "name":         "${{ inputs.name }}",
+                "version":      "${{ inputs.version }}",
+                "base_version": "${{ inputs.base_version }}",
+                "profile":      "${{ inputs.profile }}",
+                "src_image":    "${{ inputs.src_image }}",
+                "src_digest":   "${{ inputs.src_digest }}",
+              },
+              "resolvedDependencies": [
+                {
+                  "uri":    "${{ inputs.src_image }}",
+                  "digest": {"sha256": "${{ inputs.src_digest }}".split(":")[-1]},
+                }
+              ],
+            },
+            "runDetails": {
+              "builder": {
+                "id": workflow_ref,
+              },
+              "metadata": {
+                "invocationId": "${{ github.run_id }}/${{ github.run_attempt }}",
+                "startedOn":    build_ts,
+                "finishedOn":   build_ts,
+              },
+            },
+          }
+          with open(pred_file, "w") as f:
+              json.dump(predicate, f, indent=2)
+          import sys as _sys; _sys.stderr.write(f"  predicate written to {pred_file}\n")
+          INNER_PY
+            echo "${PRED_FILE}"
+          }
+
+          if [[ -n "${PLATFORMS_JSON}" && "${PLATFORMS_JSON}" != "[]" ]]; then
+            RAW_MANIFEST=$(skopeo inspect --raw \
+              --creds "x-access-token:${{ secrets.GITHUB_TOKEN }}" \
+              "docker://${DST_IMAGE}@${DIGEST}" 2>/dev/null || true)
+            IS_INDEX=$(echo "${RAW_MANIFEST}" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          mt=d.get('mediaType','')
+          print('true' if ('index' in mt or 'list' in mt) else 'false')
+          " 2>/dev/null || echo "false")
+
+            if [[ "${IS_INDEX}" == "true" ]]; then
+              PLAT_DIGESTS=$(echo "${RAW_MANIFEST}" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          for m in d.get('manifests',[]):
+              p=m.get('platform',{})
+              os_=p.get('os','')
+              arch=p.get('architecture','')
+              if os_ and arch and os_ != 'unknown' and arch != 'unknown':
+                  plat=f'{os_}/{arch}'
+                  print(plat+'|'+m.get('digest',''))
+          " 2>/dev/null || true)
+
+              for ROW in $PLAT_DIGESTS; do
+                PLAT="${ROW%%|*}"
+                PDIGEST="${ROW##*|}"
+                [[ -z "${PDIGEST}" ]] && continue
+                PLAT_SAFE="${PLAT//\//-}"
+
+                PRED_FILE=$(generate_predicate "${PDIGEST}" "${PLAT_SAFE}")
+
+                cosign attest --yes \
+                  --predicate "${PRED_FILE}" \
+                  --type slsaprovenance1 \
+                  "${DST_IMAGE}@${PDIGEST}"
+
+                PROVENANCE_REFS=$(echo "${PROVENANCE_REFS}" | jq -c --arg k "${PLAT}" --arg v "${DST_IMAGE}@${PDIGEST}" '. + {($k): $v}')
+                echo "  SLSA provenance attested for ${PLAT}: ${DST_IMAGE}@${PDIGEST}"
+              done
+            else
+              PRED_FILE=$(generate_predicate "${DIGEST}" "linux-amd64")
+              cosign attest --yes \
+                --predicate "${PRED_FILE}" \
+                --type slsaprovenance1 \
+                "${DST_IMAGE}@${DIGEST}"
+              PROVENANCE_REFS=$(jq -cn --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
+            fi
+          else
+            PRED_FILE=$(generate_predicate "${DIGEST}" "manifest")
+            cosign attest --yes \
+              --predicate "${PRED_FILE}" \
+              --type slsaprovenance1 \
+              "${DST_IMAGE}@${DIGEST}"
+            PROVENANCE_REFS=$(jq -cn --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
+          fi
+
+          _D=$(openssl rand -hex 8)
+          { echo "provenance_refs_json<<${_D}"; echo "${PROVENANCE_REFS}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
+          echo "Provenance refs: ${PROVENANCE_REFS}"
+
+      - name: Upload SLSA provenance artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: provenance-${{ inputs.name }}-${{ inputs.version }}
+          path: provenance-out/
+          retention-days: 365
+          if-no-files-found: warn
+
+      # -----------------------------------------------------------------------
+      # Verify SLSA provenance attestation (post-attest check)
+      # -----------------------------------------------------------------------
+      - name: Verify SLSA provenance attestation
+        run: |
+          set -euo pipefail
+          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
+          DIGEST="${{ steps.push.outputs.digest }}"
+          [[ -z "${DIGEST}" ]] && { echo "ERROR: no digest for provenance verify" >&2; exit 1; }
+          IDENTITY_REGEXP="${{ inputs.cosign_identity_regexp }}"
+          if [[ -z "${IDENTITY_REGEXP}" ]]; then
+            IDENTITY_REGEXP="https://github.com/${{ github.repository }}.*"
+          fi
+          cosign verify-attestation \
+            --type slsaprovenance1 \
+            --certificate-identity-regexp="${IDENTITY_REGEXP}" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            "${DST_IMAGE}@${DIGEST}" \
+            > /dev/null
+          echo "SLSA provenance attestation verified for ${DST_IMAGE}@${DIGEST}"
+
+      # -----------------------------------------------------------------------
+      # CVE scan — Trivy on the pushed image (digest-pinned, informational only).
+      # exit-code: 0 — does not gate the promote. Counts exported as outputs.
+      # -----------------------------------------------------------------------
+      - name: Trivy CVE scan (JSON)
+        id: trivy_scan
+        if: steps.push.outputs.digest != ''
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1  # 0.35.0
+        with:
+          image-ref: ${{ steps.tags.outputs.dst_image }}@${{ steps.push.outputs.digest }}
+          format: json
+          output: trivy-results.json
+          severity: 'HIGH,CRITICAL'
+          ignore-unfixed: false
+          exit-code: '0'
+          timeout: '15m0s'
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Parse Trivy results
+        id: trivy
+        if: always()
+        run: |
+          set -euo pipefail
+          if [[ ! -f trivy-results.json ]]; then
+            echo "total=0"    >> "$GITHUB_OUTPUT"
+            echo "critical=0" >> "$GITHUB_OUTPUT"
+            echo "high=0"     >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          TOTAL=$(python3 -c "
+          import json
+          d = json.load(open('trivy-results.json'))
+          print(sum(len(r.get('Vulnerabilities') or []) for r in d.get('Results', [])))
+          ")
+          CRITICAL=$(python3 -c "
+          import json
+          d = json.load(open('trivy-results.json'))
+          print(sum(1 for r in d.get('Results', []) for v in (r.get('Vulnerabilities') or []) if v.get('Severity')=='CRITICAL'))
+          ")
+          HIGH=$(python3 -c "
+          import json
+          d = json.load(open('trivy-results.json'))
+          print(sum(1 for r in d.get('Results', []) for v in (r.get('Vulnerabilities') or []) if v.get('Severity')=='HIGH'))
+          ")
+          echo "Trivy: total=${TOTAL} critical=${CRITICAL} high=${HIGH}"
+          echo "total=${TOTAL}"       >> "$GITHUB_OUTPUT"
+          echo "critical=${CRITICAL}" >> "$GITHUB_OUTPUT"
+          echo "high=${HIGH}"         >> "$GITHUB_OUTPUT"
+
+      - name: Upload Trivy scan report
+        if: always() && steps.push.outputs.digest != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: trivy-${{ inputs.name }}-${{ inputs.version }}-${{ github.run_id }}
+          path: trivy-results.json
+          retention-days: 90
+          if-no-files-found: ignore
