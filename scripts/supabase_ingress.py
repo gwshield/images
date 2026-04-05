@@ -1465,6 +1465,25 @@ def cmd_baseline(args, db: SupabaseClient):
 
     print(f"  version_id={version_id[:8]}…")
 
+    # ── Upsert image_tags ─────────────────────────────────────────────────
+    # Hub renders upstream ref from getTag('mirror') ?? getTag('upstream_image').
+    # Write both so the baseline tile shows the correct upstream box.
+    baseline_tags: list[dict] = [
+        {"image_id": image_id, "tag_key": "image_type", "tag_value": "baseline"},
+        {
+            "image_id": image_id,
+            "tag_key": "upstream_image",
+            "tag_value": upstream_image,
+        },
+        {"image_id": image_id, "tag_key": "mirror", "tag_value": mirror_image},
+    ]
+    for t in baseline_tags:
+        db.upsert("image_tags", t, on_conflict="image_id,tag_key,tag_value")
+    print(
+        f"  wrote {len(baseline_tags)} tag(s): "
+        f"{', '.join(t['tag_key'] + '=' + t['tag_value'] for t in baseline_tags)}"
+    )
+
     # ── Insert baseline_sync_results row ──────────────────────────────────
     # Table created by Hub migration 0055_baseline_sync_results.sql
     # If table doesn't exist yet, skip gracefully (continue-on-error in workflow)
