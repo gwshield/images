@@ -427,6 +427,12 @@ jobs:
           fi
           mkdir -p sbom-out
 
+          # SBOM predicates are too large for Rekor tlog (~721KB vs ~128KB limit).
+          # Create a signing config that excludes the transparency log service.
+          SBOM_SIGNING_CONFIG=$(mktemp)
+          curl -sL https://raw.githubusercontent.com/sigstore/root-signing/refs/heads/main/targets/signing_config.v0.2.json \
+            | jq 'del(.rekorTlogUrls)' > "${SBOM_SIGNING_CONFIG}"
+
           PLATFORMS_JSON="${{ steps.plat.outputs.platforms_json }}"
           SBOM_REFS="{}"
 
@@ -464,8 +470,9 @@ jobs:
                   --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json
 
                 cosign attest --yes \
+                  --signing-config="${SBOM_SIGNING_CONFIG}" \
                   --predicate sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json \
-                  --type spdx \
+                  --type spdxjson \
                   "${DST_IMAGE}@${PDIGEST}"
 
                 SBOM_REFS=$(echo "${SBOM_REFS}" | jq -c --arg k "${PLAT}" --arg v "${DST_IMAGE}@${PDIGEST}" '. + {($k): $v}')
@@ -475,8 +482,9 @@ jobs:
               syft "${DST_IMAGE}@${DIGEST}" \
                 --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
               cosign attest --yes \
+                --signing-config="${SBOM_SIGNING_CONFIG}" \
                 --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
-                --type spdx \
+                --type spdxjson \
                 "${DST_IMAGE}@${DIGEST}"
               SBOM_REFS=$(jq -cn --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
             fi
@@ -488,13 +496,15 @@ jobs:
               --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
 
             cosign attest --yes \
+              --signing-config="${SBOM_SIGNING_CONFIG}" \
               --predicate sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json \
               --type cyclonedx \
               "${DST_IMAGE}@${DIGEST}"
 
             cosign attest --yes \
+              --signing-config="${SBOM_SIGNING_CONFIG}" \
               --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
-              --type spdx \
+              --type spdxjson \
               "${DST_IMAGE}@${DIGEST}"
           fi
 
@@ -524,7 +534,7 @@ jobs:
             IDENTITY_REGEXP="https://github.com/${{ github.repository }}.*"
           fi
           cosign verify-attestation \
-            --type spdx \
+            --type spdxjson \
             --certificate-identity-regexp="${IDENTITY_REGEXP}" \
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
             "${DST_IMAGE}@${DIGEST}" \
