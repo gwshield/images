@@ -390,13 +390,13 @@ jobs:
               SBOM_FILE="sbom-out/sbom-${SLUG}-${PLAT_SAFE}-spdx.json"
 
               syft "${MIRROR}@${PDIGEST}" --output spdx-json="${SBOM_FILE}"
-              cosign attest --yes                 --predicate "${SBOM_FILE}" --type spdx                 "${MIRROR}@${PDIGEST}"
+              cosign attest --yes                 --predicate "${SBOM_FILE}" --type spdxjson             "${MIRROR}@${PDIGEST}"
               echo "  SBOM attested: ${PLAT} → ${MIRROR}@${PDIGEST}"
             done
           else
             SBOM_FILE="sbom-out/sbom-${SLUG}-spdx.json"
             syft "${MIRROR}:${TAG}@${DIGEST}" --output spdx-json="${SBOM_FILE}"
-            cosign attest --yes               --predicate "${SBOM_FILE}" --type spdx               "${MIRROR}:${TAG}@${DIGEST}"
+            cosign attest --yes               --predicate "${SBOM_FILE}" --type spdxjson             "${MIRROR}:${TAG}@${DIGEST}"
             echo "  SBOM attested: ${MIRROR}:${TAG}@${DIGEST}"
           fi
 
