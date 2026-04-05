@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-03-17T05:19:39Z",
+  "last_updated": "2026-03-31T08:34:08Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -13,16 +13,24 @@
         "ghcr.io/gwshield/traefik:v3.6.9",
         "ghcr.io/gwshield/traefik:latest"
       ],
-      "digest": "sha256:f763f4411dd283487b8ce07d46c716f3011cd5d7c9f144434599b17220fbdb49",
+      "digest": "sha256:b1796eab83287beb6ce1496deebd725eb581c836564ca61ce14939943af09435",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:58Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/traefik@sha256:692471ab3b040c5f5000f064b67d6a6050b6644aa84c92e03ac9b49ec4635600",
+        "linux/arm64": "ghcr.io/gwshield/traefik@sha256:81218c26d9f48dc7012140b046a4e77418b9d8da36a41155b054ea444cf47133"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/traefik@sha256:692471ab3b040c5f5000f064b67d6a6050b6644aa84c92e03ac9b49ec4635600",
+        "linux/arm64": "ghcr.io/gwshield/traefik@sha256:81218c26d9f48dc7012140b046a4e77418b9d8da36a41155b054ea444cf47133"
+      },
+      "promoted_at": "2026-03-31T08:26:27Z",
       "scan": {
-        "status": "clean",
-        "total": 0,
-        "critical": 0,
-        "high": 0,
+        "status": "findings",
+        "total": 4,
+        "critical": 1,
+        "high": 3,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:58Z"
+        "scanned_at": "2026-03-31T08:26:27Z"
       }
     },
     "redis:v7.4.8-cli": {
@@ -35,16 +43,24 @@
       "tags": [
         "ghcr.io/gwshield/redis:v7.4.8-cli"
       ],
-      "digest": "sha256:6b41b6dd1083ab2920743a5f6bb4894dd5d839a50c4e985bf9e784ef16ced8c6",
+      "digest": "sha256:9a5e8d9dbc8e5b80c13273b08bda059f7da4236fc5231e8ea7cce70fb44dad18",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:01Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/redis@sha256:e72a6cf74341544a32c52ff060669b5723d11940219ed55c9d1ee6a84c87b55e",
+        "linux/arm64": "ghcr.io/gwshield/redis@sha256:b3852036b8feff3983ac8456ae0a16aaa92d0b20397d217ceec7ff4af485c518"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/redis@sha256:e72a6cf74341544a32c52ff060669b5723d11940219ed55c9d1ee6a84c87b55e",
+        "linux/arm64": "ghcr.io/gwshield/redis@sha256:b3852036b8feff3983ac8456ae0a16aaa92d0b20397d217ceec7ff4af485c518"
+      },
+      "promoted_at": "2026-03-31T08:11:20Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:01Z"
+        "scanned_at": "2026-03-31T08:11:20Z"
       }
     },
     "postgres:v15.17-cli": {
@@ -57,16 +73,22 @@
       "tags": [
         "ghcr.io/gwshield/postgres:v15.17-cli"
       ],
-      "digest": "sha256:d21300a5370073ac644ac42e1adbd237a59593325cfe0bbe4443f1eacf892ec1",
+      "digest": "sha256:19526ca6bcddb46d727b0bd9dfa825f65531b13bab3bc4f26201763ecf740878",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:16:59Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:b775366ec53d20ada87ba74afb6e6fbf8d29458bd780685b58e2b9c4aafd6a9c"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:b775366ec53d20ada87ba74afb6e6fbf8d29458bd780685b58e2b9c4aafd6a9c"
+      },
+      "promoted_at": "2026-03-31T07:30:25Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:16:59Z"
+        "scanned_at": "2026-03-31T07:30:25Z"
       }
     },
     "redis:v7.4.8-tls": {
@@ -79,16 +101,24 @@
       "tags": [
         "ghcr.io/gwshield/redis:v7.4.8-tls"
       ],
-      "digest": "sha256:b1a0010254a0729c84ae3915c3a791128e578c21b35caa3a8426f8d57b09550b",
+      "digest": "sha256:74f6a0c644b88523e017cb2d9bc7115c7807f6f2ebfbb3184283f8e2516742c2",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:19:18Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/redis@sha256:01f977c0fc2cbdf9ad16cfc72fd69eb2b27d0d470148f372a74cba05356f4ac9",
+        "linux/arm64": "ghcr.io/gwshield/redis@sha256:219950b07fb2f006c56be31b061a3d4057e8097676d75c9f9ba017540843ee24"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/redis@sha256:01f977c0fc2cbdf9ad16cfc72fd69eb2b27d0d470148f372a74cba05356f4ac9",
+        "linux/arm64": "ghcr.io/gwshield/redis@sha256:219950b07fb2f006c56be31b061a3d4057e8097676d75c9f9ba017540843ee24"
+      },
+      "promoted_at": "2026-03-31T08:17:00Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:19:18Z"
+        "scanned_at": "2026-03-31T08:17:00Z"
       }
     },
     "postgres:v15.17-timescale": {
@@ -101,16 +131,22 @@
       "tags": [
         "ghcr.io/gwshield/postgres:v15.17-timescale"
       ],
-      "digest": "sha256:f40cfd37669be0d2c90177fb4e525cf0e960e24d254b1cb6e0d2cee0a1ad0315",
+      "digest": "sha256:fb47654b813902353c1f011cc4fa022513ab4873fe84d0994876a6519b7b4524",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:16:54Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:499230f6e5c55e47ec1a9ebf5472cb4f00c71f94a707cd689054bcc51b178247"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:499230f6e5c55e47ec1a9ebf5472cb4f00c71f94a707cd689054bcc51b178247"
+      },
+      "promoted_at": "2026-03-31T07:33:02Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:16:54Z"
+        "scanned_at": "2026-03-31T07:33:02Z"
       }
     },
     "postgres:v15.17-tls": {
@@ -123,16 +159,22 @@
       "tags": [
         "ghcr.io/gwshield/postgres:v15.17-tls"
       ],
-      "digest": "sha256:51f34f0a4bc5cf3c56d81a9ee6ce2f8b737c4cee0ff60b381fd5f2d506c420f5",
+      "digest": "sha256:645886abb042224c2c0fb63908afb7e1755de7ee6ad2860648ed51730091111d",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:26Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:d9951827976aed8aa086f4986526f243c391bc08710711fce7177bc18e04e4b5"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:d9951827976aed8aa086f4986526f243c391bc08710711fce7177bc18e04e4b5"
+      },
+      "promoted_at": "2026-03-31T07:35:22Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:26Z"
+        "scanned_at": "2026-03-31T07:35:22Z"
       }
     },
     "nginx:v1.28.2-http2": {
@@ -145,16 +187,24 @@
       "tags": [
         "ghcr.io/gwshield/nginx:v1.28.2-http2"
       ],
-      "digest": "sha256:749a818fb85c3ed703144725d5637a309fb753e4c03bfd936baf535ac964d42e",
+      "digest": "sha256:4199355efe6c5a7bdec8a8482f09be3949995c0d417a61747182b0e2449833ad",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:41Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/nginx@sha256:b5a30849d6f1742a19bbb09f7075305fc2c32d09aee1c75f9303a1d99736283c",
+        "linux/arm64": "ghcr.io/gwshield/nginx@sha256:880d5e3486d3ba6626cbb5f2006838d1604239f199ef3888688711e755c56875"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/nginx@sha256:b5a30849d6f1742a19bbb09f7075305fc2c32d09aee1c75f9303a1d99736283c",
+        "linux/arm64": "ghcr.io/gwshield/nginx@sha256:880d5e3486d3ba6626cbb5f2006838d1604239f199ef3888688711e755c56875"
+      },
+      "promoted_at": "2026-03-31T06:03:15Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:41Z"
+        "scanned_at": "2026-03-31T06:03:15Z"
       }
     },
     "postgres:v15.17-vector": {
@@ -167,16 +217,22 @@
       "tags": [
         "ghcr.io/gwshield/postgres:v15.17-vector"
       ],
-      "digest": "sha256:4b16703005f84d7220226df50eb9d1885ccc6cd4963d558866a866f035db07e5",
+      "digest": "sha256:692667fd6bc60c2dd9d6bc28f7ad8b8f78e34c8054550087e5cd617bf335661b",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:16:58Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:d79a8c266755c78edbb0056a4db6ef8eebe2da1133d7ea701d861ff5ed68540a"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:d79a8c266755c78edbb0056a4db6ef8eebe2da1133d7ea701d861ff5ed68540a"
+      },
+      "promoted_at": "2026-03-31T07:38:18Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:16:58Z"
+        "scanned_at": "2026-03-31T07:38:18Z"
       }
     },
     "redis:v7.4.8-cluster": {
@@ -189,16 +245,24 @@
       "tags": [
         "ghcr.io/gwshield/redis:v7.4.8-cluster"
       ],
-      "digest": "sha256:65f2109b28f8015285761bffaadfc74016bb8d328517337203fe32a2c96e1847",
+      "digest": "sha256:3a68ecf22055e610ed8baa787337e6091c2f5de89673ad31e50ed8b4421116e2",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:12Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/redis@sha256:5c90f369f05199cb6f9d112c5f2cc002531666aff402474c07def46140c89c41",
+        "linux/arm64": "ghcr.io/gwshield/redis@sha256:436de1affc974b57ccc982f59ae4b9705848c5e52bcb2456699f2dcba7015f27"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/redis@sha256:5c90f369f05199cb6f9d112c5f2cc002531666aff402474c07def46140c89c41",
+        "linux/arm64": "ghcr.io/gwshield/redis@sha256:436de1affc974b57ccc982f59ae4b9705848c5e52bcb2456699f2dcba7015f27"
+      },
+      "promoted_at": "2026-03-31T08:14:34Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:12Z"
+        "scanned_at": "2026-03-31T08:14:34Z"
       }
     },
     "postgres:v15.17": {
@@ -212,16 +276,22 @@
         "ghcr.io/gwshield/postgres:v15.17",
         "ghcr.io/gwshield/postgres:latest"
       ],
-      "digest": "sha256:e32e00751ef8ac622e805a37761295cd28a7fb82311f2a590f202cd713fda3ae",
+      "digest": "sha256:69e2308623ac1947a1e0bb9f7b3ebf3c4d79ce370da3a59cabec97aac918cf4c",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:19:39Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:56eefcff6fd60e9f485ab5fa9833af2827a8c21e41fef7adb5476d02f650685c"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:56eefcff6fd60e9f485ab5fa9833af2827a8c21e41fef7adb5476d02f650685c"
+      },
+      "promoted_at": "2026-03-31T07:28:04Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:19:39Z"
+        "scanned_at": "2026-03-31T07:28:04Z"
       }
     },
     "nginx:v1.28.2-http3": {
@@ -234,16 +304,24 @@
       "tags": [
         "ghcr.io/gwshield/nginx:v1.28.2-http3"
       ],
-      "digest": "sha256:b5e93cdf31a3709e80f5cab28d2e09a19abb883d37220c6e76798827ebcb8530",
+      "digest": "sha256:e3272b5f59d661e2246a33d01e30a6a68da63f04177842a8d362a1ae327c1697",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:05Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/nginx@sha256:69673ca0d76b63670d76ec3cb4f079b8f52aacd5cf1ce3bbb1a3ebaad60d3baa",
+        "linux/arm64": "ghcr.io/gwshield/nginx@sha256:19ff23d4d1fb5a865e0730d26fd1e6b118b0ba9e778ca9550f1b3c2757fb5355"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/nginx@sha256:69673ca0d76b63670d76ec3cb4f079b8f52aacd5cf1ce3bbb1a3ebaad60d3baa",
+        "linux/arm64": "ghcr.io/gwshield/nginx@sha256:19ff23d4d1fb5a865e0730d26fd1e6b118b0ba9e778ca9550f1b3c2757fb5355"
+      },
+      "promoted_at": "2026-03-31T06:14:04Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:05Z"
+        "scanned_at": "2026-03-31T06:14:04Z"
       }
     },
     "nginx:v1.28.2": {
@@ -257,16 +335,24 @@
         "ghcr.io/gwshield/nginx:v1.28.2",
         "ghcr.io/gwshield/nginx:latest"
       ],
-      "digest": "sha256:e9adf51f20fb6abe022ff39892898cfea543e22315900536270d5bf1620ccac2",
+      "digest": "sha256:e7cd7caef411279b250b9e1d5b12da4aa276abad1028f6cd185530e38cc1e855",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:59Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/nginx@sha256:002c96dbcc539b0b5cbbe757b4317a178c4ed95ea11a339517fe81128f251f5a",
+        "linux/arm64": "ghcr.io/gwshield/nginx@sha256:36757b0f955b11340745001abc5407e0dd5f5ecb81372bfd3fea86cfe07390dc"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/nginx@sha256:002c96dbcc539b0b5cbbe757b4317a178c4ed95ea11a339517fe81128f251f5a",
+        "linux/arm64": "ghcr.io/gwshield/nginx@sha256:36757b0f955b11340745001abc5407e0dd5f5ecb81372bfd3fea86cfe07390dc"
+      },
+      "promoted_at": "2026-03-31T05:46:01Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:59Z"
+        "scanned_at": "2026-03-31T05:46:01Z"
       }
     },
     "redis:v7.4.8": {
@@ -280,16 +366,24 @@
         "ghcr.io/gwshield/redis:v7.4.8",
         "ghcr.io/gwshield/redis:latest"
       ],
-      "digest": "sha256:1801f9f4d362fdd7363873118295649ed2c04b08c324b9f9cc01be1a195c5a64",
+      "digest": "sha256:8262051479f4c4db50764a040f4f820f93898697b10bdcf0dee1ba89b545d201",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:37Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/redis@sha256:dc4db209dfbff05e135fc52de2f684f46c35c46edc68a0a2f5ace99257341de0",
+        "linux/arm64": "ghcr.io/gwshield/redis@sha256:c0c019cfa0968056c2944c0840e2d24163a799a7957342f8e9a5f2ffb86b617e"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/redis@sha256:dc4db209dfbff05e135fc52de2f684f46c35c46edc68a0a2f5ace99257341de0",
+        "linux/arm64": "ghcr.io/gwshield/redis@sha256:c0c019cfa0968056c2944c0840e2d24163a799a7957342f8e9a5f2ffb86b617e"
+      },
+      "promoted_at": "2026-03-31T08:08:21Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:37Z"
+        "scanned_at": "2026-03-31T08:08:21Z"
       }
     },
     "go-builder:v1.24": {
@@ -303,16 +397,24 @@
         "ghcr.io/gwshield/go-builder:v1.24",
         "ghcr.io/gwshield/go-builder:latest"
       ],
-      "digest": "sha256:b14641959728f43a03b6ea107b04e5fbe5910b645f06bbc0e74c037a73108680",
+      "digest": "sha256:492b5a7f8c6d3d4e850043b66f11f4a6b38449563edcbce2aac03d4867bd29db",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:22Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:6cd9f0096e7027481e865a7743e20a8e350294a33631c2dc2b0eb440cc733f1d",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:0c61d770fdc60bd8740698e65f98de9c768ae4dc51b5b3fafd6c1b058ea0c934"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:6cd9f0096e7027481e865a7743e20a8e350294a33631c2dc2b0eb440cc733f1d",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:0c61d770fdc60bd8740698e65f98de9c768ae4dc51b5b3fafd6c1b058ea0c934"
+      },
+      "promoted_at": "2026-03-31T07:14:30Z",
       "scan": {
-        "status": "clean",
-        "total": 0,
+        "status": "findings",
+        "total": 20,
         "critical": 0,
-        "high": 0,
+        "high": 20,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:22Z"
+        "scanned_at": "2026-03-31T07:14:30Z"
       }
     },
     "go-builder:v1.24-dev": {
@@ -325,16 +427,24 @@
       "tags": [
         "ghcr.io/gwshield/go-builder:v1.24-dev"
       ],
-      "digest": "sha256:60f96534ce8e86cf99ca318efac6f279f8560166321aff8a874b65d70e6518ed",
+      "digest": "sha256:07a7f0bc9b4fd49a324af640f214d097e931abf544ba7f6bcb6426e786cec528",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:25Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:b53ee35c515e69308fac6ac9f606b4b50af8b59f50e5f51637d07eab71a0726f",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:15510fb3feb23992a662b8fd61402e8e85a773289207e7d3b493401040fa5d93"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:b53ee35c515e69308fac6ac9f606b4b50af8b59f50e5f51637d07eab71a0726f",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:15510fb3feb23992a662b8fd61402e8e85a773289207e7d3b493401040fa5d93"
+      },
+      "promoted_at": "2026-03-31T07:17:18Z",
       "scan": {
-        "status": "clean",
-        "total": 0,
+        "status": "findings",
+        "total": 24,
         "critical": 0,
-        "high": 0,
+        "high": 24,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:25Z"
+        "scanned_at": "2026-03-31T07:17:18Z"
       }
     },
     "python-builder:v3.13": {
@@ -348,16 +458,24 @@
         "ghcr.io/gwshield/python-builder:v3.13",
         "ghcr.io/gwshield/python-builder:latest"
       ],
-      "digest": "sha256:1316dab0a5dd838b8e30fd50c57c4f9e9c45b52596f4c860f57ad1ab379b6c76",
+      "digest": "sha256:35528ded75446a843ef8b80958d17e546f3b40dcc328fb4a3cbcac0230aed4f9",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:31Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:1974bb85ef04983a72511d85862c25ac3a0cd32d2c1420afeb72c1bce542707f",
+        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:4d3d4e6647b839f048185a63d03bb83e2ea9a874a008e6c694df83892d517cb4"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:1974bb85ef04983a72511d85862c25ac3a0cd32d2c1420afeb72c1bce542707f",
+        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:4d3d4e6647b839f048185a63d03bb83e2ea9a874a008e6c694df83892d517cb4"
+      },
+      "promoted_at": "2026-03-31T08:02:23Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:31Z"
+        "scanned_at": "2026-03-31T08:02:23Z"
       }
     },
     "python-builder:v3.13-dev": {
@@ -370,16 +488,24 @@
       "tags": [
         "ghcr.io/gwshield/python-builder:v3.13-dev"
       ],
-      "digest": "sha256:de8254096791c998d0a71633d2b8385fb44710235d3bd929b82f66214ab1b9ad",
+      "digest": "sha256:0b5ded5386a389384a91721090b199cb7c6203485a50dc6984838598c79026e0",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:01Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:55e9e810599cf6a497b4a431e6e98c59754a0876f3bdcde79cef6e3506bc5731",
+        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:667e7a77034e37b81542c277bcbcacd9b34abc79c58ea0c806dd573e0084e4bf"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:55e9e810599cf6a497b4a431e6e98c59754a0876f3bdcde79cef6e3506bc5731",
+        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:667e7a77034e37b81542c277bcbcacd9b34abc79c58ea0c806dd573e0084e4bf"
+      },
+      "promoted_at": "2026-03-31T08:05:15Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:01Z"
+        "scanned_at": "2026-03-31T08:05:15Z"
       }
     },
     "python-builder:v3.12-dev": {
@@ -392,16 +518,24 @@
       "tags": [
         "ghcr.io/gwshield/python-builder:v3.12-dev"
       ],
-      "digest": "sha256:28c8568d97b5995f1f642a629e8a4ca146e68a3d388ac4e6bb92a508bc437061",
+      "digest": "sha256:f4b0ef1cbd47feb785384f913f406fce8db81dd1de376386edc580672ba9a863",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:33Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:00c1dcf5985711b6e366d825f19de62ee19e69db8721a93879566f0b5e899352",
+        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:40f9a8f42c035aa1b0cb59cef8b13a6836031b34786e9d358c2ebfbe3307e9ca"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:00c1dcf5985711b6e366d825f19de62ee19e69db8721a93879566f0b5e899352",
+        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:40f9a8f42c035aa1b0cb59cef8b13a6836031b34786e9d358c2ebfbe3307e9ca"
+      },
+      "promoted_at": "2026-03-31T07:56:44Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:33Z"
+        "scanned_at": "2026-03-31T07:56:44Z"
       }
     },
     "python-builder:v3.12": {
@@ -415,16 +549,24 @@
         "ghcr.io/gwshield/python-builder:v3.12",
         "ghcr.io/gwshield/python-builder:latest"
       ],
-      "digest": "sha256:e7472ba44329e477b0d7d56a242c1475adb2fbc971f77bf36beea8c9808a1499",
+      "digest": "sha256:c37696e30d3b3b3d7a60f0b3eb378b3c8f58fcf0fe5c0c41f7e7bbb835e7fc97",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:02Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:d3f2f7747d69b83a83dfcdd945b68ff9310534b87a6536b135691b4350ba14fa",
+        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:38e49b5a1b81e579ee3cef84c0a6cb731080e352f2a2cda5e481880c94f1408b"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:d3f2f7747d69b83a83dfcdd945b68ff9310534b87a6536b135691b4350ba14fa",
+        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:38e49b5a1b81e579ee3cef84c0a6cb731080e352f2a2cda5e481880c94f1408b"
+      },
+      "promoted_at": "2026-03-31T07:54:20Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:02Z"
+        "scanned_at": "2026-03-31T07:54:20Z"
       }
     },
     "postgres:v17.9-cli": {
@@ -437,16 +579,22 @@
       "tags": [
         "ghcr.io/gwshield/postgres:v17.9-cli"
       ],
-      "digest": "sha256:72f020078d385c48c6b89045d898a29820d5d0f923e358e3cb39905d540a8807",
+      "digest": "sha256:c8ff8690be850411d66ebeafee7df06fad50dd92dd45d443a337a8871f071af8",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:19:08Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:73875d72f33f629d2423a99ce30b3c0ca73e4c0d7510b76156926ab48c5a6649"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:73875d72f33f629d2423a99ce30b3c0ca73e4c0d7510b76156926ab48c5a6649"
+      },
+      "promoted_at": "2026-03-31T07:43:47Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:19:08Z"
+        "scanned_at": "2026-03-31T07:43:47Z"
       }
     },
     "postgres:v17.9-timescale": {
@@ -459,16 +607,22 @@
       "tags": [
         "ghcr.io/gwshield/postgres:v17.9-timescale"
       ],
-      "digest": "sha256:e504b288df7559eea087eb72e81e6613b8a5ba3d882c0f936f5cbf120f6008ef",
+      "digest": "sha256:7873ec6660d95726482a857a1174c210ffac361a2f8b7ccd5467c1db18c4ac7e",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:19:30Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:9d3c957ef63d05eceb230ee5d693d40dc8896fa35a7fd80e7107327e59c3bb51"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:9d3c957ef63d05eceb230ee5d693d40dc8896fa35a7fd80e7107327e59c3bb51"
+      },
+      "promoted_at": "2026-03-31T07:46:17Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:19:30Z"
+        "scanned_at": "2026-03-31T07:46:17Z"
       }
     },
     "postgres:v17.9-tls": {
@@ -481,16 +635,22 @@
       "tags": [
         "ghcr.io/gwshield/postgres:v17.9-tls"
       ],
-      "digest": "sha256:1061ad1c52137f5c808956a3df18b79ca8889df7567a14ff287f80195e5062b7",
+      "digest": "sha256:d020aab80693387b11685cb0f5245780c0e41e9b296c3a71e7c094406c916f45",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:32Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:4a9be98c8791c13061eaf1cdf2a3d418aadb4c2cb6eaa8d9c1832492cbbc74a9"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:4a9be98c8791c13061eaf1cdf2a3d418aadb4c2cb6eaa8d9c1832492cbbc74a9"
+      },
+      "promoted_at": "2026-03-31T07:49:15Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:32Z"
+        "scanned_at": "2026-03-31T07:49:15Z"
       }
     },
     "postgres:v17.9": {
@@ -504,16 +664,22 @@
         "ghcr.io/gwshield/postgres:v17.9",
         "ghcr.io/gwshield/postgres:latest"
       ],
-      "digest": "sha256:0bb4e7e118db9956a8fc311b3f63b55b8499ae71d0359b86900009fd07ef2137",
+      "digest": "sha256:97b3293f9a837d097e02f66f577c1920caf0c784ffc5fd764c29eb395374a36a",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:19Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:fe688c5637059110d13e95d3013270ebb97f9dde3b0f79adec72214710913e19"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:fe688c5637059110d13e95d3013270ebb97f9dde3b0f79adec72214710913e19"
+      },
+      "promoted_at": "2026-03-31T07:40:51Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:19Z"
+        "scanned_at": "2026-03-31T07:40:51Z"
       }
     },
     "postgres:v17.9-vector": {
@@ -526,16 +692,22 @@
       "tags": [
         "ghcr.io/gwshield/postgres:v17.9-vector"
       ],
-      "digest": "sha256:f2f4a0613072ddedbbf08a1b2bbf9ab29b616f19238abc9dfed6c8a72d70224e",
+      "digest": "sha256:c423f84377a8c19ed82be307984d21055b72314d49b6876d8dd592d685d4789b",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:24Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:d19d53c73dac4d60bd2c0d7074759c1493125ae76ef6d94cf65d0cb5a423b990"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:d19d53c73dac4d60bd2c0d7074759c1493125ae76ef6d94cf65d0cb5a423b990"
+      },
+      "promoted_at": "2026-03-31T07:51:44Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:24Z"
+        "scanned_at": "2026-03-31T07:51:44Z"
       }
     },
     "rust-builder:v1.87": {
@@ -549,16 +721,24 @@
         "ghcr.io/gwshield/rust-builder:v1.87",
         "ghcr.io/gwshield/rust-builder:latest"
       ],
-      "digest": "sha256:18339a151d757343110e8e2e6c217d470aeda0ce6257ee021fcf1be49fdab6b0",
+      "digest": "sha256:794de5727ca1d72cbd126776a6bb70705c4af1059b361dbcc34d5109d65316d8",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:30Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/rust-builder@sha256:8f91e50f65b1d21e5a9d981340d23f0049208390ec972092639a0fdabe8aa63f",
+        "linux/arm64": "ghcr.io/gwshield/rust-builder@sha256:e9589802cf6e03386a11b85ca041c0df41221de87b38c037c359625dfdb8d9ba"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/rust-builder@sha256:8f91e50f65b1d21e5a9d981340d23f0049208390ec972092639a0fdabe8aa63f",
+        "linux/arm64": "ghcr.io/gwshield/rust-builder@sha256:e9589802cf6e03386a11b85ca041c0df41221de87b38c037c359625dfdb8d9ba"
+      },
+      "promoted_at": "2026-03-31T08:20:15Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:30Z"
+        "scanned_at": "2026-03-31T08:20:15Z"
       }
     },
     "rust-builder:v1.87-dev": {
@@ -571,16 +751,24 @@
       "tags": [
         "ghcr.io/gwshield/rust-builder:v1.87-dev"
       ],
-      "digest": "sha256:1b7e5141eb9fd448369b204ff686a2c44a85e45da237b62500fd0d8c23ae805c",
+      "digest": "sha256:a6551a6d67efe871e4ea706327af72a62b5cbb1511cf8e59ff2d98008665a664",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:25Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/rust-builder@sha256:8932e0ba56b184dd087f1758593451c15e4edad734d02ff0b3e7500ae9e92911",
+        "linux/arm64": "ghcr.io/gwshield/rust-builder@sha256:537a85ebaeaf82a4040734f927b4ac2fd56938da76932591514ab325d4a034e4"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/rust-builder@sha256:8932e0ba56b184dd087f1758593451c15e4edad734d02ff0b3e7500ae9e92911",
+        "linux/arm64": "ghcr.io/gwshield/rust-builder@sha256:537a85ebaeaf82a4040734f927b4ac2fd56938da76932591514ab325d4a034e4"
+      },
+      "promoted_at": "2026-03-31T07:59:49Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:25Z"
+        "scanned_at": "2026-03-31T07:59:49Z"
       }
     },
     "haproxy:v3.1.16": {
@@ -594,16 +782,24 @@
         "ghcr.io/gwshield/haproxy:v3.1.16",
         "ghcr.io/gwshield/haproxy:latest"
       ],
-      "digest": "sha256:5952bfbca7e6fedc5dfc752fccc83f7cf5c1d60c97a22285e97b9a5a9db33200",
+      "digest": "sha256:7ba2dd484472d80d0e15efa5e50c701dbf3d5cd842bfb37a52d9860757636525",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:47Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/haproxy@sha256:d01044e7bc3c08a2343ceb7969340a95b75464fd3a3dcd4f653a1302d562b13f",
+        "linux/arm64": "ghcr.io/gwshield/haproxy@sha256:dfa460b5d769065dd916a26eb81de8076ea9546bc3b30440f72cfb50ac416154"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/haproxy@sha256:d01044e7bc3c08a2343ceb7969340a95b75464fd3a3dcd4f653a1302d562b13f",
+        "linux/arm64": "ghcr.io/gwshield/haproxy@sha256:dfa460b5d769065dd916a26eb81de8076ea9546bc3b30440f72cfb50ac416154"
+      },
+      "promoted_at": "2026-03-31T07:22:48Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:47Z"
+        "scanned_at": "2026-03-31T07:22:48Z"
       }
     },
     "haproxy:v3.1.16-ssl": {
@@ -616,16 +812,24 @@
       "tags": [
         "ghcr.io/gwshield/haproxy:v3.1.16-ssl"
       ],
-      "digest": "sha256:6c166eee98162d10dd22249dc2f9c58daed71ddfb2e8c66c4394dfcb4e220183",
+      "digest": "sha256:5090736d63093a96989545e254919364666544c37b25a4da5b74631f1fdb5b61",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:10Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/haproxy@sha256:6189722222b600894fdc8c6a284346cc016a3ac867a2af6757201cc4f9b4f09e",
+        "linux/arm64": "ghcr.io/gwshield/haproxy@sha256:6f439d9de92ae36271981be72cbe376ae43dc4b9489a0e513ef8239182b3c4ab"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/haproxy@sha256:6189722222b600894fdc8c6a284346cc016a3ac867a2af6757201cc4f9b4f09e",
+        "linux/arm64": "ghcr.io/gwshield/haproxy@sha256:6f439d9de92ae36271981be72cbe376ae43dc4b9489a0e513ef8239182b3c4ab"
+      },
+      "promoted_at": "2026-03-31T07:25:42Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:10Z"
+        "scanned_at": "2026-03-31T07:25:42Z"
       }
     },
     "caddy:v2.11.2": {
@@ -639,16 +843,24 @@
         "ghcr.io/gwshield/caddy:v2.11.2",
         "ghcr.io/gwshield/caddy:latest"
       ],
-      "digest": "sha256:2e592ebaa0b35cd75fc4f4350683c67d1149d56a98f11ff702d8b887fc206cd1",
+      "digest": "sha256:bb9e46b38cfa2819a0acf48eb0615ba4bb924b0e33707a8bb2a880976ffe49e7",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:19:11Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:5966f2a6d2268cc4e3b3fd64d51b08d2ecc9c6b09d9804b0b1a14fb8d78cc1a8",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:b5ae0c85ca334c1f25b18447f4639ca8f38b9626583562040b97d4b29a7f5589"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:5966f2a6d2268cc4e3b3fd64d51b08d2ecc9c6b09d9804b0b1a14fb8d78cc1a8",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:b5ae0c85ca334c1f25b18447f4639ca8f38b9626583562040b97d4b29a7f5589"
+      },
+      "promoted_at": "2026-03-31T05:36:25Z",
       "scan": {
-        "status": "clean",
-        "total": 0,
-        "critical": 0,
+        "status": "findings",
+        "total": 2,
+        "critical": 2,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:19:11Z"
+        "scanned_at": "2026-03-31T05:36:25Z"
       }
     },
     "caddy:v2.11.2-ratelimit": {
@@ -661,16 +873,24 @@
       "tags": [
         "ghcr.io/gwshield/caddy:v2.11.2-ratelimit"
       ],
-      "digest": "sha256:edbddeb4329adcff882e58942562d6f49ff6b470ec2c3d3ed9bce84afd0b1e3b",
+      "digest": "sha256:9d6ab1d7fc6719d0cb08b4b17df5e77669c67c1564c2a9206502e450b354c710",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:00Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:dbe796e4680d5161881d9be1a920b3b404c56af46cb4b3c18e8035c6673d59e3",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:581a30f4f66e6992b7d951c5d5b564886dfb3d1707ecdbe84aafec213998a452"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:dbe796e4680d5161881d9be1a920b3b404c56af46cb4b3c18e8035c6673d59e3",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:581a30f4f66e6992b7d951c5d5b564886dfb3d1707ecdbe84aafec213998a452"
+      },
+      "promoted_at": "2026-03-31T07:08:42Z",
       "scan": {
-        "status": "clean",
-        "total": 0,
-        "critical": 0,
+        "status": "findings",
+        "total": 2,
+        "critical": 2,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:00Z"
+        "scanned_at": "2026-03-31T07:08:42Z"
       }
     },
     "caddy:v2.11.2-security": {
@@ -683,16 +903,24 @@
       "tags": [
         "ghcr.io/gwshield/caddy:v2.11.2-security"
       ],
-      "digest": "sha256:68fa5d227aad93d1369281a8169645846480583980b46e3ef3c61923451eaade",
+      "digest": "sha256:1dc6c94dca9e2c4ec0439cbb3e1d187ceaf92f52f71fd1c9cbc58e7ab0819e82",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:15Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:098e118f9e32b3dfa6bd36ec0c49f3849ce1e1673294dfc06705bf1ca8c11a72",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:b1008b59d8f7bd8e044f03554cf81c0c0a15aadb62e90a73e13754b36468b3be"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:098e118f9e32b3dfa6bd36ec0c49f3849ce1e1673294dfc06705bf1ca8c11a72",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:b1008b59d8f7bd8e044f03554cf81c0c0a15aadb62e90a73e13754b36468b3be"
+      },
+      "promoted_at": "2026-03-31T07:11:22Z",
       "scan": {
-        "status": "clean",
-        "total": 0,
-        "critical": 0,
-        "high": 0,
+        "status": "findings",
+        "total": 3,
+        "critical": 2,
+        "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:15Z"
+        "scanned_at": "2026-03-31T07:11:22Z"
       }
     },
     "caddy:v2.11.2-cloudflare": {
@@ -705,16 +933,24 @@
       "tags": [
         "ghcr.io/gwshield/caddy:v2.11.2-cloudflare"
       ],
-      "digest": "sha256:dcf4a8e62d4814c259cd82fcbae7f413d615a27ba2069c70f0134cf0bee4051f",
+      "digest": "sha256:8a7f697835e016ededfb5c9d252d5a33ddbba976621d68f548eaf878c8aa4d3f",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:42Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:6a188ff6237142e89d0f581331f954809c06ef592f25e837ef0f664cfdedea98",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:c8dff03717bd49eef1023a8fb5bde0be962334ec9b929c6e540a39572d329381"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:6a188ff6237142e89d0f581331f954809c06ef592f25e837ef0f664cfdedea98",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:c8dff03717bd49eef1023a8fb5bde0be962334ec9b929c6e540a39572d329381"
+      },
+      "promoted_at": "2026-03-31T05:40:55Z",
       "scan": {
-        "status": "clean",
-        "total": 0,
-        "critical": 0,
+        "status": "findings",
+        "total": 2,
+        "critical": 2,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:42Z"
+        "scanned_at": "2026-03-31T05:40:55Z"
       }
     },
     "caddy:v2.11.2-crowdsec": {
@@ -727,16 +963,24 @@
       "tags": [
         "ghcr.io/gwshield/caddy:v2.11.2-crowdsec"
       ],
-      "digest": "sha256:66c2f3276a95117597f52dba5424d2bd50822c2735a400e8cb1a69a191308c84",
+      "digest": "sha256:62221849cdbe9ad0e0721453728a961be5c88a0fd858bcd53f12aecaefdb0b67",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:26Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:2ea1b15ea9f6bb60b786fde12e9c1409f500742c3086bd5ae9b8566d238c2594",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:0158010168e7a12ce67bf205e99b03a1acf950136456f79e12ba5abb6687acbb"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:2ea1b15ea9f6bb60b786fde12e9c1409f500742c3086bd5ae9b8566d238c2594",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:0158010168e7a12ce67bf205e99b03a1acf950136456f79e12ba5abb6687acbb"
+      },
+      "promoted_at": "2026-03-31T05:38:47Z",
       "scan": {
-        "status": "clean",
-        "total": 0,
-        "critical": 0,
+        "status": "findings",
+        "total": 2,
+        "critical": 2,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:26Z"
+        "scanned_at": "2026-03-31T05:38:47Z"
       }
     },
     "caddy:v2.11.2-l4": {
@@ -749,16 +993,24 @@
       "tags": [
         "ghcr.io/gwshield/caddy:v2.11.2-l4"
       ],
-      "digest": "sha256:d876da02d0da52e46a7ac8745707d83f84bac4ecd47c6e3ecb91216811ea840b",
+      "digest": "sha256:1e4b4cc90d74bf2c6e5cfcee68c10a37f2edc051fcd5a658731fbd3ede219eb3",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:16:48Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:aef0da6174a38eff23d0d46c4bb28a365ab4aace9abce90c3a847104265f813f",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:c70963222beadbd72e92edea667d59090a20c4bc3e36e2daa107b9f151dd9ced"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:aef0da6174a38eff23d0d46c4bb28a365ab4aace9abce90c3a847104265f813f",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:c70963222beadbd72e92edea667d59090a20c4bc3e36e2daa107b9f151dd9ced"
+      },
+      "promoted_at": "2026-03-31T07:05:47Z",
       "scan": {
-        "status": "clean",
-        "total": 0,
-        "critical": 0,
+        "status": "findings",
+        "total": 2,
+        "critical": 2,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:16:48Z"
+        "scanned_at": "2026-03-31T07:05:47Z"
       }
     },
     "go-builder:v1.25": {
@@ -772,16 +1024,24 @@
         "ghcr.io/gwshield/go-builder:v1.25",
         "ghcr.io/gwshield/go-builder:latest"
       ],
-      "digest": "sha256:091bb7cfee8395e662b2f1a9c21c354d57de245e271a0c3370b98396ddfd90f8",
+      "digest": "sha256:2c0d21ced9c9f8661c408ccab2afa00686cc2de33ea6f8ff6cb703f38737ca04",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:19:02Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:81e72f899d18278366a5113b702318cf727096665252185b1fa859e5558430fc",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:ce0a399c6de18629bdba30da3dc901620ff39e0415028a8f6ca2c905c304114e"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:81e72f899d18278366a5113b702318cf727096665252185b1fa859e5558430fc",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:ce0a399c6de18629bdba30da3dc901620ff39e0415028a8f6ca2c905c304114e"
+      },
+      "promoted_at": "2026-03-31T07:20:05Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:19:02Z"
+        "scanned_at": "2026-03-31T07:20:05Z"
       }
     },
     "go-builder:v1.25-dev": {
@@ -794,16 +1054,24 @@
       "tags": [
         "ghcr.io/gwshield/go-builder:v1.25-dev"
       ],
-      "digest": "sha256:c0f73e2c598336e3a0f54624515f18333ff9b277cb495252bdc1d9dc110f9318",
+      "digest": "sha256:b1307f54bf0e503103fdc85ce40f70cb36d5bf13004534fd9e299b5bd7212fb2",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:09Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:537a0f286ca7dbd0b949d3a54639989b576e4ef97967c0cf2830e119a6db2f55",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:100162a9603417fbef088e82facbf4735cc78c819a7b8282a8d9b509345a0c8c"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:537a0f286ca7dbd0b949d3a54639989b576e4ef97967c0cf2830e119a6db2f55",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:100162a9603417fbef088e82facbf4735cc78c819a7b8282a8d9b509345a0c8c"
+      },
+      "promoted_at": "2026-03-31T05:42:52Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:09Z"
+        "scanned_at": "2026-03-31T05:42:52Z"
       }
     },
     "valkey:v8.1.6-tls": {
@@ -816,16 +1084,24 @@
       "tags": [
         "ghcr.io/gwshield/valkey:v8.1.6-tls"
       ],
-      "digest": "sha256:bd13ce623be1ec847ac74e31b704fab0f2d7f83e40020eaa6be52447ad7285cc",
+      "digest": "sha256:d9376f935e021ffdc6b4b4a9fe6ded7d0498ce6cf73b52cc8574054461bab954",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:58Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/valkey@sha256:299ae67b442b12a3ca82a061f801e46c707a452e9bc88ca83dd698d08e8f55c9",
+        "linux/arm64": "ghcr.io/gwshield/valkey@sha256:ec5739813b2602cdf47d795800b8ba5bccc34d4b9260865397328c68b5af9239"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/valkey@sha256:299ae67b442b12a3ca82a061f801e46c707a452e9bc88ca83dd698d08e8f55c9",
+        "linux/arm64": "ghcr.io/gwshield/valkey@sha256:ec5739813b2602cdf47d795800b8ba5bccc34d4b9260865397328c68b5af9239"
+      },
+      "promoted_at": "2026-03-31T08:18:05Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:58Z"
+        "scanned_at": "2026-03-31T08:18:05Z"
       }
     },
     "valkey:v8.1.6-cli": {
@@ -838,16 +1114,24 @@
       "tags": [
         "ghcr.io/gwshield/valkey:v8.1.6-cli"
       ],
-      "digest": "sha256:94eaacafc825041f999a37832d813176a3f5970553b689893e09afe398cd0a8e",
+      "digest": "sha256:09bf5943009d39018c6818be7f2a68036ae575e6dbd7a5dba31157c0aa3a11b3",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:16:55Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/valkey@sha256:3124a538df52197173d0c9fdc2b5b6e27b5614c8316287d6b9e1e1d840d43230",
+        "linux/arm64": "ghcr.io/gwshield/valkey@sha256:cb53d0579bb073ce8511ad4f64eb2a861020df5660b05c632b0d18534fd3285c"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/valkey@sha256:3124a538df52197173d0c9fdc2b5b6e27b5614c8316287d6b9e1e1d840d43230",
+        "linux/arm64": "ghcr.io/gwshield/valkey@sha256:cb53d0579bb073ce8511ad4f64eb2a861020df5660b05c632b0d18534fd3285c"
+      },
+      "promoted_at": "2026-03-31T08:31:43Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:16:55Z"
+        "scanned_at": "2026-03-31T08:31:43Z"
       }
     },
     "valkey:v8.1.6-cluster": {
@@ -860,16 +1144,24 @@
       "tags": [
         "ghcr.io/gwshield/valkey:v8.1.6-cluster"
       ],
-      "digest": "sha256:de4fa8f63f21369d8f27ac789530196bb0f013206a37e212dd7f9baea41f948d",
+      "digest": "sha256:b185e8844d5246e0825101747231719df57390b340bede5a50db73470889b798",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:12Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/valkey@sha256:14b93ff9f34ac7da02c00f9880870a3c1a314ca1b31aed7b5ca6d6148bdcb977",
+        "linux/arm64": "ghcr.io/gwshield/valkey@sha256:f27707e0d30f801e713790e6962edf77d8fa1211427b46984dba8c8c4a552129"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/valkey@sha256:14b93ff9f34ac7da02c00f9880870a3c1a314ca1b31aed7b5ca6d6148bdcb977",
+        "linux/arm64": "ghcr.io/gwshield/valkey@sha256:f27707e0d30f801e713790e6962edf77d8fa1211427b46984dba8c8c4a552129"
+      },
+      "promoted_at": "2026-03-31T08:34:07Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:12Z"
+        "scanned_at": "2026-03-31T08:34:07Z"
       }
     },
     "valkey:v8.1.6": {
@@ -883,16 +1175,24 @@
         "ghcr.io/gwshield/valkey:v8.1.6",
         "ghcr.io/gwshield/valkey:latest"
       ],
-      "digest": "sha256:737d76ba2e1f7070ea7e1903bc6aef3be17a858df0eb4a1419e6a9525732dd31",
+      "digest": "sha256:aeee36c5a1cf7abe23cf89e75739217a541e80282f3b4624dd4fd6b3afec08e4",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:15Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/valkey@sha256:51f6b91d86d387ae50e6190211d0b6ccfa82d80bb6d3a4979ec9109b5bddda2d",
+        "linux/arm64": "ghcr.io/gwshield/valkey@sha256:ccd2f3c1edf84fd463704c12451c1d90ecbdcb7f6a9d88dbb0f4a0855a847243"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/valkey@sha256:51f6b91d86d387ae50e6190211d0b6ccfa82d80bb6d3a4979ec9109b5bddda2d",
+        "linux/arm64": "ghcr.io/gwshield/valkey@sha256:ccd2f3c1edf84fd463704c12451c1d90ecbdcb7f6a9d88dbb0f4a0855a847243"
+      },
+      "promoted_at": "2026-03-31T08:28:48Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:15Z"
+        "scanned_at": "2026-03-31T08:28:48Z"
       }
     },
     "pomerium:v0.32.2": {
@@ -906,16 +1206,24 @@
         "ghcr.io/gwshield/pomerium:v0.32.2",
         "ghcr.io/gwshield/pomerium:latest"
       ],
-      "digest": "sha256:1c9ee4b1d5b418e76c0e88f29e90144e567c8a6028bcc025ac6ef9a217b9492d",
+      "digest": "sha256:9184266de0c615ddff13ab49688d15a3a96fd245629594ba842f7b33b1f5c972",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:17:06Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/pomerium@sha256:c25f32f39064a93ad2a05aba6f0b2db6db6e49ce929b65270bc2cd5df07c3b6e",
+        "linux/arm64": "ghcr.io/gwshield/pomerium@sha256:80db125bfa9e34435d9416e4583be76e29179252aabe6fca3b4a9ccf0059f408"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/pomerium@sha256:c25f32f39064a93ad2a05aba6f0b2db6db6e49ce929b65270bc2cd5df07c3b6e",
+        "linux/arm64": "ghcr.io/gwshield/pomerium@sha256:80db125bfa9e34435d9416e4583be76e29179252aabe6fca3b4a9ccf0059f408"
+      },
+      "promoted_at": "2026-03-31T06:32:19Z",
       "scan": {
         "status": "findings",
-        "total": 2,
-        "critical": 0,
-        "high": 2,
+        "total": 5,
+        "critical": 1,
+        "high": 4,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:17:06Z"
+        "scanned_at": "2026-03-31T06:32:19Z"
       }
     },
     "nats:v2.12.5": {
@@ -929,16 +1237,24 @@
         "ghcr.io/gwshield/nats:v2.12.5",
         "ghcr.io/gwshield/nats:latest"
       ],
-      "digest": "sha256:ed96eb442f869fc0de327408782aef1cea89a48da2792bc56a5332f2ea39a417",
+      "digest": "sha256:7f584957c8fa6e7e8b1dcad7cc717939de4665a74f1dd3e57d181e9a461c84ce",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:19:23Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/nats@sha256:525ade1df70348f538a1e11dac6d3bdd79893ae916094ff9efa87104a01841fd",
+        "linux/arm64": "ghcr.io/gwshield/nats@sha256:0ac14d0dffdeb8325eb9a4beb1b563abc6e705ec65daed7d9ca2823290266116"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/nats@sha256:525ade1df70348f538a1e11dac6d3bdd79893ae916094ff9efa87104a01841fd",
+        "linux/arm64": "ghcr.io/gwshield/nats@sha256:0ac14d0dffdeb8325eb9a4beb1b563abc6e705ec65daed7d9ca2823290266116"
+      },
+      "promoted_at": "2026-03-31T05:26:00Z",
       "scan": {
-        "status": "clean",
-        "total": 0,
+        "status": "findings",
+        "total": 4,
         "critical": 0,
-        "high": 0,
+        "high": 4,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:19:23Z"
+        "scanned_at": "2026-03-31T05:26:00Z"
       }
     },
     "otelcol:v0.147.0": {
@@ -952,16 +1268,55 @@
         "ghcr.io/gwshield/otelcol:v0.147.0",
         "ghcr.io/gwshield/otelcol:latest"
       ],
-      "digest": "sha256:26c848e7f27f1104bb25b6e4078079da8cc814b9a165648b5a9176b369a5ef03",
+      "digest": "sha256:367bc14fc9f4ebccd9eff181bb3fbc33369852191fd9cc7e8f92690aab5f2968",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
-      "promoted_at": "2026-03-17T05:18:23Z",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/otelcol@sha256:428e4e3aa6554c64bf2df3764a035ce6014c4907857bccbdb5c23407e9df2ef8",
+        "linux/arm64": "ghcr.io/gwshield/otelcol@sha256:392f0e7c6955f383f0cbb99cd6fdcc2c0d01780d31d2a1908f61e26d5b3d241d"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/otelcol@sha256:428e4e3aa6554c64bf2df3764a035ce6014c4907857bccbdb5c23407e9df2ef8",
+        "linux/arm64": "ghcr.io/gwshield/otelcol@sha256:392f0e7c6955f383f0cbb99cd6fdcc2c0d01780d31d2a1908f61e26d5b3d241d"
+      },
+      "promoted_at": "2026-03-31T06:29:16Z",
       "scan": {
-        "status": "clean",
-        "total": 0,
-        "critical": 0,
-        "high": 0,
+        "status": "findings",
+        "total": 5,
+        "critical": 1,
+        "high": 4,
         "scanner": "trivy",
-        "scanned_at": "2026-03-17T05:18:23Z"
+        "scanned_at": "2026-03-31T06:29:16Z"
+      }
+    },
+    "traefik:v3.6.12": {
+      "name": "traefik",
+      "version": "v3.6.12",
+      "base_version": "v3.6.12",
+      "profile": "",
+      "category": "runtime",
+      "public_image": "ghcr.io/gwshield/traefik",
+      "tags": [
+        "ghcr.io/gwshield/traefik:v3.6.12",
+        "ghcr.io/gwshield/traefik:latest"
+      ],
+      "digest": "sha256:579b5cb1157444f6556a4193c554cccfc6efa4cd6fe22695d68a6d302f3d3787",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/traefik@sha256:891c13058a1f0e211fb25fc2421152a8f6dc2d5d10a0c2aca66ba4f33fefb98f",
+        "linux/arm64": "ghcr.io/gwshield/traefik@sha256:6be9c057044adf29b61953e628a17c6009b4ddb1f7c121bc56dc3d651ed1e9af"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/traefik@sha256:891c13058a1f0e211fb25fc2421152a8f6dc2d5d10a0c2aca66ba4f33fefb98f",
+        "linux/arm64": "ghcr.io/gwshield/traefik@sha256:6be9c057044adf29b61953e628a17c6009b4ddb1f7c121bc56dc3d651ed1e9af"
+      },
+      "promoted_at": "2026-03-31T08:23:27Z",
+      "scan": {
+        "status": "findings",
+        "total": 1,
+        "critical": 0,
+        "high": 1,
+        "scanner": "trivy",
+        "scanned_at": "2026-03-31T08:23:27Z"
       }
     }
   }

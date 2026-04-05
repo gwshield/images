@@ -4,23 +4,23 @@
 # =============================================================================
 #
 # Mirrors upstream OS and toolchain base images into ghcr.io/gwshield to:
-#   - Eliminate Docker Hub rate limits in RelicFrog/gwshield-images CI
+#   - Eliminate Docker Hub rate limits in gwshield/images-processor CI
 #   - Provide publicly verifiable, Trivy-scanned, cosign-signed base images
 #   - Give Hub users full transparency on the build foundations of every image
 #
 # Each sync job:
-#   1. Reads versions.env from RelicFrog/gwshield-images (via API)
+#   1. Reads versions.env from gwshield/images-processor (via API)
 #   2. Resolves current upstream digest — skips if unchanged
 #   3. Trivy CRITICAL scan — blocks sync and opens issue if found
 #   4. skopeo copy --all (multi-platform) upstream → ghcr.io/gwshield/<name>:<tag>
 #   5. cosign keyless sign (OIDC, Rekor transparency log)
-#   6. Dispatches digest-update to RelicFrog/gwshield-images if digest changed
+#   6. Dispatches digest-update to gwshield/images-processor if digest changed
 #   7. Writes sync result to Supabase via supabase_ingress.py (continue-on-error)
 #
 # Triggers:
 #   - Weekly: Monday 04:00 UTC
 #   - Manual: workflow_dispatch (optional slug filter + force flag)
-#   - repository_dispatch: baseline-sync (triggered by RelicFrog/gwshield-images)
+#   - repository_dispatch: baseline-sync (triggered by gwshield/images-processor)
 #
 # Runners: Blacksmith 2vcpu (same as promote.yml)
 # =============================================================================
@@ -57,12 +57,12 @@ env:
   DST_REGISTRY: ghcr.io
   DST_ORG:      gwshield
   # Baseline definitions live in the private build repo
-  SRC_REPO: RelicFrog/gwshield-images
+  SRC_REPO: gwshield/images-processor
 
 jobs:
 
   # ---------------------------------------------------------------------------
-  # Discover: read all versions.env from RelicFrog/gwshield-images
+  # Discover: read all versions.env from gwshield/images-processor
   # ---------------------------------------------------------------------------
   discover:
     name: Discover baseline images
@@ -412,7 +412,19 @@ jobs:
           if-no-files-found: warn
 
       # ── Dispatch digest update to private repo if digest changed ──────────
-      - name: Dispatch digest update to RelicFrog/gwshield-images
+      - name: Generate App token for dispatch to gwshield/images-processor
+        id: token-dispatch
+        if: >-
+          steps.resolve.outputs.changed == 'true' &&
+          steps.cve.outputs.cve_blocked != 'true' &&
+          steps.resolve.outputs.current_digest != steps.resolve.outputs.pinned_digest
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547  # v1.12.0
+        with:
+          app-id:      ${{ secrets.GWSHIELD_IMG_BUILDER_GITHUB_APP_ID }}
+          private-key: ${{ secrets.GWSHIELD_IMG_BUILDER_PRIVATE_KEY }}
+          owner:       gwshield
+
+      - name: Dispatch digest update to gwshield/images-processor
         if: >-
           steps.resolve.outputs.changed == 'true' &&
           steps.cve.outputs.cve_blocked != 'true' &&
@@ -429,7 +441,7 @@ jobs:
             --field "client_payload[mirror_digest]=${{ steps.mirror.outputs.pushed_digest }}"
           echo "Dispatched digest update to ${SRC_REPO}"
         env:
-          GH_TOKEN: ${{ secrets.RELICFROG_DISPATCH_PAT }}
+          GH_TOKEN: ${{ steps.token-dispatch.outputs.token }}
 
       # ── Supabase writeback (continue-on-error) ────────────────────────────
 
