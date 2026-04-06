@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-06T05:22:18Z",
+  "last_updated": "2026-04-06T05:22:20Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1024,24 +1024,24 @@
         "ghcr.io/gwshield/go-builder:v1.25",
         "ghcr.io/gwshield/go-builder:latest"
       ],
-      "digest": "sha256:2c0d21ced9c9f8661c408ccab2afa00686cc2de33ea6f8ff6cb703f38737ca04",
+      "digest": "sha256:e2fcb71e62a21efb4c579e43419c1c96a39a83207a2599e03fa8e506a7ce0fcd",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:81e72f899d18278366a5113b702318cf727096665252185b1fa859e5558430fc",
-        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:ce0a399c6de18629bdba30da3dc901620ff39e0415028a8f6ca2c905c304114e"
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:db4ded901310fdb77301d9c9179d5f8d1bb10739a663a562bb3de53ccf9d9847",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:5714d4d2354b16b3c10fc4ec276683fb9bc1362fde67243f41977544af24cfe5"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:81e72f899d18278366a5113b702318cf727096665252185b1fa859e5558430fc",
-        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:ce0a399c6de18629bdba30da3dc901620ff39e0415028a8f6ca2c905c304114e"
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:db4ded901310fdb77301d9c9179d5f8d1bb10739a663a562bb3de53ccf9d9847",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:5714d4d2354b16b3c10fc4ec276683fb9bc1362fde67243f41977544af24cfe5"
       },
-      "promoted_at": "2026-03-31T07:20:05Z",
+      "promoted_at": "2026-04-06T05:21:17Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-31T07:20:05Z"
+        "scanned_at": "2026-04-06T05:22:19Z"
       }
     },
     "go-builder:v1.25-dev": {
