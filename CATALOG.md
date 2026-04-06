@@ -28,7 +28,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `7ba2dd484472` | 0 CVEs | 2026-04-06 |
-| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `5090736d6309` | 0 CVEs | 2026-03-31 |
+| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `5090736d6309` | 0 CVEs | 2026-04-06 |
 
 ### NATS — cloud-native messaging and event streaming
 
@@ -42,7 +42,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `e7cd7caef411` | 0 CVEs | 2026-04-06 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `34a9dac0a62a` | 0 CVEs | 2026-04-06 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `e3272b5f59d6` | 0 CVEs | 2026-03-31 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `f67b95e7c5cf` | 0 CVEs | 2026-04-06 |
 
 ### OpenTelemetry Collector — observability pipeline
 
@@ -56,7 +56,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/php:v8.2-fpm` | `v8.2-fpm` | fpm | `10c5ac85535a` | 143 findings (3 critical, 140 high) | 2026-04-06 |
 | `ghcr.io/gwshield/php:v8.2-fpm-dev` | `v8.2-fpm-dev` | fpm-dev | `ef30bed351c5` | 144 findings (3 critical, 141 high) | 2026-04-06 |
-| `ghcr.io/gwshield/php:v8.3-fpm` | `v8.3-fpm` | fpm | `1bfedfedfd84` | 143 findings (3 critical, 140 high) | 2026-04-06 |
+| `ghcr.io/gwshield/php:v8.3-fpm` | `v8.3-fpm` | fpm | `34d3ae925b42` | 143 findings (3 critical, 140 high) | 2026-04-06 |
 | `ghcr.io/gwshield/php:v8.3-fpm-dev` | `v8.3-fpm-dev` | fpm-dev | `6844d1a97dfd` | 144 findings (3 critical, 141 high) | 2026-04-06 |
 | `ghcr.io/gwshield/php:v8.4-fpm` | `v8.4-fpm` | fpm | `8264a06e799a` | 143 findings (3 critical, 140 high) | 2026-04-06 |
 | `ghcr.io/gwshield/php:v8.4-fpm-dev` | `v8.4-fpm-dev` | fpm-dev | `76a1c09f8840` | 144 findings (3 critical, 141 high) | 2026-04-06 |
@@ -96,7 +96,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/traefik:v3.6.12` | `v3.6.12` | standard | `e1e919b1cd65` | 2 findings (0 critical, 2 high) | 2026-04-06 |
-| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `b1796eab8328` | 4 findings (1 critical, 3 high) | 2026-03-31 |
+| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `b1796eab8328` | 5 findings (1 critical, 4 high) | 2026-04-06 |
 
 ### Valkey — open-source Redis fork
 
@@ -129,7 +129,7 @@ ENTRYPOINT ["/myapp"]
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `492b5a7f8c6d` | 20 findings (0 critical, 20 high) | 2026-03-31 |
+| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `839d6aa384bc` | 20 findings (0 critical, 20 high) | 2026-04-06 |
 | `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `07a7f0bc9b4f` | 24 findings (0 critical, 24 high) | 2026-04-06 |
 | `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `e2fcb71e62a2` | 0 CVEs | 2026-04-06 |
 | `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `262f1c03ce0f` | 0 CVEs | 2026-04-06 |
