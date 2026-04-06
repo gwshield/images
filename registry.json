@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-06T02:58:00Z",
+  "last_updated": "2026-04-06T03:01:50Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1389,6 +1389,30 @@
         "high": 140,
         "scanner": "trivy",
         "scanned_at": "2026-04-06T02:57:59Z"
+      }
+    },
+    "php:v8.3-fpm-dev": {
+      "name": "php",
+      "version": "v8.3-fpm-dev",
+      "base_version": "v8.3",
+      "profile": "fpm-dev",
+      "category": "runtime",
+      "public_image": "ghcr.io/gwshield/php",
+      "tags": [
+        "ghcr.io/gwshield/php:v8.3-fpm-dev"
+      ],
+      "digest": "sha256:2080831f4c880b16c703b6c561f1dd20e7a0c41d891c25fbedc548bc76845c53",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "sbom_ref": null,
+      "provenance_ref": null,
+      "promoted_at": "2026-04-06T02:59:22Z",
+      "scan": {
+        "status": "findings",
+        "total": 144,
+        "critical": 3,
+        "high": 141,
+        "scanner": "trivy",
+        "scanned_at": "2026-04-06T03:01:49Z"
       }
     }
   }
