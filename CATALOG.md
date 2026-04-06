@@ -58,7 +58,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/php:v8.2-fpm-dev` | `v8.2-fpm-dev` | fpm-dev | `ef30bed351c5` | 144 findings (3 critical, 141 high) | 2026-04-06 |
 | `ghcr.io/gwshield/php:v8.3-fpm` | `v8.3-fpm` | fpm | `34d3ae925b42` | 143 findings (3 critical, 140 high) | 2026-04-06 |
 | `ghcr.io/gwshield/php:v8.3-fpm-dev` | `v8.3-fpm-dev` | fpm-dev | `6844d1a97dfd` | 144 findings (3 critical, 141 high) | 2026-04-06 |
-| `ghcr.io/gwshield/php:v8.4-fpm` | `v8.4-fpm` | fpm | `8264a06e799a` | 143 findings (3 critical, 140 high) | 2026-04-06 |
+| `ghcr.io/gwshield/php:v8.4-fpm` | `v8.4-fpm` | fpm | `944b412be18a` | 143 findings (3 critical, 140 high) | 2026-04-06 |
 | `ghcr.io/gwshield/php:v8.4-fpm-dev` | `v8.4-fpm-dev` | fpm-dev | `76a1c09f8840` | 144 findings (3 critical, 141 high) | 2026-04-06 |
 
 ### Pomerium — identity-aware access proxy
@@ -147,7 +147,7 @@ ENTRYPOINT ["/myapp"]
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `794de5727ca1` | 0 CVEs | 2026-03-31 |
+| `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `650d81d06f7e` | 0 CVEs | 2026-04-06 |
 | `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `a6551a6d67ef` | 0 CVEs | 2026-04-06 |
 
 ---
