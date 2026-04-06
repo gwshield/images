@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-06T05:22:13Z",
+  "last_updated": "2026-04-06T05:22:14Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -488,24 +488,24 @@
       "tags": [
         "ghcr.io/gwshield/python-builder:v3.13-dev"
       ],
-      "digest": "sha256:0b5ded5386a389384a91721090b199cb7c6203485a50dc6984838598c79026e0",
+      "digest": "sha256:939d7ca738c82014c876af05d931a3d379487a2ddb79bae7787be76dd1e05a94",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:55e9e810599cf6a497b4a431e6e98c59754a0876f3bdcde79cef6e3506bc5731",
-        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:667e7a77034e37b81542c277bcbcacd9b34abc79c58ea0c806dd573e0084e4bf"
+        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:b3f5a37315cfa138c431f8acccf0547f280d2932ff23b6cb83ea731269ace47a",
+        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:40a8b46853753a44aa112df984dc1a50f14e8b53a6f3627f80e691ddb4daab8c"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:55e9e810599cf6a497b4a431e6e98c59754a0876f3bdcde79cef6e3506bc5731",
-        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:667e7a77034e37b81542c277bcbcacd9b34abc79c58ea0c806dd573e0084e4bf"
+        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:b3f5a37315cfa138c431f8acccf0547f280d2932ff23b6cb83ea731269ace47a",
+        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:40a8b46853753a44aa112df984dc1a50f14e8b53a6f3627f80e691ddb4daab8c"
       },
-      "promoted_at": "2026-03-31T08:05:15Z",
+      "promoted_at": "2026-04-06T05:21:19Z",
       "scan": {
-        "status": "findings",
-        "total": 1,
+        "status": "clean",
+        "total": 0,
         "critical": 0,
-        "high": 1,
+        "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-31T08:05:15Z"
+        "scanned_at": "2026-04-06T05:22:12Z"
       }
     },
     "python-builder:v3.12-dev": {
