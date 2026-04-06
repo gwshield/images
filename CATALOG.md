@@ -16,7 +16,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `bb9e46b38cfa` | 2 findings (2 critical, 0 high) | 2026-03-31 |
+| `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `bb9e46b38cfa` | 0 CVEs | 2026-03-31 |
 | `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `8a7f697835e0` | 2 findings (2 critical, 0 high) | 2026-03-31 |
 | `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `62221849cdbe` | 4 findings (2 critical, 2 high) | 2026-04-06 |
 | `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `1e4b4cc90d74` | 4 findings (2 critical, 2 high) | 2026-04-06 |
