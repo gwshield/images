@@ -572,6 +572,8 @@ jobs:
             echo "ERROR: no sbom_refs_json available for SBOM verify" >&2
             exit 1
           fi
+          # SBOM attestations are created without Rekor tlog (payload too large).
+          # --insecure-ignore-tlog skips tlog inclusion check for SBOM only.
           echo "${SBOM_REFS_JSON}" | python3 -c "
           import json, sys
           refs = json.load(sys.stdin)
@@ -580,6 +582,7 @@ jobs:
           " | while read -r REF; do
             cosign verify-attestation \
               --type spdxjson \
+              --insecure-ignore-tlog \
               --certificate-identity-regexp="${IDENTITY_REGEXP}" \
               --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
               "${REF}" \
