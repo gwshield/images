@@ -59,6 +59,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/php:v8.3-fpm` | `v8.3-fpm` | fpm | `1bfedfedfd84` | 143 findings (3 critical, 140 high) | 2026-04-06 |
 | `ghcr.io/gwshield/php:v8.3-fpm-dev` | `v8.3-fpm-dev` | fpm-dev | `2080831f4c88` | 144 findings (3 critical, 141 high) | 2026-04-06 |
 | `ghcr.io/gwshield/php:v8.4-fpm` | `v8.4-fpm` | fpm | `8264a06e799a` | 143 findings (3 critical, 140 high) | 2026-04-06 |
+| `ghcr.io/gwshield/php:v8.4-fpm-dev` | `v8.4-fpm-dev` | fpm-dev | `e4bca2fea0c5` | 144 findings (3 critical, 141 high) | 2026-04-06 |
 
 ### Pomerium — identity-aware access proxy
 
@@ -199,6 +200,7 @@ cosign download sbom ghcr.io/gwshield/caddy:v2.11.2
 | runtime | `ghcr.io/gwshield/php` | `v8.3-fpm` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/php:v8.3-fpm` |
 | runtime | `ghcr.io/gwshield/php` | `v8.3-fpm-dev` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/php:v8.3-fpm-dev` |
 | runtime | `ghcr.io/gwshield/php` | `v8.4-fpm` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/php:v8.4-fpm` |
+| runtime | `ghcr.io/gwshield/php` | `v8.4-fpm-dev` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/php:v8.4-fpm-dev` |
 | runtime | `ghcr.io/gwshield/pomerium` | `v0.32.2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/pomerium:v0.32.2` |
 | runtime | `ghcr.io/gwshield/postgres` | `v15.17` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17` |
 | runtime | `ghcr.io/gwshield/postgres` | `v15.17-cli` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/postgres:v15.17-cli` |
