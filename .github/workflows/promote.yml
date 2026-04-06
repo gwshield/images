@@ -371,7 +371,7 @@ jobs:
       - name: Download Trivy scan report
         if: always()
         continue-on-error: true
-        uses: actions/download-artifact@7bb9ad4ec84f05efb0d4e38ea2d8eb7f3dfbeba0  # v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
         with:
           name: trivy-${{ github.event.client_payload.name }}-${{ github.event.client_payload.version }}-${{ github.run_id }}
           path: .
