@@ -115,6 +115,46 @@ from datetime import datetime, timezone
 # Valid image_type values — must match DB CHECK constraint (migration 0033)
 _VALID_IMAGE_TYPES = {"service", "builder", "tooling"}
 
+# Canonical display names for the images.name column.
+# .title() produces wrong results for acronyms and mixed-case brand names
+# (e.g. "php" → "Php", "haproxy" → "Haproxy", "postgres" → "Postgres").
+# Any name not listed here falls back to name.replace('-', ' ').title().
+_DISPLAY_NAMES: dict[str, str] = {
+    "caddy": "Caddy",
+    "go-builder": "Go Builder",
+    "haproxy": "HAProxy",
+    "nats": "NATS",
+    "nginx": "nginx",
+    "otelcol": "OpenTelemetry Collector",
+    "php": "PHP",
+    "pomerium": "Pomerium",
+    "postgres": "PostgreSQL",
+    "python-builder": "Python Builder",
+    "redis": "Redis",
+    "rust-builder": "Rust Builder",
+    "traefik": "Traefik",
+    "valkey": "Valkey",
+}
+
+
+def derive_display_name(name: str, base_version: str) -> str:
+    """
+    Build the Hub-facing images.name value.
+
+    Uses _DISPLAY_NAMES for canonical brand casing.  Falls back to
+    name.replace('-', ' ').title() for any unlisted service so new images
+    still get a reasonable default until they are added to the dict.
+
+    Examples:
+      php       v8.3-fpm  → "PHP v8.3-fpm"
+      haproxy   v2.11.2   → "HAProxy v2.11.2"
+      postgres  v15.17    → "PostgreSQL v15.17"
+      nginx     v1.27.4   → "nginx v1.27.4"
+      redis     v7.4.8    → "Redis v7.4.8"
+    """
+    base = _DISPLAY_NAMES.get(name, name.replace("-", " ").title())
+    return f"{base} {base_version}" if base_version else base
+
 
 # ---------------------------------------------------------------------------
 # Slug derivation — must match gwshield-hub seed-images.ts CATALOG slugs
@@ -293,7 +333,8 @@ def derive_source_type(name: str) -> str:
 def derive_summary(name: str, profile: str, base_version: str) -> str:
     bv = base_version or ""
     p = profile.strip()
-    label = f"{name} {bv}" + (f" ({p})" if p else "")
+    display = _DISPLAY_NAMES.get(name, name.replace("-", " ").title())
+    label = f"{display} {bv}" + (f" ({p})" if p else "")
     return f"Hardened {label} image — 0 CVEs"
 
 
@@ -996,9 +1037,7 @@ def cmd_promote(args, db: SupabaseClient):
         slug=slug,
         insert_fields={"image_type": image_type},
         update_fields={
-            "name": f"{name.replace('-', ' ').title()} {base_version}"
-            if base_version
-            else name,
+            "name": derive_display_name(name, base_version),
             "summary": summary,
             "source_type": source_type,
             "visibility": "public",
@@ -1538,6 +1577,97 @@ def cmd_baseline(args, db: SupabaseClient):
     )
 
 
+# ---------------------------------------------------------------------------
+# patch-names subcommand — lightweight display name / summary backfill
+# ---------------------------------------------------------------------------
+
+
+def cmd_patch_names(args, db: SupabaseClient):
+    """
+    Patch images.name and images.summary for every promoted image in
+    registry.json using the canonical _DISPLAY_NAMES dict.
+
+    Only two columns are written (name, summary).  No other tables are
+    touched — no new snapshots, no version changes, no tag resets.
+    Safe to re-run multiple times (idempotent PATCH).
+    """
+    registry_path = pathlib.Path(args.registry)
+    if not registry_path.exists():
+        print(f"[ERROR] registry not found: {registry_path}", file=sys.stderr)
+        sys.exit(1)
+
+    with registry_path.open() as f:
+        data = json.load(f)
+
+    images = data.get("images", {})
+    if isinstance(images, list):
+        entries = images
+    else:
+        entries = list(images.values())
+
+    # Build unique slug → (name, profile, base_version) mapping.
+    # When multiple versions share a slug (as is normal for single-slug images),
+    # take the first occurrence — name + summary derive only from name,
+    # profile, and base_version and are identical across versions of the same slug.
+    seen: dict[str, dict] = {}
+    for entry in entries:
+        n = entry.get("name", "")
+        bv = entry.get("base_version", "")
+        p = entry.get("profile", "")
+        slug = derive_slug(n, p, bv)
+        if slug not in seen:
+            seen[slug] = {"name": n, "profile": p, "base_version": bv}
+
+    dry = getattr(args, "dry_run", False)
+    mode = "DRY RUN — " if dry else ""
+    print(f"[patch-names] {mode}{len(seen)} unique slug(s) from {registry_path}")
+
+    patched = 0
+    skipped = 0
+    for slug, meta in sorted(seen.items()):
+        n, p, bv = meta["name"], meta["profile"], meta["base_version"]
+        new_name = derive_display_name(n, bv)
+        new_summary = derive_summary(n, p, bv)
+
+        existing = db.select("images", {"slug": slug})
+        if not existing:
+            print(f"  SKIP  {slug!r} — not found in images table")
+            skipped += 1
+            continue
+
+        row = existing[0]
+        old_name = row.get("name", "")
+        old_summary = row.get("summary", "")
+        name_changed = old_name != new_name
+        summary_changed = old_summary != new_summary
+
+        if not name_changed and not summary_changed:
+            print(f"  OK    {slug!r} — already correct ({new_name!r})")
+            continue
+
+        changes = []
+        if name_changed:
+            changes.append(f"name: {old_name!r} -> {new_name!r}")
+        if summary_changed:
+            changes.append("summary: <updated>")
+
+        if dry:
+            print(f"  PATCH {slug!r} — {'; '.join(changes)}")
+        else:
+            db.update(
+                "images", {"id": row["id"]}, {"name": new_name, "summary": new_summary}
+            )
+            print(f"  PATCH {slug!r} — {'; '.join(changes)}")
+            patched += 1
+
+    if dry:
+        print(
+            f"[patch-names] dry run complete — {len(seen) - skipped} candidate(s), {skipped} skipped"
+        )
+    else:
+        print(f"[patch-names] done — {patched} patched, {skipped} skipped (not in DB)")
+
+
 def _utcnow() -> str:
     """Return current UTC timestamp as ISO 8601 string."""
     from datetime import datetime, timezone
@@ -1763,6 +1893,29 @@ def main():
     )
     p_baseline.add_argument("--run-url", default="", dest="run_url")
 
+    # patch-names subcommand — lightweight one-shot display name / summary fix.
+    # Reads registry.json, derives the correct name + summary for every slug,
+    # and PATCHes only those two columns in the images table.  Does NOT touch
+    # image_versions, snapshots, tags, or any other table.
+    p_patchnames = sub.add_parser(
+        "patch-names",
+        help=(
+            "Patch images.name and images.summary for all promoted images "
+            "using the canonical _DISPLAY_NAMES dict. Touches no other table."
+        ),
+    )
+    p_patchnames.add_argument(
+        "--registry",
+        default="registry.json",
+        help="Path to registry.json (default: registry.json in cwd)",
+    )
+    p_patchnames.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="Print proposed patches without writing to Supabase",
+    )
+
     args = parser.parse_args()
 
     if args.cmd == "promote":
@@ -1775,6 +1928,8 @@ def main():
         cmd_smoke(args, db)
     elif args.cmd == "baseline":
         cmd_baseline(args, db)
+    elif args.cmd == "patch-names":
+        cmd_patch_names(args, db)
 
 
 if __name__ == "__main__":
