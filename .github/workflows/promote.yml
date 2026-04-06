@@ -160,6 +160,10 @@ jobs:
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # JSON outputs must be passed via env to avoid inline ${{ }} breaking
+          # bash string assignment (double quotes in JSON values break "...").
+          _REG_SBOM_REFS_JSON: ${{ needs.promote-core.outputs.sbom_refs_json }}
+          _REG_PROVENANCE_REFS_JSON: ${{ needs.promote-core.outputs.provenance_refs_json }}
         run: |
           set -euo pipefail
           NAME="${{ github.event.client_payload.name }}"
@@ -173,8 +177,8 @@ jobs:
           COSIGN_IDENTITY="https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main"
           COMMIT_MSG="chore(registry): promote ${NAME}:${VERSION} [skip ci]"
 
-          SBOM_REFS_JSON="${{ needs.promote-core.outputs.sbom_refs_json }}"
-          PROVENANCE_REFS_JSON="${{ needs.promote-core.outputs.provenance_refs_json }}"
+          SBOM_REFS_JSON="${_REG_SBOM_REFS_JSON:-}"
+          PROVENANCE_REFS_JSON="${_REG_PROVENANCE_REFS_JSON:-}"
 
           CVE_TOTAL="${{ needs.promote-core.outputs.cve_total }}"
           CVE_CRITICAL="${{ needs.promote-core.outputs.cve_critical }}"
