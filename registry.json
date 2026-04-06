@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-06T05:22:10Z",
+  "last_updated": "2026-04-06T05:22:11Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1206,24 +1206,24 @@
         "ghcr.io/gwshield/pomerium:v0.32.2",
         "ghcr.io/gwshield/pomerium:latest"
       ],
-      "digest": "sha256:9184266de0c615ddff13ab49688d15a3a96fd245629594ba842f7b33b1f5c972",
+      "digest": "sha256:cbd7807c12efe7c57bcd5526c7994b8084138455e5a5743b1d78b0ff28585983",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/pomerium@sha256:c25f32f39064a93ad2a05aba6f0b2db6db6e49ce929b65270bc2cd5df07c3b6e",
-        "linux/arm64": "ghcr.io/gwshield/pomerium@sha256:80db125bfa9e34435d9416e4583be76e29179252aabe6fca3b4a9ccf0059f408"
+        "linux/amd64": "ghcr.io/gwshield/pomerium@sha256:8955adcdac3e135682bb197375135a7ec7519e6325d5efd8779dd6c0b7d3a7d9",
+        "linux/arm64": "ghcr.io/gwshield/pomerium@sha256:1862f302ff47d55157c554e37c1074291a0fe6782bad11f92cfeb8cd89828ff0"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/pomerium@sha256:c25f32f39064a93ad2a05aba6f0b2db6db6e49ce929b65270bc2cd5df07c3b6e",
-        "linux/arm64": "ghcr.io/gwshield/pomerium@sha256:80db125bfa9e34435d9416e4583be76e29179252aabe6fca3b4a9ccf0059f408"
+        "linux/amd64": "ghcr.io/gwshield/pomerium@sha256:8955adcdac3e135682bb197375135a7ec7519e6325d5efd8779dd6c0b7d3a7d9",
+        "linux/arm64": "ghcr.io/gwshield/pomerium@sha256:1862f302ff47d55157c554e37c1074291a0fe6782bad11f92cfeb8cd89828ff0"
       },
-      "promoted_at": "2026-03-31T06:32:19Z",
+      "promoted_at": "2026-04-06T05:21:19Z",
       "scan": {
         "status": "findings",
-        "total": 5,
+        "total": 8,
         "critical": 1,
-        "high": 4,
+        "high": 7,
         "scanner": "trivy",
-        "scanned_at": "2026-03-31T06:32:19Z"
+        "scanned_at": "2026-04-06T05:22:11Z"
       }
     },
     "nats:v2.12.5": {
