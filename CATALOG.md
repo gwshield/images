@@ -148,7 +148,7 @@ ENTRYPOINT ["/myapp"]
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `794de5727ca1` | 0 CVEs | 2026-03-31 |
-| `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `a6551a6d67ef` | 0 CVEs | 2026-03-31 |
+| `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `a6551a6d67ef` | 0 CVEs | 2026-04-06 |
 
 ---
 
