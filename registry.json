@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-06T05:24:25Z",
+  "last_updated": "2026-04-06T05:24:31Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -721,24 +721,24 @@
         "ghcr.io/gwshield/rust-builder:v1.87",
         "ghcr.io/gwshield/rust-builder:latest"
       ],
-      "digest": "sha256:794de5727ca1d72cbd126776a6bb70705c4af1059b361dbcc34d5109d65316d8",
+      "digest": "sha256:650d81d06f7e49b6cf3ec5e17a0eafe2bac3e6c69c82dbbb7e134e8e2020bb3f",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/rust-builder@sha256:8f91e50f65b1d21e5a9d981340d23f0049208390ec972092639a0fdabe8aa63f",
-        "linux/arm64": "ghcr.io/gwshield/rust-builder@sha256:e9589802cf6e03386a11b85ca041c0df41221de87b38c037c359625dfdb8d9ba"
+        "linux/amd64": "ghcr.io/gwshield/rust-builder@sha256:8869ad1982900981830110a043b15e11b59929a8ecce9e05d998289c437ffa4e",
+        "linux/arm64": "ghcr.io/gwshield/rust-builder@sha256:a78d062702c5c1ea14f3e76a3f1c29da5b0745e4a6374c7a00b54d22731bc7c6"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/rust-builder@sha256:8f91e50f65b1d21e5a9d981340d23f0049208390ec972092639a0fdabe8aa63f",
-        "linux/arm64": "ghcr.io/gwshield/rust-builder@sha256:e9589802cf6e03386a11b85ca041c0df41221de87b38c037c359625dfdb8d9ba"
+        "linux/amd64": "ghcr.io/gwshield/rust-builder@sha256:8869ad1982900981830110a043b15e11b59929a8ecce9e05d998289c437ffa4e",
+        "linux/arm64": "ghcr.io/gwshield/rust-builder@sha256:a78d062702c5c1ea14f3e76a3f1c29da5b0745e4a6374c7a00b54d22731bc7c6"
       },
-      "promoted_at": "2026-03-31T08:20:15Z",
+      "promoted_at": "2026-04-06T05:22:36Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-03-31T08:20:15Z"
+        "scanned_at": "2026-04-06T05:24:31Z"
       }
     },
     "rust-builder:v1.87-dev": {
