@@ -243,14 +243,17 @@ jobs:
 
       # -----------------------------------------------------------------------
       # Copy source image to dst registry via skopeo.
-      # --src-creds: App token (preferred) or SRC_READ_PAT (legacy fallback).
+      # --src-creds: classic PAT with read:packages (preferred via SRC_READ_PAT)
+      #   or App token (fallback for enterprise callers without SRC_READ_PAT).
+      #   GitHub App tokens cannot pull private GHCR packages linked to another
+      #   repo even with packages:write — classic PAT is required.
       # --dest-creds: GITHUB_TOKEN (native write:packages for dst org).
       # Source addressed by tag — GHCR resolves tag refs reliably.
       # -----------------------------------------------------------------------
       - name: Copy image via skopeo
         id: push
         env:
-          SRC_CREDS: x-access-token:${{ steps.src-token.outputs.token || secrets.SRC_READ_PAT }}
+          SRC_CREDS: x-access-token:${{ secrets.SRC_READ_PAT || steps.src-token.outputs.token }}
           DST_CREDS: x-access-token:${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail

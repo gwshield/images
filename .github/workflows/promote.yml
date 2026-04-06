@@ -63,6 +63,7 @@ jobs:
       cosign_identity_regexp: "https://github.com/gwshield/images.*"
       category:     ${{ github.event.client_payload.category }}
     secrets:
+      SRC_READ_PAT:                 ${{ secrets.GWSHIELD_PACKAGES_READ_PAT }}
       GWSHIELD_IMG_BUILDER_APP_ID:  ${{ secrets.GWSHIELD_IMG_BUILDER_GITHUB_APP_ID }}
       GWSHIELD_IMG_BUILDER_PRIVATE_KEY: ${{ secrets.GWSHIELD_IMG_BUILDER_PRIVATE_KEY }}
 
