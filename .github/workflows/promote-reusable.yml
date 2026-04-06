@@ -204,9 +204,10 @@ jobs:
         if: steps.src-creds.outputs.use_app_token == 'true'
         uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547  # v1.12.0
         with:
-          app-id:      ${{ secrets.GWSHIELD_IMG_BUILDER_APP_ID }}
-          private-key: ${{ secrets.GWSHIELD_IMG_BUILDER_PRIVATE_KEY }}
-          owner:       gwshield
+          app-id:        ${{ secrets.GWSHIELD_IMG_BUILDER_APP_ID }}
+          private-key:   ${{ secrets.GWSHIELD_IMG_BUILDER_PRIVATE_KEY }}
+          owner:         gwshield
+          repositories:  images-processor  # scope to source repo so token has packages:read/write for gwshield-php
 
       # -----------------------------------------------------------------------
       # Log in to dst GHCR with GITHUB_TOKEN — gives write:packages for dst org.
