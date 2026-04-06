@@ -19,8 +19,8 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `bb9e46b38cfa` | 2 findings (2 critical, 0 high) | 2026-03-31 |
 | `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `8a7f697835e0` | 2 findings (2 critical, 0 high) | 2026-03-31 |
 | `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `62221849cdbe` | 4 findings (2 critical, 2 high) | 2026-04-06 |
-| `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `1e4b4cc90d74` | 2 findings (2 critical, 0 high) | 2026-03-31 |
-| `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `9d6ab1d7fc67` | 2 findings (2 critical, 0 high) | 2026-03-31 |
+| `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `1e4b4cc90d74` | 4 findings (2 critical, 2 high) | 2026-04-06 |
+| `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `9d6ab1d7fc67` | 4 findings (2 critical, 2 high) | 2026-04-06 |
 | `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `9d73c2dffbbc` | 5 findings (2 critical, 3 high) | 2026-04-06 |
 
 ### HAProxy — high-performance TCP/HTTP load balancer
@@ -41,14 +41,14 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `e7cd7caef411` | 0 CVEs | 2026-04-06 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `4199355efe6c` | 0 CVEs | 2026-03-31 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `34a9dac0a62a` | 0 CVEs | 2026-04-06 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `e3272b5f59d6` | 0 CVEs | 2026-03-31 |
 
 ### OpenTelemetry Collector — observability pipeline
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/otelcol:v0.147.0` | `v0.147.0` | standard | `367bc14fc9f4` | 5 findings (1 critical, 4 high) | 2026-03-31 |
+| `ghcr.io/gwshield/otelcol:v0.147.0` | `v0.147.0` | standard | `367bc14fc9f4` | 6 findings (1 critical, 5 high) | 2026-04-06 |
 
 ### php
 
@@ -95,7 +95,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/traefik:v3.6.12` | `v3.6.12` | standard | `579b5cb11574` | 1 findings (0 critical, 1 high) | 2026-03-31 |
+| `ghcr.io/gwshield/traefik:v3.6.12` | `v3.6.12` | standard | `e1e919b1cd65` | 2 findings (0 critical, 2 high) | 2026-04-06 |
 | `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `b1796eab8328` | 4 findings (1 critical, 3 high) | 2026-03-31 |
 
 ### Valkey — open-source Redis fork
