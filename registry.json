@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-06T05:23:02Z",
+  "last_updated": "2026-04-06T05:23:04Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -397,24 +397,24 @@
         "ghcr.io/gwshield/go-builder:v1.24",
         "ghcr.io/gwshield/go-builder:latest"
       ],
-      "digest": "sha256:492b5a7f8c6d3d4e850043b66f11f4a6b38449563edcbce2aac03d4867bd29db",
+      "digest": "sha256:839d6aa384bc1aeb3ce36fdd8ec704a956869267b0656de466474941e381eca4",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:6cd9f0096e7027481e865a7743e20a8e350294a33631c2dc2b0eb440cc733f1d",
-        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:0c61d770fdc60bd8740698e65f98de9c768ae4dc51b5b3fafd6c1b058ea0c934"
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:7eace3927f2b9a134a014485673c72616f12f964a83eeeab6cfa7373209a73a1",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:18caeb6c323f8a19422b772abdf2d70279a5e3320a082717c228a8a8c112f32e"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:6cd9f0096e7027481e865a7743e20a8e350294a33631c2dc2b0eb440cc733f1d",
-        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:0c61d770fdc60bd8740698e65f98de9c768ae4dc51b5b3fafd6c1b058ea0c934"
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:7eace3927f2b9a134a014485673c72616f12f964a83eeeab6cfa7373209a73a1",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:18caeb6c323f8a19422b772abdf2d70279a5e3320a082717c228a8a8c112f32e"
       },
-      "promoted_at": "2026-03-31T07:14:30Z",
+      "promoted_at": "2026-04-06T05:21:33Z",
       "scan": {
         "status": "findings",
         "total": 20,
         "critical": 0,
         "high": 20,
         "scanner": "trivy",
-        "scanned_at": "2026-03-31T07:14:30Z"
+        "scanned_at": "2026-04-06T05:23:04Z"
       }
     },
     "go-builder:v1.24-dev": {
