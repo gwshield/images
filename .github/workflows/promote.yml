@@ -173,6 +173,9 @@ jobs:
           COSIGN_IDENTITY="https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main"
           COMMIT_MSG="chore(registry): promote ${NAME}:${VERSION} [skip ci]"
 
+          SBOM_REFS_JSON="${{ needs.promote-core.outputs.sbom_refs_json }}"
+          PROVENANCE_REFS_JSON="${{ needs.promote-core.outputs.provenance_refs_json }}"
+
           CVE_TOTAL="${{ needs.promote-core.outputs.cve_total }}"
           CVE_CRITICAL="${{ needs.promote-core.outputs.cve_critical }}"
           CVE_HIGH="${{ needs.promote-core.outputs.cve_high }}"
@@ -205,7 +208,9 @@ jobs:
               --digest          "${DIGEST}" \
               --tags            "${TAGS}" \
               --cosign-identity "${COSIGN_IDENTITY}" \
-              --promoted-at     "${PROMOTED_AT}"
+              --promoted-at     "${PROMOTED_AT}" \
+              ${SBOM_REFS_JSON:+--sbom-ref "${SBOM_REFS_JSON}"} \
+              ${PROVENANCE_REFS_JSON:+--provenance-ref "${PROVENANCE_REFS_JSON}"}
 
             python3 scripts/update-registry.py scan \
               --name         "${NAME}" \
