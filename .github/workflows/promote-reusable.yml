@@ -49,7 +49,7 @@ on:
         type: string
         default: ''
       src_image:
-        description: 'Source image ref without tag (e.g. ghcr.io/relicfrog/gwshield-traefik)'
+        description: 'Source image ref without tag (e.g. ghcr.io/gwshield/gwshield-traefik)'
         required: true
         type: string
       src_tag:
@@ -83,8 +83,14 @@ on:
 
     secrets:
       SRC_READ_PAT:
-        description: 'Fine-grained PAT with read:packages on the source registry'
-        required: true
+        description: 'Deprecated: fine-grained PAT with read:packages on the source registry (use GWSHIELD_IMG_BUILDER_APP_ID + PRIVATE_KEY instead)'
+        required: false
+      GWSHIELD_IMG_BUILDER_APP_ID:
+        description: 'GitHub App ID for gwshield-img-builder (preferred over SRC_READ_PAT)'
+        required: false
+      GWSHIELD_IMG_BUILDER_PRIVATE_KEY:
+        description: 'GitHub App private key for gwshield-img-builder (preferred over SRC_READ_PAT)'
+        required: false
 
     outputs:
       digest:
@@ -178,6 +184,31 @@ jobs:
           sudo apt-get install -y --no-install-recommends skopeo
 
       # -----------------------------------------------------------------------
+      # Generate a short-lived App token for src GHCR pull.
+      # Preferred over SRC_READ_PAT. Falls back to SRC_READ_PAT if App
+      # credentials are not provided (legacy / enterprise callers).
+      # -----------------------------------------------------------------------
+      - name: Resolve src credential method
+        id: src-creds
+        env:
+          APP_ID: ${{ secrets.GWSHIELD_IMG_BUILDER_APP_ID }}
+        run: |
+          if [[ -n "${APP_ID}" ]]; then
+            echo "use_app_token=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "use_app_token=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate src App token
+        id: src-token
+        if: steps.src-creds.outputs.use_app_token == 'true'
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547  # v1.12.0
+        with:
+          app-id:      ${{ secrets.GWSHIELD_IMG_BUILDER_APP_ID }}
+          private-key: ${{ secrets.GWSHIELD_IMG_BUILDER_PRIVATE_KEY }}
+          owner:       gwshield
+
+      # -----------------------------------------------------------------------
       # Log in to dst GHCR with GITHUB_TOKEN — gives write:packages for dst org.
       # Used by cosign and syft. skopeo uses --dest-creds directly.
       # -----------------------------------------------------------------------
@@ -211,14 +242,14 @@ jobs:
 
       # -----------------------------------------------------------------------
       # Copy source image to dst registry via skopeo.
-      # --src-creds: SRC_READ_PAT (fine-grained, read:packages only).
+      # --src-creds: App token (preferred) or SRC_READ_PAT (legacy fallback).
       # --dest-creds: GITHUB_TOKEN (native write:packages for dst org).
       # Source addressed by tag — GHCR resolves tag refs reliably.
       # -----------------------------------------------------------------------
       - name: Copy image via skopeo
         id: push
         env:
-          SRC_CREDS: x-access-token:${{ secrets.SRC_READ_PAT }}
+          SRC_CREDS: x-access-token:${{ steps.src-token.outputs.token || secrets.SRC_READ_PAT }}
           DST_CREDS: x-access-token:${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
