@@ -557,24 +557,35 @@ jobs:
 
       # -----------------------------------------------------------------------
       # Verify SBOM attestation (post-attest check)
+      # Attestations are on per-platform digests (not the index digest), so
+      # iterate over sbom_refs_json and verify each platform ref individually.
       # -----------------------------------------------------------------------
       - name: Verify SBOM attestation
         run: |
           set -euo pipefail
-          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
-          DIGEST="${{ steps.push.outputs.digest }}"
-          [[ -z "${DIGEST}" ]] && { echo "ERROR: no digest for SBOM verify" >&2; exit 1; }
           IDENTITY_REGEXP="${{ inputs.cosign_identity_regexp }}"
           if [[ -z "${IDENTITY_REGEXP}" ]]; then
             IDENTITY_REGEXP="https://github.com/${{ github.repository }}.*"
           fi
-          cosign verify-attestation \
-            --type spdxjson \
-            --certificate-identity-regexp="${IDENTITY_REGEXP}" \
-            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
-            "${DST_IMAGE}@${DIGEST}" \
-            > /dev/null
-          echo "SBOM attestation verified for ${DST_IMAGE}@${DIGEST}"
+          SBOM_REFS_JSON='${{ steps.sbom.outputs.sbom_refs_json }}'
+          if [[ -z "${SBOM_REFS_JSON}" || "${SBOM_REFS_JSON}" == "{}" ]]; then
+            echo "ERROR: no sbom_refs_json available for SBOM verify" >&2
+            exit 1
+          fi
+          echo "${SBOM_REFS_JSON}" | python3 -c "
+          import json, sys
+          refs = json.load(sys.stdin)
+          for plat, ref in refs.items():
+              print(ref)
+          " | while read -r REF; do
+            cosign verify-attestation \
+              --type spdxjson \
+              --certificate-identity-regexp="${IDENTITY_REGEXP}" \
+              --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+              "${REF}" \
+              > /dev/null
+            echo "SBOM attestation verified for ${REF}"
+          done
 
       # -----------------------------------------------------------------------
       # SLSA Provenance Attestation (Level 3)
@@ -721,24 +732,35 @@ jobs:
 
       # -----------------------------------------------------------------------
       # Verify SLSA provenance attestation (post-attest check)
+      # Attestations are on per-platform digests (not the index digest), so
+      # iterate over provenance_refs_json and verify each platform ref individually.
       # -----------------------------------------------------------------------
       - name: Verify SLSA provenance attestation
         run: |
           set -euo pipefail
-          DST_IMAGE="${{ steps.tags.outputs.dst_image }}"
-          DIGEST="${{ steps.push.outputs.digest }}"
-          [[ -z "${DIGEST}" ]] && { echo "ERROR: no digest for provenance verify" >&2; exit 1; }
           IDENTITY_REGEXP="${{ inputs.cosign_identity_regexp }}"
           if [[ -z "${IDENTITY_REGEXP}" ]]; then
             IDENTITY_REGEXP="https://github.com/${{ github.repository }}.*"
           fi
-          cosign verify-attestation \
-            --type slsaprovenance1 \
-            --certificate-identity-regexp="${IDENTITY_REGEXP}" \
-            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
-            "${DST_IMAGE}@${DIGEST}" \
-            > /dev/null
-          echo "SLSA provenance attestation verified for ${DST_IMAGE}@${DIGEST}"
+          PROV_REFS_JSON='${{ steps.provenance.outputs.provenance_refs_json }}'
+          if [[ -z "${PROV_REFS_JSON}" || "${PROV_REFS_JSON}" == "{}" ]]; then
+            echo "ERROR: no provenance_refs_json available for provenance verify" >&2
+            exit 1
+          fi
+          echo "${PROV_REFS_JSON}" | python3 -c "
+          import json, sys
+          refs = json.load(sys.stdin)
+          for plat, ref in refs.items():
+              print(ref)
+          " | while read -r REF; do
+            cosign verify-attestation \
+              --type slsaprovenance1 \
+              --certificate-identity-regexp="${IDENTITY_REGEXP}" \
+              --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+              "${REF}" \
+              > /dev/null
+            echo "SLSA provenance attestation verified for ${REF}"
+          done
 
       # -----------------------------------------------------------------------
       # CVE scan — Trivy on the pushed image (digest-pinned, informational only).
