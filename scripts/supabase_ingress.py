@@ -89,6 +89,12 @@
 #   caddy / cloudflare → caddy-cloudflare
 #   haproxy / ""       → haproxy
 #   haproxy / ssl      → haproxy-ssl
+#   php / fpm / v8.2   → php-fpm-v82
+#   php / fpm / v8.3   → php-fpm-v83
+#   php / fpm / v8.4   → php-fpm-v84
+#   php / fpm-dev / v8.2 → php-fpm-dev-v82
+#   php / fpm-dev / v8.3 → php-fpm-dev-v83
+#   php / fpm-dev / v8.4 → php-fpm-dev-v84
 #
 # image_type (migration 0033) — valid values + authority:
 #   'service'  — production-ready application/service images (default)
@@ -246,6 +252,14 @@ def derive_slug(name: str, profile: str, base_version: str) -> str:
         return (
             f"rust-builder-{bv_norm}-{suffix}" if suffix else f"rust-builder-{bv_norm}"
         )
+
+    if name == "php":
+        # Versioned slugs — one DB row per major.minor + profile combination:
+        #   php / fpm     / v8.2  → php-fpm-v82
+        #   php / fpm-dev / v8.3  → php-fpm-dev-v83
+        # base_version is always "vX.Y" for PHP (e.g. "v8.2").
+        bv = base_version.lstrip("v").replace(".", "")[:2]  # "v8.2" → "82"
+        return f"php-{p}-v{bv}"
 
     # Default: name + optional profile suffix
     if p == "":
