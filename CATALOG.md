@@ -82,7 +82,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `cbf2b3eb040a` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `f1992a41bcd9` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 | `ghcr.io/gwshield/postgres:v18.3` | `v18.3` | standard | `f5052b9483f6` | 1 findings (0 critical, 1 high) | 2026-04-07 |
-| `ghcr.io/gwshield/postgres:v18.3-cli` | `v18.3-cli` | client only | `cb25a7ad7f15` | 1 findings (0 critical, 1 high) | 2026-04-07 |
+| `ghcr.io/gwshield/postgres:v18.3-cli` | `v18.3-cli` | client only | `6138d7952d28` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 | `ghcr.io/gwshield/postgres:v18.3-timescale` | `v18.3-timescale` | TimescaleDB | `2102548ce7c4` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 | `ghcr.io/gwshield/postgres:v18.3-tls` | `v18.3-tls` | TLS | `2a7ccffd0f83` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 | `ghcr.io/gwshield/postgres:v18.3-vector` | `v18.3-vector` | pgvector | `212e68bf7733` | 1 findings (0 critical, 1 high) | 2026-04-07 |
@@ -143,8 +143,8 @@ ENTRYPOINT ["/myapp"]
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `76fe6fb309f2` | 0 CVEs | 2026-04-06 |
-| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `9848292bdfe8` | 0 CVEs | 2026-04-06 |
+| `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `76fe6fb309f2` | 0 CVEs | 2026-04-07 |
+| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `9848292bdfe8` | 0 CVEs | 2026-04-07 |
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `c5dbe350c845` | 0 CVEs | 2026-04-07 |
 | `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `939d7ca738c8` | 0 CVEs | 2026-04-07 |
 
@@ -152,7 +152,7 @@ ENTRYPOINT ["/myapp"]
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `650d81d06f7e` | 0 CVEs | 2026-04-06 |
+| `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `650d81d06f7e` | 0 CVEs | 2026-04-07 |
 | `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `a6551a6d67ef` | 0 CVEs | 2026-04-07 |
 
 ---
