@@ -83,7 +83,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `f1992a41bcd9` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 | `ghcr.io/gwshield/postgres:v18.3` | `v18.3` | standard | `7b65be6452a0` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 | `ghcr.io/gwshield/postgres:v18.3-cli` | `v18.3-cli` | client only | `27491f8ccbb2` | 1 findings (0 critical, 1 high) | 2026-04-07 |
-| `ghcr.io/gwshield/postgres:v18.3-timescale` | `v18.3-timescale` | TimescaleDB | `8303591db8a7` | 1 findings (0 critical, 1 high) | 2026-04-07 |
+| `ghcr.io/gwshield/postgres:v18.3-timescale` | `v18.3-timescale` | TimescaleDB | `da4782af4d50` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 | `ghcr.io/gwshield/postgres:v18.3-tls` | `v18.3-tls` | TLS | `4dcae16bc9e4` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 | `ghcr.io/gwshield/postgres:v18.3-vector` | `v18.3-vector` | pgvector | `466fcf44b128` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 
