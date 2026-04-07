@@ -82,10 +82,10 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `cbf2b3eb040a` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `f1992a41bcd9` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 | `ghcr.io/gwshield/postgres:v18.3` | `v18.3` | standard | `7170006a0e6f` | 1 findings (0 critical, 1 high) | 2026-04-07 |
-| `ghcr.io/gwshield/postgres:v18.3-cli` | `v18.3-cli` | client only | `bde612e42870` | 1 findings (0 critical, 1 high) | 2026-04-07 |
-| `ghcr.io/gwshield/postgres:v18.3-timescale` | `v18.3-timescale` | TimescaleDB | `7dad6b371268` | 1 findings (0 critical, 1 high) | 2026-04-07 |
+| `ghcr.io/gwshield/postgres:v18.3-cli` | `v18.3-cli` | client only | `a6ec9ecf10e9` | 1 findings (0 critical, 1 high) | 2026-04-07 |
+| `ghcr.io/gwshield/postgres:v18.3-timescale` | `v18.3-timescale` | TimescaleDB | `8303591db8a7` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 | `ghcr.io/gwshield/postgres:v18.3-tls` | `v18.3-tls` | TLS | `adb152b82cd5` | 1 findings (0 critical, 1 high) | 2026-04-07 |
-| `ghcr.io/gwshield/postgres:v18.3-vector` | `v18.3-vector` | pgvector | `108a9efdeb24` | 1 findings (0 critical, 1 high) | 2026-04-07 |
+| `ghcr.io/gwshield/postgres:v18.3-vector` | `v18.3-vector` | pgvector | `5efdcfa306f1` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 
 ### Redis — in-memory data store
 
