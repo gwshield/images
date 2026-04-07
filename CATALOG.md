@@ -58,7 +58,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/php:v8.2-fpm-dev` | `v8.2-fpm-dev` | fpm-dev | `865f6e1dba21` | 63 findings (0 critical, 63 high) | 2026-04-07 |
 | `ghcr.io/gwshield/php:v8.3-fpm` | `v8.3-fpm` | fpm | `80655a5d3c50` | 61 findings (0 critical, 61 high) | 2026-04-07 |
 | `ghcr.io/gwshield/php:v8.3-fpm-dev` | `v8.3-fpm-dev` | fpm-dev | `ab5de2d32a79` | 63 findings (0 critical, 63 high) | 2026-04-07 |
-| `ghcr.io/gwshield/php:v8.4-fpm` | `v8.4-fpm` | fpm | `99a7d1785e1f` | 61 findings (0 critical, 61 high) | 2026-04-07 |
+| `ghcr.io/gwshield/php:v8.4-fpm` | `v8.4-fpm` | fpm | `c852d902a18b` | 61 findings (0 critical, 61 high) | 2026-04-07 |
 | `ghcr.io/gwshield/php:v8.4-fpm-dev` | `v8.4-fpm-dev` | fpm-dev | `2911c11f81fd` | 63 findings (0 critical, 63 high) | 2026-04-07 |
 
 ### Pomerium — identity-aware access proxy
