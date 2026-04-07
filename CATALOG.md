@@ -54,11 +54,11 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/php:v8.2-fpm` | `v8.2-fpm` | fpm | `f00ccd74be39` | 62 findings (0 critical, 62 high) | 2026-04-07 |
+| `ghcr.io/gwshield/php:v8.2-fpm` | `v8.2-fpm` | fpm | `34975b087324` | 61 findings (0 critical, 61 high) | 2026-04-07 |
 | `ghcr.io/gwshield/php:v8.2-fpm-dev` | `v8.2-fpm-dev` | fpm-dev | `865f6e1dba21` | 63 findings (0 critical, 63 high) | 2026-04-07 |
-| `ghcr.io/gwshield/php:v8.3-fpm` | `v8.3-fpm` | fpm | `37013fa3e009` | 62 findings (0 critical, 62 high) | 2026-04-07 |
+| `ghcr.io/gwshield/php:v8.3-fpm` | `v8.3-fpm` | fpm | `2fb20acfc7aa` | 61 findings (0 critical, 61 high) | 2026-04-07 |
 | `ghcr.io/gwshield/php:v8.3-fpm-dev` | `v8.3-fpm-dev` | fpm-dev | `ab5de2d32a79` | 63 findings (0 critical, 63 high) | 2026-04-07 |
-| `ghcr.io/gwshield/php:v8.4-fpm` | `v8.4-fpm` | fpm | `b8f35e1ba3be` | 62 findings (0 critical, 62 high) | 2026-04-07 |
+| `ghcr.io/gwshield/php:v8.4-fpm` | `v8.4-fpm` | fpm | `99a7d1785e1f` | 61 findings (0 critical, 61 high) | 2026-04-07 |
 | `ghcr.io/gwshield/php:v8.4-fpm-dev` | `v8.4-fpm-dev` | fpm-dev | `2911c11f81fd` | 63 findings (0 critical, 63 high) | 2026-04-07 |
 
 ### Pomerium — identity-aware access proxy
