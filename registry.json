@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-07T14:11:24Z",
+  "last_updated": "2026-04-07T14:11:57Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -498,14 +498,14 @@
         "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:b3f5a37315cfa138c431f8acccf0547f280d2932ff23b6cb83ea731269ace47a",
         "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:40a8b46853753a44aa112df984dc1a50f14e8b53a6f3627f80e691ddb4daab8c"
       },
-      "promoted_at": "2026-04-07T09:48:27Z",
+      "promoted_at": "2026-04-07T14:03:51Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-04-07T09:51:36Z"
+        "scanned_at": "2026-04-07T14:11:57Z"
       }
     },
     "python-builder:v3.12-dev": {
