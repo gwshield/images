@@ -85,7 +85,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v18.3-cli` | `v18.3-cli` | client only | `a6ec9ecf10e9` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 | `ghcr.io/gwshield/postgres:v18.3-timescale` | `v18.3-timescale` | TimescaleDB | `8303591db8a7` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 | `ghcr.io/gwshield/postgres:v18.3-tls` | `v18.3-tls` | TLS | `4c7e8ea978da` | 1 findings (0 critical, 1 high) | 2026-04-07 |
-| `ghcr.io/gwshield/postgres:v18.3-vector` | `v18.3-vector` | pgvector | `5efdcfa306f1` | 1 findings (0 critical, 1 high) | 2026-04-07 |
+| `ghcr.io/gwshield/postgres:v18.3-vector` | `v18.3-vector` | pgvector | `466fcf44b128` | 1 findings (0 critical, 1 high) | 2026-04-07 |
 
 ### Redis — in-memory data store
 
