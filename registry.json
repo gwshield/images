@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-07T08:56:11Z",
+  "last_updated": "2026-04-07T08:56:13Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1124,14 +1124,14 @@
         "linux/amd64": "ghcr.io/gwshield/valkey@sha256:85734646604fb86d2a6a1691b5f8a005db3d3b058118d5ce2c99720dd3ef9b7b",
         "linux/arm64": "ghcr.io/gwshield/valkey@sha256:255a1643992846099131a9b039165f372afab7d72d7c6b864b906f5226725509"
       },
-      "promoted_at": "2026-04-07T08:52:46Z",
+      "promoted_at": "2026-04-07T08:55:14Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-04-07T08:54:34Z"
+        "scanned_at": "2026-04-07T08:56:12Z"
       }
     },
     "valkey:v8.1.6-cluster": {
