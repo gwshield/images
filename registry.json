@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-07T14:13:43Z",
+  "last_updated": "2026-04-07T14:13:52Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1034,14 +1034,14 @@
         "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:db4ded901310fdb77301d9c9179d5f8d1bb10739a663a562bb3de53ccf9d9847",
         "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:5714d4d2354b16b3c10fc4ec276683fb9bc1362fde67243f41977544af24cfe5"
       },
-      "promoted_at": "2026-04-07T09:49:30Z",
+      "promoted_at": "2026-04-07T14:05:33Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-04-07T09:51:26Z"
+        "scanned_at": "2026-04-07T14:13:51Z"
       }
     },
     "go-builder:v1.25-dev": {
