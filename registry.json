@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-07T14:29:02Z",
+  "last_updated": "2026-04-07T14:29:29Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1573,14 +1573,14 @@
       "provenance_ref": {
         "linux/amd64": "ghcr.io/gwshield/postgres@sha256:1c6f60c18b62f2867579a58ee4db0c609115f6620fca6ad569c6effe142f6252"
       },
-      "promoted_at": "2026-04-07T14:21:53Z",
+      "promoted_at": "2026-04-07T14:26:19Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-04-07T14:25:08Z"
+        "scanned_at": "2026-04-07T14:29:29Z"
       }
     },
     "postgres:v18.3-cli": {
