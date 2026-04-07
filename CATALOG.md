@@ -54,7 +54,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/php:v8.2-fpm` | `v8.2-fpm` | fpm | `34975b087324` | 61 findings (0 critical, 61 high) | 2026-04-07 |
+| `ghcr.io/gwshield/php:v8.2-fpm` | `v8.2-fpm` | fpm | `f495b8d56c04` | 61 findings (0 critical, 61 high) | 2026-04-07 |
 | `ghcr.io/gwshield/php:v8.2-fpm-dev` | `v8.2-fpm-dev` | fpm-dev | `865f6e1dba21` | 63 findings (0 critical, 63 high) | 2026-04-07 |
 | `ghcr.io/gwshield/php:v8.3-fpm` | `v8.3-fpm` | fpm | `2fb20acfc7aa` | 61 findings (0 critical, 61 high) | 2026-04-07 |
 | `ghcr.io/gwshield/php:v8.3-fpm-dev` | `v8.3-fpm-dev` | fpm-dev | `ab5de2d32a79` | 63 findings (0 critical, 63 high) | 2026-04-07 |
