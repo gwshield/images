@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-07T14:38:42Z",
+  "last_updated": "2026-04-07T14:38:44Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1389,24 +1389,24 @@
       "tags": [
         "ghcr.io/gwshield/php:v8.3-fpm"
       ],
-      "digest": "sha256:5e9ab8751ba98e8719009f5c264fee1a7637959a16bb6f917d63a9cc61111aba",
+      "digest": "sha256:37013fa3e009afd53c3fd162c58b36f126ff9021ab57f796d290b75470bede8d",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/php@sha256:d20893b2fdc5fb916c2aa0fd44a3486d8c11ca72127a94c4fe02c902969ac573",
-        "linux/arm64": "ghcr.io/gwshield/php@sha256:0562264556cc3c13d01c08109f80304da139e24903d507bf51463c0e19500f2e"
+        "linux/amd64": "ghcr.io/gwshield/php@sha256:f022eaec0aa57151fec6a3cb2e4b5d02c6d2bafbc63694c46ef6c2c3e3f32eef",
+        "linux/arm64": "ghcr.io/gwshield/php@sha256:49aecadad2d42231364507b948a0dc01d1661ad137a2bb9464ace2fa91d5c5aa"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/php@sha256:d20893b2fdc5fb916c2aa0fd44a3486d8c11ca72127a94c4fe02c902969ac573",
-        "linux/arm64": "ghcr.io/gwshield/php@sha256:0562264556cc3c13d01c08109f80304da139e24903d507bf51463c0e19500f2e"
+        "linux/amd64": "ghcr.io/gwshield/php@sha256:f022eaec0aa57151fec6a3cb2e4b5d02c6d2bafbc63694c46ef6c2c3e3f32eef",
+        "linux/arm64": "ghcr.io/gwshield/php@sha256:49aecadad2d42231364507b948a0dc01d1661ad137a2bb9464ace2fa91d5c5aa"
       },
-      "promoted_at": "2026-04-07T14:21:32Z",
+      "promoted_at": "2026-04-07T14:34:08Z",
       "scan": {
         "status": "findings",
         "total": 62,
         "critical": 0,
         "high": 62,
         "scanner": "trivy",
-        "scanned_at": "2026-04-07T14:31:54Z"
+        "scanned_at": "2026-04-07T14:38:43Z"
       }
     },
     "php:v8.3-fpm-dev": {
