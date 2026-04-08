@@ -466,14 +466,43 @@ jobs:
           fi
           mkdir -p sbom-out
 
-          # SBOM predicates are too large for Rekor tlog (~721KB vs ~128KB limit).
-          # Create a signing config that excludes the transparency log service.
+          # Signing config without Rekor tlog — used only when payload exceeds 128 KB limit.
           SBOM_SIGNING_CONFIG=$(mktemp)
           curl -sL https://raw.githubusercontent.com/sigstore/root-signing/refs/heads/main/targets/signing_config.v0.2.json \
             | jq 'del(.rekorTlogUrls)' > "${SBOM_SIGNING_CONFIG}"
 
+          # Rekor upload limit in bytes. Payloads under this threshold are uploaded to the
+          # tlog for full durable verifiability. Larger payloads (postgres, python) fall back
+          # to TSA-only (RFC3161 timestamp embedded in bundle, no tlog entry).
+          REKOR_LIMIT=131072
+
+          # attest_sbom <predicate_file> <type> <ref>
+          # Selects tlog or no-tlog path based on predicate file size.
+          attest_sbom() {
+            local pred_file="$1"
+            local pred_type="$2"
+            local ref="$3"
+            local size
+            size=$(wc -c < "${pred_file}")
+            local extra_args=()
+            if (( size >= REKOR_LIMIT )); then
+              echo "  WARN: SBOM predicate ${size}B >= ${REKOR_LIMIT}B Rekor limit -- tlog disabled for ${ref}"
+              extra_args+=("--signing-config=${SBOM_SIGNING_CONFIG}")
+              SBOM_NO_TLOG_REFS=$(echo "${SBOM_NO_TLOG_REFS}" | jq -c --arg v "${ref}" '. + [$v]')
+            else
+              echo "  INFO: SBOM predicate ${size}B < ${REKOR_LIMIT}B -- tlog enabled for ${ref}"
+            fi
+            cosign attest --yes \
+              "${extra_args[@]+"${extra_args[@]}"}" \
+              --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
+              --predicate "${pred_file}" \
+              --type "${pred_type}" \
+              "${ref}"
+          }
+
           PLATFORMS_JSON="${{ steps.plat.outputs.platforms_json }}"
           SBOM_REFS="{}"
+          SBOM_NO_TLOG_REFS="[]"
 
           if [[ -n "${PLATFORMS_JSON}" && "${PLATFORMS_JSON}" != "[]" ]]; then
             RAW_MANIFEST=$(skopeo inspect --raw \
@@ -508,11 +537,9 @@ jobs:
                 syft "${DST_IMAGE}@${PDIGEST}" \
                   --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json
 
-                cosign attest --yes \
-                  --signing-config="${SBOM_SIGNING_CONFIG}" \
-                  --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
-                  --predicate sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json \
-                  --type spdxjson \
+                attest_sbom \
+                  "sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json" \
+                  "spdxjson" \
                   "${DST_IMAGE}@${PDIGEST}"
 
                 SBOM_REFS=$(echo "${SBOM_REFS}" | jq -c --arg k "${PLAT}" --arg v "${DST_IMAGE}@${PDIGEST}" '. + {($k): $v}')
@@ -521,11 +548,9 @@ jobs:
             else
               syft "${DST_IMAGE}@${DIGEST}" \
                 --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
-              cosign attest --yes \
-                --signing-config="${SBOM_SIGNING_CONFIG}" \
-                --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
-                --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
-                --type spdxjson \
+              attest_sbom \
+                "sbom-out/sbom-${NAME}-${VERSION}-spdx.json" \
+                "spdxjson" \
                 "${DST_IMAGE}@${DIGEST}"
               SBOM_REFS=$(jq -cn --arg v "${DST_IMAGE}@${DIGEST}" '{"linux/amd64": $v}')
             fi
@@ -536,24 +561,23 @@ jobs:
             syft "${DST_IMAGE}@${DIGEST}" \
               --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
 
-            cosign attest --yes \
-              --signing-config="${SBOM_SIGNING_CONFIG}" \
-              --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
-              --predicate sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json \
-              --type cyclonedx \
+            attest_sbom \
+              "sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json" \
+              "cyclonedx" \
               "${DST_IMAGE}@${DIGEST}"
 
-            cosign attest --yes \
-              --signing-config="${SBOM_SIGNING_CONFIG}" \
-              --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
-              --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
-              --type spdxjson \
+            attest_sbom \
+              "sbom-out/sbom-${NAME}-${VERSION}-spdx.json" \
+              "spdxjson" \
               "${DST_IMAGE}@${DIGEST}"
           fi
 
           _D=$(openssl rand -hex 8)
           { echo "sbom_refs_json<<${_D}"; echo "${SBOM_REFS}"; echo "${_D}"; } >> "$GITHUB_OUTPUT"
+          _D2=$(openssl rand -hex 8)
+          { echo "sbom_no_tlog_refs_json<<${_D2}"; echo "${SBOM_NO_TLOG_REFS}"; echo "${_D2}"; } >> "$GITHUB_OUTPUT"
           echo "SBOM refs: ${SBOM_REFS}"
+          echo "SBOM no-tlog refs: ${SBOM_NO_TLOG_REFS}"
 
       - name: Upload SBOM artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
@@ -567,6 +591,8 @@ jobs:
       # Verify SBOM attestation (post-attest check)
       # Attestations are on per-platform digests (not the index digest), so
       # iterate over sbom_refs_json and verify each platform ref individually.
+      # Refs that exceeded the Rekor 128 KB limit were attested without tlog
+      # (tracked in sbom_no_tlog_refs_json) and require --insecure-ignore-tlog.
       # -----------------------------------------------------------------------
       - name: Verify SBOM attestation
         run: |
@@ -580,21 +606,45 @@ jobs:
             echo "ERROR: no sbom_refs_json available for SBOM verify" >&2
             exit 1
           fi
-          # SBOM attestations are created without Rekor tlog (payload too large).
-          # --insecure-ignore-tlog skips tlog inclusion check for SBOM only.
+          NO_TLOG_REFS='${{ steps.sbom.outputs.sbom_no_tlog_refs_json }}'
+          NO_TLOG_REFS="${NO_TLOG_REFS:-[]}"
+
+          # Helper: returns 0 if $1 is in the no-tlog JSON array, 1 otherwise
+          is_no_tlog() {
+            echo "${NO_TLOG_REFS}" | python3 -c "
+          import json,sys
+          refs=json.load(sys.stdin)
+          import sys as _sys
+          ref=_sys.argv[1] if len(_sys.argv)>1 else ''
+          print('yes' if ref in refs else 'no')
+          " "$1"
+          }
+
           echo "${SBOM_REFS_JSON}" | python3 -c "
           import json, sys
           refs = json.load(sys.stdin)
           for plat, ref in refs.items():
               print(ref)
           " | while read -r REF; do
-            cosign verify-attestation \
-              --type spdxjson \
-              --insecure-ignore-tlog \
-              --certificate-identity-regexp="${IDENTITY_REGEXP}" \
-              --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
-              "${REF}" \
-              > /dev/null
+            TLOG_FLAG=$(is_no_tlog "${REF}")
+            if [[ "${TLOG_FLAG}" == "yes" ]]; then
+              echo "  Verifying SBOM (no-tlog / TSA-only) for ${REF}"
+              cosign verify-attestation \
+                --type spdxjson \
+                --insecure-ignore-tlog \
+                --certificate-identity-regexp="${IDENTITY_REGEXP}" \
+                --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+                "${REF}" \
+                > /dev/null
+            else
+              echo "  Verifying SBOM (tlog) for ${REF}"
+              cosign verify-attestation \
+                --type spdxjson \
+                --certificate-identity-regexp="${IDENTITY_REGEXP}" \
+                --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+                "${REF}" \
+                > /dev/null
+            fi
             echo "SBOM attestation verified for ${REF}"
           done
 
