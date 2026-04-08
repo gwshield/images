@@ -424,10 +424,9 @@ jobs:
           DIGEST="${{ steps.push.outputs.digest }}"
           [[ -z "${DIGEST}" ]] && { echo "WARNING: no digest -- skip cosign"; exit 0; }
           echo "Signing ${DST_IMAGE}@${DIGEST} ..."
-          # --timestamp-server-url embeds an RFC3161 TSA timestamp in the signature bundle.
-          # This allows verification long after the short-lived Fulcio cert (~10 min) expires.
+          # cosign v3 + TUF root automatically includes TSA (RFC3161) and Rekor tlog.
+          # No --timestamp-server-url needed — the Sigstore signing config manages this.
           cosign sign --yes \
-            --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
             "${DST_IMAGE}@${DIGEST}"
 
       - name: Verify cosign signature
@@ -494,7 +493,6 @@ jobs:
             fi
             cosign attest --yes \
               "${extra_args[@]+"${extra_args[@]}"}" \
-              --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
               --predicate "${pred_file}" \
               --type "${pred_type}" \
               "${ref}"
@@ -755,7 +753,6 @@ jobs:
                 PRED_FILE=$(generate_predicate "${PDIGEST}" "${PLAT_SAFE}")
 
                 cosign attest --yes \
-                  --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
                   --predicate "${PRED_FILE}" \
                   --type slsaprovenance1 \
                   "${DST_IMAGE}@${PDIGEST}"
@@ -766,7 +763,6 @@ jobs:
             else
               PRED_FILE=$(generate_predicate "${DIGEST}" "linux-amd64")
               cosign attest --yes \
-                --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
                 --predicate "${PRED_FILE}" \
                 --type slsaprovenance1 \
                 "${DST_IMAGE}@${DIGEST}"
@@ -775,7 +771,6 @@ jobs:
           else
             PRED_FILE=$(generate_predicate "${DIGEST}" "manifest")
             cosign attest --yes \
-              --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
               --predicate "${PRED_FILE}" \
               --type slsaprovenance1 \
               "${DST_IMAGE}@${DIGEST}"
