@@ -100,7 +100,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/traefik:v3.6.12` | `v3.6.12` | standard | `24c53f801cb5` | 2 findings (0 critical, 2 high) | 2026-04-07 |
+| `ghcr.io/gwshield/traefik:v3.6.12` | `v3.6.12` | standard | `24c53f801cb5` | 2 findings (0 critical, 2 high) | 2026-04-08 |
 | `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `b1796eab8328` | 5 findings (1 critical, 4 high) | 2026-04-08 |
 
 ### Valkey — open-source Redis fork
