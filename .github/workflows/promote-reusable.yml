@@ -424,7 +424,11 @@ jobs:
           DIGEST="${{ steps.push.outputs.digest }}"
           [[ -z "${DIGEST}" ]] && { echo "WARNING: no digest -- skip cosign"; exit 0; }
           echo "Signing ${DST_IMAGE}@${DIGEST} ..."
-          cosign sign --yes "${DST_IMAGE}@${DIGEST}"
+          # --timestamp-server-url embeds an RFC3161 TSA timestamp in the signature bundle.
+          # This allows verification long after the short-lived Fulcio cert (~10 min) expires.
+          cosign sign --yes \
+            --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
+            "${DST_IMAGE}@${DIGEST}"
 
       - name: Verify cosign signature
         run: |
@@ -506,6 +510,7 @@ jobs:
 
                 cosign attest --yes \
                   --signing-config="${SBOM_SIGNING_CONFIG}" \
+                  --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
                   --predicate sbom-out/sbom-${NAME}-${VERSION}-${PLAT_SAFE}-spdx.json \
                   --type spdxjson \
                   "${DST_IMAGE}@${PDIGEST}"
@@ -518,6 +523,7 @@ jobs:
                 --output spdx-json=sbom-out/sbom-${NAME}-${VERSION}-spdx.json
               cosign attest --yes \
                 --signing-config="${SBOM_SIGNING_CONFIG}" \
+                --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
                 --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
                 --type spdxjson \
                 "${DST_IMAGE}@${DIGEST}"
@@ -532,12 +538,14 @@ jobs:
 
             cosign attest --yes \
               --signing-config="${SBOM_SIGNING_CONFIG}" \
+              --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
               --predicate sbom-out/sbom-${NAME}-${VERSION}-cyclonedx.json \
               --type cyclonedx \
               "${DST_IMAGE}@${DIGEST}"
 
             cosign attest --yes \
               --signing-config="${SBOM_SIGNING_CONFIG}" \
+              --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
               --predicate sbom-out/sbom-${NAME}-${VERSION}-spdx.json \
               --type spdxjson \
               "${DST_IMAGE}@${DIGEST}"
@@ -697,6 +705,7 @@ jobs:
                 PRED_FILE=$(generate_predicate "${PDIGEST}" "${PLAT_SAFE}")
 
                 cosign attest --yes \
+                  --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
                   --predicate "${PRED_FILE}" \
                   --type slsaprovenance1 \
                   "${DST_IMAGE}@${PDIGEST}"
@@ -707,6 +716,7 @@ jobs:
             else
               PRED_FILE=$(generate_predicate "${DIGEST}" "linux-amd64")
               cosign attest --yes \
+                --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
                 --predicate "${PRED_FILE}" \
                 --type slsaprovenance1 \
                 "${DST_IMAGE}@${DIGEST}"
@@ -715,6 +725,7 @@ jobs:
           else
             PRED_FILE=$(generate_predicate "${DIGEST}" "manifest")
             cosign attest --yes \
+              --timestamp-server-url="https://timestamp.sigstore.dev/api/v1/timestamp" \
               --predicate "${PRED_FILE}" \
               --type slsaprovenance1 \
               "${DST_IMAGE}@${DIGEST}"
