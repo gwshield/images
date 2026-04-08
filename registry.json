@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-08T01:03:39Z",
+  "last_updated": "2026-04-08T01:03:42Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1185,14 +1185,14 @@
         "linux/amd64": "ghcr.io/gwshield/valkey@sha256:51f6b91d86d387ae50e6190211d0b6ccfa82d80bb6d3a4979ec9109b5bddda2d",
         "linux/arm64": "ghcr.io/gwshield/valkey@sha256:ccd2f3c1edf84fd463704c12451c1d90ecbdcb7f6a9d88dbb0f4a0855a847243"
       },
-      "promoted_at": "2026-04-08T00:59:13Z",
+      "promoted_at": "2026-04-08T01:02:21Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-04-08T01:01:30Z"
+        "scanned_at": "2026-04-08T01:03:39Z"
       }
     },
     "pomerium:v0.32.2": {
