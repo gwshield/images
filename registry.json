@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-09T13:11:04Z",
+  "last_updated": "2026-04-09T13:11:07Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1651,24 +1651,24 @@
         "ghcr.io/gwshield/openresty:v1.29.2",
         "ghcr.io/gwshield/openresty:latest"
       ],
-      "digest": "sha256:fe7542746dec9d849e17dc9ba99c35563bd0dfb4fef812fbd8de78da7c2acc06",
+      "digest": "sha256:cc3ca3507e27a3bd96757f909afe1afa3e25abb0e03d8b15edc684baa6c105f0",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:fe1ef5380d32544727d910e0e70da5ba2ec5d506b1caa581c2457e85d6153a82",
-        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:f4b172b92634eba3d59916f629728074d52e8f47fd86f0e2b23cf24238a26a26"
+        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:b66a88a65a626ce27491fe48a34d04150d937d2ee3167bf6a8f75e0e906af500",
+        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:1dfe2478cc43d96b8812d0dd20251e0eb71921fd4ad8a36d9466ba600beec9d9"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:fe1ef5380d32544727d910e0e70da5ba2ec5d506b1caa581c2457e85d6153a82",
-        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:f4b172b92634eba3d59916f629728074d52e8f47fd86f0e2b23cf24238a26a26"
+        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:b66a88a65a626ce27491fe48a34d04150d937d2ee3167bf6a8f75e0e906af500",
+        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:1dfe2478cc43d96b8812d0dd20251e0eb71921fd4ad8a36d9466ba600beec9d9"
       },
-      "promoted_at": "2026-04-09T08:56:14Z",
+      "promoted_at": "2026-04-09T13:09:08Z",
       "scan": {
         "status": "findings",
         "total": 8,
         "critical": 1,
         "high": 7,
         "scanner": "trivy",
-        "scanned_at": "2026-04-09T08:57:30Z"
+        "scanned_at": "2026-04-09T13:10:51Z"
       }
     },
     "openresty:v1.29.2-lua": {
