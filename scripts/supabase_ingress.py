@@ -131,6 +131,7 @@ _DISPLAY_NAMES: dict[str, str] = {
     "haproxy": "HAProxy",
     "nats": "NATS",
     "nginx": "nginx",
+    "openresty": "OpenResty",
     "otelcol": "OpenTelemetry Collector",
     "php": "PHP",
     "pomerium": "Pomerium",
