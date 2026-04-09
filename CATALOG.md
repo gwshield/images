@@ -48,7 +48,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/openresty:v1.29.2` | `v1.29.2` | standard | `fe7542746dec` | 8 findings (1 critical, 7 high) | 2026-04-09 |
+| `ghcr.io/gwshield/openresty:v1.29.2` | `v1.29.2` | standard | `cc3ca3507e27` | 8 findings (1 critical, 7 high) | 2026-04-09 |
 | `ghcr.io/gwshield/openresty:v1.29.2-lua` | `v1.29.2-lua` | lua | `c1e2db401110` | 8 findings (1 critical, 7 high) | 2026-04-09 |
 
 ### OpenTelemetry Collector — observability pipeline
