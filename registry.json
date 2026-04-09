@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-09T06:19:40Z",
+  "last_updated": "2026-04-09T06:19:47Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -74,21 +74,21 @@
         "ghcr.io/gwshield/postgres:v15.17-cli"
       ],
       "digest": "sha256:dee0f691705ea773bc2460e07cdfa7963712e902a4e6c08825fafceb20eb276d",
-      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
         "linux/amd64": "ghcr.io/gwshield/postgres@sha256:01b180672d991977f3ebb42586a7b1d2f444a39defaee21a313593139570dc69"
       },
       "provenance_ref": {
         "linux/amd64": "ghcr.io/gwshield/postgres@sha256:01b180672d991977f3ebb42586a7b1d2f444a39defaee21a313593139570dc69"
       },
-      "promoted_at": "2026-04-08T17:46:07Z",
+      "promoted_at": "2026-04-09T06:18:37Z",
       "scan": {
         "status": "findings",
         "total": 1,
         "critical": 0,
         "high": 1,
         "scanner": "trivy",
-        "scanned_at": "2026-04-08T17:48:21Z"
+        "scanned_at": "2026-04-09T06:19:47Z"
       }
     },
     "redis:v7.4.8-tls": {
