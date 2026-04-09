@@ -65,7 +65,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/pomerium:v0.32.2` | `v0.32.2` | standard | `cbd7807c12ef` | 8 findings (1 critical, 7 high) | 2026-04-08 |
+| `ghcr.io/gwshield/pomerium:v0.32.2` | `v0.32.2` | standard | `cbd7807c12ef` | 9 findings (1 critical, 8 high) | 2026-04-09 |
 
 ### PostgreSQL — relational database
 
@@ -77,9 +77,9 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `645886abb042` | 1 findings (0 critical, 1 high) | 2026-03-31 |
 | `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `692667fd6bc6` | 1 findings (0 critical, 1 high) | 2026-03-31 |
 | `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `3e8071710826` | 1 findings (0 critical, 1 high) | 2026-04-09 |
-| `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `b58d35f0ea25` | 1 findings (0 critical, 1 high) | 2026-04-08 |
+| `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `b58d35f0ea25` | 1 findings (0 critical, 1 high) | 2026-04-09 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `7873ec6660d9` | 1 findings (0 critical, 1 high) | 2026-03-31 |
-| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `cbf2b3eb040a` | 1 findings (0 critical, 1 high) | 2026-04-08 |
+| `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `cbf2b3eb040a` | 1 findings (0 critical, 1 high) | 2026-04-09 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `f1992a41bcd9` | 1 findings (0 critical, 1 high) | 2026-04-09 |
 | `ghcr.io/gwshield/postgres:v18.3` | `v18.3` | standard | `07218d6e0012` | 1 findings (0 critical, 1 high) | 2026-04-09 |
 | `ghcr.io/gwshield/postgres:v18.3-cli` | `v18.3-cli` | client only | `db49560c39c3` | 1 findings (0 critical, 1 high) | 2026-04-09 |
@@ -101,7 +101,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/traefik:v3.6.12` | `v3.6.12` | standard | `24c53f801cb5` | 3 findings (0 critical, 3 high) | 2026-04-09 |
-| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `b1796eab8328` | 5 findings (1 critical, 4 high) | 2026-04-08 |
+| `ghcr.io/gwshield/traefik:v3.6.9` | `v3.6.9` | standard | `b1796eab8328` | 6 findings (1 critical, 5 high) | 2026-04-09 |
 
 ### Valkey — open-source Redis fork
 
@@ -135,7 +135,7 @@ ENTRYPOINT ["/myapp"]
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `839d6aa384bc` | 20 findings (0 critical, 20 high) | 2026-04-09 |
-| `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `07a7f0bc9b4f` | 24 findings (0 critical, 24 high) | 2026-04-08 |
+| `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `07a7f0bc9b4f` | 24 findings (0 critical, 24 high) | 2026-04-09 |
 | `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `e2fcb71e62a2` | 0 CVEs | 2026-04-08 |
 | `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `262f1c03ce0f` | 0 CVEs | 2026-04-09 |
 
@@ -153,7 +153,7 @@ ENTRYPOINT ["/myapp"]
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `650d81d06f7e` | 0 CVEs | 2026-04-08 |
-| `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `a6551a6d67ef` | 0 CVEs | 2026-04-08 |
+| `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `a6551a6d67ef` | 0 CVEs | 2026-04-09 |
 
 ---
 
