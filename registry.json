@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-09T14:10:06Z",
+  "last_updated": "2026-04-09T14:10:11Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1661,14 +1661,14 @@
         "linux/amd64": "ghcr.io/gwshield/openresty@sha256:a4757289123fc2d1618bd6bd5cebf71bd73b5481caa36095b5f04e5e1c2e3d0f",
         "linux/arm64": "ghcr.io/gwshield/openresty@sha256:70fbedc9815b1217ef4406b051431589cb5cf0158600e6384cc9028503df458b"
       },
-      "promoted_at": "2026-04-09T14:04:57Z",
+      "promoted_at": "2026-04-09T14:08:12Z",
       "scan": {
         "status": "findings",
         "total": 8,
         "critical": 1,
         "high": 7,
         "scanner": "trivy",
-        "scanned_at": "2026-04-09T14:06:14Z"
+        "scanned_at": "2026-04-09T14:10:06Z"
       }
     },
     "openresty:v1.29.2-lua": {
