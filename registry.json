@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-09T06:20:41Z",
+  "last_updated": "2026-04-09T06:20:44Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1329,24 +1329,24 @@
       "tags": [
         "ghcr.io/gwshield/php:v8.2-fpm"
       ],
-      "digest": "sha256:f7f9ce7a355996f2c983c6bb8754d17aa57396c918f1d13e1f48fb0852911896",
-      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "digest": "sha256:6fc41a4328996712770ae2e7b72fc204dc6b24a116bb686fa67a3b710078a960",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/php@sha256:c8d7a0178f95d2dfb360fdad70cfe45440e514ef52081bb92782fd5add754040",
-        "linux/arm64": "ghcr.io/gwshield/php@sha256:92875b18b1d368f341a99f1fe6e6a0fcab073b6ae75bc4c0f81cdfe074b0c03e"
+        "linux/amd64": "ghcr.io/gwshield/php@sha256:28fa2e3f04602ab8f91f7e5cec6e5de53554529072d9ac0d37755da0f9f691a0",
+        "linux/arm64": "ghcr.io/gwshield/php@sha256:0da539b6ac2a807ab2ff6b30c5bb3719692b9b926637818c85525ff3ea2dea6d"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/php@sha256:c8d7a0178f95d2dfb360fdad70cfe45440e514ef52081bb92782fd5add754040",
-        "linux/arm64": "ghcr.io/gwshield/php@sha256:92875b18b1d368f341a99f1fe6e6a0fcab073b6ae75bc4c0f81cdfe074b0c03e"
+        "linux/amd64": "ghcr.io/gwshield/php@sha256:28fa2e3f04602ab8f91f7e5cec6e5de53554529072d9ac0d37755da0f9f691a0",
+        "linux/arm64": "ghcr.io/gwshield/php@sha256:0da539b6ac2a807ab2ff6b30c5bb3719692b9b926637818c85525ff3ea2dea6d"
       },
-      "promoted_at": "2026-04-08T12:29:00Z",
+      "promoted_at": "2026-04-09T06:18:53Z",
       "scan": {
         "status": "findings",
         "total": 48,
         "critical": 0,
         "high": 48,
         "scanner": "trivy",
-        "scanned_at": "2026-04-08T12:31:39Z"
+        "scanned_at": "2026-04-09T06:20:30Z"
       }
     },
     "php:v8.2-fpm-dev": {
