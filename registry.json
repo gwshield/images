@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-09T06:22:22Z",
+  "last_updated": "2026-04-09T06:22:24Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -489,7 +489,7 @@
         "ghcr.io/gwshield/python-builder:v3.13-dev"
       ],
       "digest": "sha256:939d7ca738c82014c876af05d931a3d379487a2ddb79bae7787be76dd1e05a94",
-      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
         "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:b3f5a37315cfa138c431f8acccf0547f280d2932ff23b6cb83ea731269ace47a",
         "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:40a8b46853753a44aa112df984dc1a50f14e8b53a6f3627f80e691ddb4daab8c"
@@ -498,14 +498,14 @@
         "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:b3f5a37315cfa138c431f8acccf0547f280d2932ff23b6cb83ea731269ace47a",
         "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:40a8b46853753a44aa112df984dc1a50f14e8b53a6f3627f80e691ddb4daab8c"
       },
-      "promoted_at": "2026-04-08T06:11:41Z",
+      "promoted_at": "2026-04-09T06:18:43Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-04-08T06:13:09Z"
+        "scanned_at": "2026-04-09T06:22:23Z"
       }
     },
     "python-builder:v3.12-dev": {
