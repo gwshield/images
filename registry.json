@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-09T08:58:47Z",
+  "last_updated": "2026-04-09T08:58:50Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1669,6 +1669,36 @@
         "high": 7,
         "scanner": "trivy",
         "scanned_at": "2026-04-09T08:57:30Z"
+      }
+    },
+    "openresty:v1.29.2-lua": {
+      "name": "openresty",
+      "version": "v1.29.2-lua",
+      "base_version": "v1.29.2",
+      "profile": "lua",
+      "category": "runtime",
+      "public_image": "ghcr.io/gwshield/openresty",
+      "tags": [
+        "ghcr.io/gwshield/openresty:v1.29.2-lua"
+      ],
+      "digest": "sha256:c1e2db4011103851e915457f4b169971643a844a9e567f21bf0acb8902b8020b",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
+      "sbom_ref": {
+        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:c5383cbe67885ce6d26604ad9721d840abe59cd956b45f943af14782cba2f824",
+        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:93391a68fba068dafdb8cb47e36fd484bbdf058db4c54cf2dee725b1d3b1031b"
+      },
+      "provenance_ref": {
+        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:c5383cbe67885ce6d26604ad9721d840abe59cd956b45f943af14782cba2f824",
+        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:93391a68fba068dafdb8cb47e36fd484bbdf058db4c54cf2dee725b1d3b1031b"
+      },
+      "promoted_at": "2026-04-09T08:57:28Z",
+      "scan": {
+        "status": "findings",
+        "total": 8,
+        "critical": 1,
+        "high": 7,
+        "scanner": "trivy",
+        "scanned_at": "2026-04-09T08:58:49Z"
       }
     }
   }
