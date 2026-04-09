@@ -27,7 +27,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `7ba2dd484472` | 0 CVEs | 2026-04-08 |
+| `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `7ba2dd484472` | 0 CVEs | 2026-04-09 |
 | `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `5090736d6309` | 0 CVEs | 2026-04-09 |
 
 ### NATS — cloud-native messaging and event streaming
@@ -152,7 +152,7 @@ ENTRYPOINT ["/myapp"]
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `650d81d06f7e` | 0 CVEs | 2026-04-08 |
+| `ghcr.io/gwshield/rust-builder:v1.87` | `v1.87` | standard | `650d81d06f7e` | 0 CVEs | 2026-04-09 |
 | `ghcr.io/gwshield/rust-builder:v1.87-dev` | `v1.87-dev` | compile + test + lint | `a6551a6d67ef` | 0 CVEs | 2026-04-09 |
 
 ---
