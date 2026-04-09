@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-09T06:19:54Z",
+  "last_updated": "2026-04-09T06:19:56Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1419,24 +1419,24 @@
       "tags": [
         "ghcr.io/gwshield/php:v8.3-fpm-dev"
       ],
-      "digest": "sha256:ab5de2d32a79406692cbe61552be4e63829ae50a53e9f354d7876b5c8c05dc28",
-      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "digest": "sha256:0dae13dbed950d3b8a9cdb892d6caf6498423ee68d0299ae9ac28984954c5a56",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/php@sha256:cca6cda54737abe2a78cd6e1dc6bbd0a3e83be4cec224213e10d85d2954ef6a1",
-        "linux/arm64": "ghcr.io/gwshield/php@sha256:c2c9c0e005401a822c9e5d75c74dbaaeefdf700ff68138f0bf6134131c9898dc"
+        "linux/amd64": "ghcr.io/gwshield/php@sha256:27385fa5002909ea9a6e990a514b3d9d339040ba904aebe69bd0ad25b9ef64d1",
+        "linux/arm64": "ghcr.io/gwshield/php@sha256:b8724d0ab23498b3ef34daa3c0266b22bf5242a215ace200b38f0dc10a883c26"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/php@sha256:cca6cda54737abe2a78cd6e1dc6bbd0a3e83be4cec224213e10d85d2954ef6a1",
-        "linux/arm64": "ghcr.io/gwshield/php@sha256:c2c9c0e005401a822c9e5d75c74dbaaeefdf700ff68138f0bf6134131c9898dc"
+        "linux/amd64": "ghcr.io/gwshield/php@sha256:27385fa5002909ea9a6e990a514b3d9d339040ba904aebe69bd0ad25b9ef64d1",
+        "linux/arm64": "ghcr.io/gwshield/php@sha256:b8724d0ab23498b3ef34daa3c0266b22bf5242a215ace200b38f0dc10a883c26"
       },
-      "promoted_at": "2026-04-08T12:48:58Z",
+      "promoted_at": "2026-04-09T06:18:41Z",
       "scan": {
         "status": "findings",
         "total": 49,
         "critical": 0,
         "high": 49,
         "scanner": "trivy",
-        "scanned_at": "2026-04-08T12:53:30Z"
+        "scanned_at": "2026-04-09T06:19:56Z"
       }
     },
     "php:v8.4-fpm": {
