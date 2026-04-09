@@ -49,6 +49,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/openresty:v1.29.2` | `v1.29.2` | standard | `fe7542746dec` | 8 findings (1 critical, 7 high) | 2026-04-09 |
+| `ghcr.io/gwshield/openresty:v1.29.2-lua` | `v1.29.2-lua` | lua | `c1e2db401110` | 8 findings (1 critical, 7 high) | 2026-04-09 |
 
 ### OpenTelemetry Collector — observability pipeline
 
@@ -206,6 +207,7 @@ cosign download sbom ghcr.io/gwshield/caddy:v2.11.2
 | runtime | `ghcr.io/gwshield/nginx` | `v1.28.2-http2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2-http2` |
 | runtime | `ghcr.io/gwshield/nginx` | `v1.28.2-http3` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/nginx:v1.28.2-http3` |
 | runtime | `ghcr.io/gwshield/openresty` | `v1.29.2` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/openresty:v1.29.2` |
+| runtime | `ghcr.io/gwshield/openresty` | `v1.29.2-lua` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/openresty:v1.29.2-lua` |
 | runtime | `ghcr.io/gwshield/otelcol` | `v0.147.0` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/otelcol:v0.147.0` |
 | runtime | `ghcr.io/gwshield/php` | `v8.2-fpm` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/php:v8.2-fpm` |
 | runtime | `ghcr.io/gwshield/php` | `v8.2-fpm-dev` | `cosign verify --certificate-identity-regexp="https://github.com/gwshield/images.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com" ghcr.io/gwshield/php:v8.2-fpm-dev` |
