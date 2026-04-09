@@ -22,7 +22,7 @@
 #   - Manual: workflow_dispatch (optional slug filter + force flag)
 #   - repository_dispatch: baseline-sync (triggered by gwshield/images-processor)
 #
-# Runners: Blacksmith 2vcpu (same as promote.yml)
+# Runners: Blacksmith 2vcpu (same as image-promote.yml)
 # =============================================================================
 
 name: baseline-sync
@@ -138,7 +138,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq skopeo
 
-      # ── Install cosign (curl + SHA256 verify, aligned with promote.yml) ────
+      # ── Install cosign (curl + SHA256 verify, aligned with image-promote.yml) ────
       - name: Install cosign
         run: |
           curl -fsSL \
@@ -362,7 +362,7 @@ jobs:
           SLUG="${{ matrix.slug }}"
           mkdir -p sbom-out
 
-          # Per-platform SBOM + attest (same pattern as promote.yml)
+          # Per-platform SBOM + attest (same pattern as image-promote.yml)
           RAW=$(skopeo inspect --raw             --creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}"             "docker://${MIRROR}:${TAG}@${DIGEST}" 2>/dev/null || true)
 
           IS_INDEX=$(echo "${RAW}" | python3 -c "

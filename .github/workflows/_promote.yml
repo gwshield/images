@@ -1,11 +1,11 @@
 # =============================================================================
-# PROMOTE-REUSABLE — Generic image promotion core (ADR-0007 Phase 1)
+# _promote.yml — Generic image promotion core (ADR-0007 Phase 1)
 # =============================================================================
 # Reusable workflow: skopeo copy, cosign keyless sign+verify, syft SBOM
 # generate+attest+verify, SLSA provenance generate+attest+verify, Trivy CVE scan.
 #
-# Called by promote.yml (gwshield/images) and by enterprise customer config repos:
-#   uses: gwshield/images/.github/workflows/promote-reusable.yml@v1
+# Called by image-promote.yml (gwshield/images) and by enterprise customer config repos:
+#   uses: gwshield/images/.github/workflows/_promote.yml@v1
 #
 # Auth model:
 #   - SRC_READ_PAT  : fine-grained PAT for src registry pull (caller provides)
@@ -26,7 +26,7 @@
 #   promoted_at          RFC3339 timestamp of push
 # =============================================================================
 
-name: promote-reusable
+name: _promote (reusable)
 
 on:
   workflow_call:
@@ -668,7 +668,7 @@ jobs:
           PROVENANCE_REFS="{}"
           mkdir -p provenance-out
 
-          COSIGN_IDENTITY="https://github.com/${{ github.repository }}/.github/workflows/promote-reusable.yml@${{ github.ref }}"
+          COSIGN_IDENTITY="https://github.com/${{ github.repository }}/.github/workflows/_promote.yml@${{ github.ref }}"
           BUILD_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
           generate_predicate() {

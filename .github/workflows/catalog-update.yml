@@ -1,9 +1,9 @@
 # =============================================================================
-# CATALOG-UPDATE — Regenerate CATALOG.md from registry.json
+# catalog-update.yml — Regenerate CATALOG.md from registry.json
 # =============================================================================
 # Triggered by:
-#   - repository_dispatch (event: registry-updated) — fired by promote.yml
-#     and by scan-update dispatches from RelicFrog/gwshield-images scan.yml
+#   - repository_dispatch (event: registry-updated) — fired by image-promote.yml
+#     and by scan-update dispatches from gwshield/images-processor image-scan.yml
 #   - workflow_dispatch — manual regeneration
 #
 # Steps:
@@ -14,7 +14,7 @@
 # README.md is static and never touched by this workflow.
 # =============================================================================
 
-name: readme-update
+name: catalog-update
 
 on:
   repository_dispatch:
@@ -27,7 +27,7 @@ on:
         default: 'manual'
 
 concurrency:
-  group: readme-update
+  group: catalog-update
   cancel-in-progress: false   # queue, never drop — every update must land
 
 permissions:
@@ -50,7 +50,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      # Ensure we have the latest commit — promote.yml may have just pushed
+      # Ensure we have the latest commit — image-promote.yml may have just pushed
       # registry.json a few seconds before this workflow started.
       # Retry loop guards against transient rebase conflicts when many promote
       # runs dispatch registry-updated concurrently (up to 43 simultaneous pushes).

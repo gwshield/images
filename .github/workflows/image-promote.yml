@@ -1,8 +1,8 @@
 # =============================================================================
-# PROMOTE — Receive image promotion requests from gwshield/images-processor
+# image-promote.yml — Receive image promotion requests from gwshield/images-processor
 # =============================================================================
 # Triggered by repository_dispatch (event: promote-image) from the private
-# build pipeline (gwshield/images-processor release-public workflow).
+# build pipeline (gwshield/images-processor image-promote workflow).
 #
 # Auth strategy (no broad PATs, no credential leakage):
 #   - Src pull (ghcr.io/gwshield): gwshield-img-builder App token — scoped to
@@ -10,7 +10,7 @@
 #   - Dst push (ghcr.io/gwshield):  GITHUB_TOKEN — native write:packages for
 #     gwshield org (this workflow runs inside gwshield/images)
 #   - cosign OIDC:                  id-token: write — OIDC identity from
-#     https://github.com/gwshield/images/.github/workflows/promote.yml
+#     https://github.com/gwshield/images/.github/workflows/image-promote.yml
 #
 # Payload fields (client_payload — no credentials):
 #   name         e.g. traefik
@@ -20,15 +20,15 @@
 #   src_digest   e.g. sha256:abc123...  (used for signing/SBOM ref)
 #   src_tag      e.g. v3.6.9 or main    (tag resolved upstream — used for copy)
 #   src_image    e.g. ghcr.io/gwshield/gwshield-traefik
-#   platforms    e.g. ["linux/amd64","linux/arm64"] (from release-public.yml detection)
-#                Hint only — promote.yml re-detects from the pushed destination image.
+#   platforms    e.g. ["linux/amd64","linux/arm64"] (from image-promote.yml detection)
+#                Hint only — image-promote.yml re-detects from the pushed destination image.
 #
 # Structure (ADR-0007 Phase 1):
-#   promote-core — calls promote-reusable.yml (skopeo + cosign + SBOM + SLSA + Trivy)
+#   promote-core — calls _promote.yml (skopeo + cosign + SBOM + SLSA + Trivy)
 #   promote-post — gwshield-specific: unit tests, registry.json, Supabase, smoke, README
 # =============================================================================
 
-name: promote
+name: image-promote
 
 on:
   repository_dispatch:
@@ -49,7 +49,7 @@ jobs:
   # ---------------------------------------------------------------------------
   promote-core:
     name: Promote core ${{ github.event.client_payload.name }}:${{ github.event.client_payload.version }}
-    uses: ./.github/workflows/promote-reusable.yml
+    uses: ./.github/workflows/_promote.yml
     with:
       name:         ${{ github.event.client_payload.name }}
       version:      ${{ github.event.client_payload.version }}
@@ -174,7 +174,7 @@ jobs:
           DIGEST="${{ needs.promote-core.outputs.digest }}"
           TAGS="${{ needs.promote-core.outputs.tags }}"
           PROMOTED_AT="${{ needs.promote-core.outputs.promoted_at }}"
-          COSIGN_IDENTITY="https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main"
+          COSIGN_IDENTITY="https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main"
           COMMIT_MSG="chore(registry): promote ${NAME}:${VERSION} [skip ci]"
 
           SBOM_REFS_JSON="${_REG_SBOM_REFS_JSON:-}"
@@ -290,7 +290,7 @@ jobs:
             --profile         "${{ github.event.client_payload.profile }}" \
             --digest          "${{ needs.promote-core.outputs.digest }}" \
             --tags            "${{ needs.promote-core.outputs.tags }}" \
-            --cosign-identity "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main" \
+            --cosign-identity "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main" \
             --promoted-at     "${{ needs.promote-core.outputs.promoted_at }}" \
             --image-type      "${{ github.event.client_payload.image_type }}" \
             "${PLAT_ARGS[@]}"
@@ -504,7 +504,7 @@ jobs:
             --trigger      "post-promote"
 
       # -----------------------------------------------------------------------
-      # Trigger readme-update workflow (via repository_dispatch to self)
+      # Trigger catalog-update workflow (via repository_dispatch to self)
       # -----------------------------------------------------------------------
       - name: Trigger README update
         if: always()
@@ -516,7 +516,7 @@ jobs:
             --method POST \
             --field event_type=registry-updated \
             --field "client_payload[reason]=promote:${{ github.event.client_payload.name }}:${{ github.event.client_payload.version }}"
-          echo "readme-update dispatch sent"
+          echo "catalog-update dispatch sent"
 
       # -----------------------------------------------------------------------
       # Job summary
