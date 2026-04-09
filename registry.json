@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-09T07:23:05Z",
+  "last_updated": "2026-04-09T07:23:43Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -197,14 +197,14 @@
         "linux/amd64": "ghcr.io/gwshield/nginx@sha256:3402be618f3bbc5d19eb36baaa5f9769ecdd8f67716685f2bd19ddb416756a56",
         "linux/arm64": "ghcr.io/gwshield/nginx@sha256:ad3009a6b035f21884f3a0f504febf545c79f3ea8bea8246c0b7852f5e64cf69"
       },
-      "promoted_at": "2026-04-09T07:16:34Z",
+      "promoted_at": "2026-04-09T07:20:55Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-04-09T07:20:07Z"
+        "scanned_at": "2026-04-09T07:23:42Z"
       }
     },
     "postgres:v15.17-vector": {
