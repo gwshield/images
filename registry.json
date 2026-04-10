@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-10T10:38:51Z",
+  "last_updated": "2026-04-10T10:38:52Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -245,24 +245,24 @@
       "tags": [
         "ghcr.io/gwshield/redis:v7.4.8-cluster"
       ],
-      "digest": "sha256:7c7c26ee486641597541af26e37ceeabc683da1bb45da314c790248d4ed4feb8",
+      "digest": "sha256:d8a804da52467a38e793d3aa5654177e0aed67595fcddfdc95cdd0183d0de7e5",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/redis@sha256:a62043ebb40da5c1147a65a468614bb4df4167dddeed276b5cc18553cbfffa46",
-        "linux/arm64": "ghcr.io/gwshield/redis@sha256:d006b70eebcd56826867e1cdaa65ab3e838f6993adda61f781c8bbbe19a377b1"
+        "linux/amd64": "ghcr.io/gwshield/redis@sha256:d0249019251e275a4f8716867028abaf47a590a9d5c70f24267fbc2a22a4e328",
+        "linux/arm64": "ghcr.io/gwshield/redis@sha256:134d81ff0e500a36527c4f2f424e4ffc4e9b8aa9222d403e02e8d156fc392502"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/redis@sha256:a62043ebb40da5c1147a65a468614bb4df4167dddeed276b5cc18553cbfffa46",
-        "linux/arm64": "ghcr.io/gwshield/redis@sha256:d006b70eebcd56826867e1cdaa65ab3e838f6993adda61f781c8bbbe19a377b1"
+        "linux/amd64": "ghcr.io/gwshield/redis@sha256:d0249019251e275a4f8716867028abaf47a590a9d5c70f24267fbc2a22a4e328",
+        "linux/arm64": "ghcr.io/gwshield/redis@sha256:134d81ff0e500a36527c4f2f424e4ffc4e9b8aa9222d403e02e8d156fc392502"
       },
-      "promoted_at": "2026-04-10T06:11:34Z",
+      "promoted_at": "2026-04-10T10:37:40Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-04-10T06:12:42Z"
+        "scanned_at": "2026-04-10T10:38:51Z"
       }
     },
     "postgres:v15.17": {
