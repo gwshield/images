@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-10T06:12:26Z",
+  "last_updated": "2026-04-10T06:12:30Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -427,24 +427,24 @@
       "tags": [
         "ghcr.io/gwshield/go-builder:v1.24-dev"
       ],
-      "digest": "sha256:07a7f0bc9b4fd49a324af640f214d097e931abf544ba7f6bcb6426e786cec528",
+      "digest": "sha256:ef432bfb472e6b1d62172df89f619bf9112d19e410d1943fb679a60ba8ee5267",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:b53ee35c515e69308fac6ac9f606b4b50af8b59f50e5f51637d07eab71a0726f",
-        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:15510fb3feb23992a662b8fd61402e8e85a773289207e7d3b493401040fa5d93"
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:202cbe26e14be96aa0d2ea0d8bc0de54a4a2964b1ba8ab5c74672a41a5c819f3",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:ad3d1b0a8674ff3fab528eee5122c2bcbc2d3715d3322399412602a871410c78"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:b53ee35c515e69308fac6ac9f606b4b50af8b59f50e5f51637d07eab71a0726f",
-        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:15510fb3feb23992a662b8fd61402e8e85a773289207e7d3b493401040fa5d93"
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:202cbe26e14be96aa0d2ea0d8bc0de54a4a2964b1ba8ab5c74672a41a5c819f3",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:ad3d1b0a8674ff3fab528eee5122c2bcbc2d3715d3322399412602a871410c78"
       },
-      "promoted_at": "2026-04-09T16:54:35Z",
+      "promoted_at": "2026-04-10T06:11:19Z",
       "scan": {
         "status": "findings",
         "total": 24,
         "critical": 0,
         "high": 24,
         "scanner": "trivy",
-        "scanned_at": "2026-04-09T16:59:49Z"
+        "scanned_at": "2026-04-10T06:12:30Z"
       }
     },
     "python-builder:v3.13": {
