@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-10T10:38:40Z",
+  "last_updated": "2026-04-10T10:38:41Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1565,22 +1565,22 @@
       "tags": [
         "ghcr.io/gwshield/postgres:v18.3-vector"
       ],
-      "digest": "sha256:ab713c5a5e83c6b7f20afa30ac67c3e512b0f392bc2455a8cf4ee2f73801e389",
+      "digest": "sha256:52a2cd0c5648485ba6781dfd9f184daf98e4a045f3c5da2892db798d8bbc665d",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:6b63eded3646f90cab9d1da54ff8d4767eb10331212a9aa7023697fd83d4aa73"
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:70631e2b2e903e845951f79dc04ac7013c4084543bcd4df0c7791beb59c07e6d"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:6b63eded3646f90cab9d1da54ff8d4767eb10331212a9aa7023697fd83d4aa73"
+        "linux/amd64": "ghcr.io/gwshield/postgres@sha256:70631e2b2e903e845951f79dc04ac7013c4084543bcd4df0c7791beb59c07e6d"
       },
-      "promoted_at": "2026-04-09T16:54:37Z",
+      "promoted_at": "2026-04-10T10:37:38Z",
       "scan": {
         "status": "findings",
-        "total": 1,
+        "total": 2,
         "critical": 0,
-        "high": 1,
+        "high": 2,
         "scanner": "trivy",
-        "scanned_at": "2026-04-09T16:56:55Z"
+        "scanned_at": "2026-04-10T10:38:38Z"
       }
     },
     "postgres:v18.3-cli": {
