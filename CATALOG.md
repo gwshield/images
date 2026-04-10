@@ -42,7 +42,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `cba41fb70b71` | 0 CVEs | 2026-04-10 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `34a9dac0a62a` | 0 CVEs | 2026-04-09 |
-| `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `f67b95e7c5cf` | 0 CVEs | 2026-04-09 |
+| `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `9eff30ef0723` | 0 CVEs | 2026-04-10 |
 
 ### openresty
 
@@ -116,7 +116,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `aeee36c5a1cf` | 0 CVEs | 2026-04-09 |
 | `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `49990b44e720` | 0 CVEs | 2026-04-09 |
-| `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `0d6652a49a49` | 0 CVEs | 2026-04-09 |
+| `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `fc6aa702e39e` | 0 CVEs | 2026-04-10 |
 | `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `2f8058bc3706` | 0 CVEs | 2026-04-10 |
 
 ---
