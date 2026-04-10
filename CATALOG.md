@@ -66,7 +66,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/php:v8.3-fpm` | `v8.3-fpm` | fpm | `b90ff8be21e5` | 49 findings (0 critical, 49 high) | 2026-04-10 |
 | `ghcr.io/gwshield/php:v8.3-fpm-dev` | `v8.3-fpm-dev` | fpm-dev | `3ccb73a74e48` | 49 findings (0 critical, 49 high) | 2026-04-09 |
 | `ghcr.io/gwshield/php:v8.4-fpm` | `v8.4-fpm` | fpm | `518417f6e325` | 48 findings (0 critical, 48 high) | 2026-04-09 |
-| `ghcr.io/gwshield/php:v8.4-fpm-dev` | `v8.4-fpm-dev` | fpm-dev | `a8196fa65737` | 50 findings (0 critical, 50 high) | 2026-04-10 |
+| `ghcr.io/gwshield/php:v8.4-fpm-dev` | `v8.4-fpm-dev` | fpm-dev | `cc057f39e11b` | 50 findings (0 critical, 50 high) | 2026-04-10 |
 
 ### Pomerium — identity-aware access proxy
 
@@ -142,7 +142,7 @@ ENTRYPOINT ["/myapp"]
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `23dbfafe6e00` | 20 findings (0 critical, 20 high) | 2026-04-10 |
-| `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `ef432bfb472e` | 24 findings (0 critical, 24 high) | 2026-04-10 |
+| `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `1eaea9617b1c` | 24 findings (0 critical, 24 high) | 2026-04-10 |
 | `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `d459aec10a4c` | 0 CVEs | 2026-04-10 |
 | `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `262f1c03ce0f` | 0 CVEs | 2026-04-09 |
 
@@ -153,7 +153,7 @@ ENTRYPOINT ["/myapp"]
 | `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `76fe6fb309f2` | 0 CVEs | 2026-04-09 |
 | `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `e28a42babf68` | 0 CVEs | 2026-04-10 |
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `dd93559c0ea2` | 0 CVEs | 2026-04-10 |
-| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `52d4fec0dc4c` | 0 CVEs | 2026-04-10 |
+| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `ad4fd502f4f9` | 0 CVEs | 2026-04-10 |
 
 ### Rust — reproducible static musl builds
 
