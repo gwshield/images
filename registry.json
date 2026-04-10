@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-10T10:39:10Z",
+  "last_updated": "2026-04-10T10:39:14Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1681,24 +1681,24 @@
       "tags": [
         "ghcr.io/gwshield/openresty:v1.29.2-lua"
       ],
-      "digest": "sha256:49e102de903af1c76c23c80806d1dd652cfdc58d2597397ad15d98fcfa38b578",
+      "digest": "sha256:c66c8c83f8315b5e63e842cfdc568ff1ccb47284f49ad9dfdca8bde8f57da5fb",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:9c3fa9f685c465309ba2e5a53c8d5dcbbab267ddf41949519cea644156190959",
-        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:4a3c6b580b5e3bdd37c73fbf343d17910a726efea29c82fa1ab05c6af18949d4"
+        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:d67e6af888fbcd0cff6c915cceabd4d6e427b2de3b9664b1ca05601f34993c0c",
+        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:40ec4822663d4a47cf5e7ce3ade08a95e10ec40a9419ccb3c3bddaf1739e1236"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:9c3fa9f685c465309ba2e5a53c8d5dcbbab267ddf41949519cea644156190959",
-        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:4a3c6b580b5e3bdd37c73fbf343d17910a726efea29c82fa1ab05c6af18949d4"
+        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:d67e6af888fbcd0cff6c915cceabd4d6e427b2de3b9664b1ca05601f34993c0c",
+        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:40ec4822663d4a47cf5e7ce3ade08a95e10ec40a9419ccb3c3bddaf1739e1236"
       },
-      "promoted_at": "2026-04-09T16:54:46Z",
+      "promoted_at": "2026-04-10T10:37:43Z",
       "scan": {
         "status": "findings",
-        "total": 8,
+        "total": 10,
         "critical": 1,
-        "high": 7,
+        "high": 9,
         "scanner": "trivy",
-        "scanned_at": "2026-04-09T16:56:24Z"
+        "scanned_at": "2026-04-10T10:39:11Z"
       }
     }
   }
