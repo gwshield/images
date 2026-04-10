@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-10T06:13:22Z",
+  "last_updated": "2026-04-10T06:13:26Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1651,24 +1651,24 @@
         "ghcr.io/gwshield/openresty:v1.29.2",
         "ghcr.io/gwshield/openresty:latest"
       ],
-      "digest": "sha256:70d9a907b0817750db2576b1a080bc36c8e98f70ae885aea2665bf6686a7eaa0",
+      "digest": "sha256:68a691fe21cf2d2325722f4d7aeff0e3b0e6630715db8a3448232739caaaa2fc",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:d8e508b3dd2910e1525e2b7cdde814eab4d210ba27dff7820bafa843bbc7e793",
-        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:d57e1610c8f8292e70da8ae8652625d26866fcfe5bbfaa49b4437988b83e582c"
+        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:ef52a971adf8b9e17fde70a27b3bdc7032cce2ed4859c69bb8cf0560d3b73e3d",
+        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:2b9948f07b34153362ccba6e906629e97446b55e6f9ba4b531a8c9363c010156"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:d8e508b3dd2910e1525e2b7cdde814eab4d210ba27dff7820bafa843bbc7e793",
-        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:d57e1610c8f8292e70da8ae8652625d26866fcfe5bbfaa49b4437988b83e582c"
+        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:ef52a971adf8b9e17fde70a27b3bdc7032cce2ed4859c69bb8cf0560d3b73e3d",
+        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:2b9948f07b34153362ccba6e906629e97446b55e6f9ba4b531a8c9363c010156"
       },
-      "promoted_at": "2026-04-09T16:54:41Z",
+      "promoted_at": "2026-04-10T06:11:46Z",
       "scan": {
         "status": "findings",
-        "total": 8,
+        "total": 10,
         "critical": 1,
-        "high": 7,
+        "high": 9,
         "scanner": "trivy",
-        "scanned_at": "2026-04-09T16:55:58Z"
+        "scanned_at": "2026-04-10T06:13:26Z"
       }
     },
     "openresty:v1.29.2-lua": {
