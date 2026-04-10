@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-10T10:38:47Z",
+  "last_updated": "2026-04-10T10:38:48Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1206,24 +1206,24 @@
         "ghcr.io/gwshield/pomerium:v0.32.2",
         "ghcr.io/gwshield/pomerium:latest"
       ],
-      "digest": "sha256:cbd7807c12efe7c57bcd5526c7994b8084138455e5a5743b1d78b0ff28585983",
+      "digest": "sha256:e76a5232375f67079e0a0eaf22c5c82a3ff0acdc7880851ef2f3ca481e3e33ca",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/pomerium@sha256:8955adcdac3e135682bb197375135a7ec7519e6325d5efd8779dd6c0b7d3a7d9",
-        "linux/arm64": "ghcr.io/gwshield/pomerium@sha256:1862f302ff47d55157c554e37c1074291a0fe6782bad11f92cfeb8cd89828ff0"
+        "linux/amd64": "ghcr.io/gwshield/pomerium@sha256:ac965905d5bc82fbcd8e98a404171f3181a2304f6568678fac1eca89f7f54b65",
+        "linux/arm64": "ghcr.io/gwshield/pomerium@sha256:a78ea83d5b27e30b4c09be2777b96eb4930078601c2396a6aac5fce3616b4e33"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/pomerium@sha256:8955adcdac3e135682bb197375135a7ec7519e6325d5efd8779dd6c0b7d3a7d9",
-        "linux/arm64": "ghcr.io/gwshield/pomerium@sha256:1862f302ff47d55157c554e37c1074291a0fe6782bad11f92cfeb8cd89828ff0"
+        "linux/amd64": "ghcr.io/gwshield/pomerium@sha256:ac965905d5bc82fbcd8e98a404171f3181a2304f6568678fac1eca89f7f54b65",
+        "linux/arm64": "ghcr.io/gwshield/pomerium@sha256:a78ea83d5b27e30b4c09be2777b96eb4930078601c2396a6aac5fce3616b4e33"
       },
-      "promoted_at": "2026-04-09T16:54:35Z",
+      "promoted_at": "2026-04-10T10:37:44Z",
       "scan": {
         "status": "findings",
-        "total": 9,
+        "total": 10,
         "critical": 1,
-        "high": 8,
+        "high": 9,
         "scanner": "trivy",
-        "scanned_at": "2026-04-09T16:58:11Z"
+        "scanned_at": "2026-04-10T10:38:40Z"
       }
     },
     "nats:v2.12.5": {
