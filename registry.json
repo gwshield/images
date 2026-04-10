@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-10T10:38:07Z",
+  "last_updated": "2026-04-10T10:38:14Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -812,24 +812,24 @@
       "tags": [
         "ghcr.io/gwshield/haproxy:v3.1.16-ssl"
       ],
-      "digest": "sha256:416b88e36cc4c33ea09425debb0b4caabc3753fc6cee8a9f5014ddaa485ed37a",
+      "digest": "sha256:8e38c056647ea8abc7994198deeb4c779c20f4ea35039f86fd3277a92514127a",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/haproxy@sha256:b4bab51654a29ccfc5873b75c11ecdf91f1acb4d136a7f67925fa9fae41d0cbe",
-        "linux/arm64": "ghcr.io/gwshield/haproxy@sha256:e270a82bf5a1cb35cee57fa094551d981737e5a26bdd60d021a66f92606fefd5"
+        "linux/amd64": "ghcr.io/gwshield/haproxy@sha256:fd8e0dd05248bd5fb2bc674a03d4ea1cebe6a5c8ae4bfd87d08d8fa8b7b50734",
+        "linux/arm64": "ghcr.io/gwshield/haproxy@sha256:ddf61830930f82bdab796e38a59458f969a273214f4341fc10b734062fb72184"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/haproxy@sha256:b4bab51654a29ccfc5873b75c11ecdf91f1acb4d136a7f67925fa9fae41d0cbe",
-        "linux/arm64": "ghcr.io/gwshield/haproxy@sha256:e270a82bf5a1cb35cee57fa094551d981737e5a26bdd60d021a66f92606fefd5"
+        "linux/amd64": "ghcr.io/gwshield/haproxy@sha256:fd8e0dd05248bd5fb2bc674a03d4ea1cebe6a5c8ae4bfd87d08d8fa8b7b50734",
+        "linux/arm64": "ghcr.io/gwshield/haproxy@sha256:ddf61830930f82bdab796e38a59458f969a273214f4341fc10b734062fb72184"
       },
-      "promoted_at": "2026-04-10T06:11:37Z",
+      "promoted_at": "2026-04-10T10:37:24Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-04-10T06:12:43Z"
+        "scanned_at": "2026-04-10T10:38:13Z"
       }
     },
     "caddy:v2.11.2": {
