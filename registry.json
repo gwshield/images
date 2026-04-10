@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-10T06:12:30Z",
+  "last_updated": "2026-04-10T06:12:33Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -933,24 +933,24 @@
       "tags": [
         "ghcr.io/gwshield/caddy:v2.11.2-cloudflare"
       ],
-      "digest": "sha256:8a7f697835e016ededfb5c9d252d5a33ddbba976621d68f548eaf878c8aa4d3f",
-      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/promote.yml@refs/heads/main",
+      "digest": "sha256:75dc0397ec0be77a659a33fa462b3262b9c1800caba85534ef7cf96a52bbd68c",
+      "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:6a188ff6237142e89d0f581331f954809c06ef592f25e837ef0f664cfdedea98",
-        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:c8dff03717bd49eef1023a8fb5bde0be962334ec9b929c6e540a39572d329381"
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:234944a86dcf5a6010cf916ae5f2364edd6bd16d495ad022a4f87ab7abd5c87d",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:71b896a2ed29023eb6543e1360a4a7e7c7931aec8832a91ad9a2596490851a77"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:6a188ff6237142e89d0f581331f954809c06ef592f25e837ef0f664cfdedea98",
-        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:c8dff03717bd49eef1023a8fb5bde0be962334ec9b929c6e540a39572d329381"
+        "linux/amd64": "ghcr.io/gwshield/caddy@sha256:234944a86dcf5a6010cf916ae5f2364edd6bd16d495ad022a4f87ab7abd5c87d",
+        "linux/arm64": "ghcr.io/gwshield/caddy@sha256:71b896a2ed29023eb6543e1360a4a7e7c7931aec8832a91ad9a2596490851a77"
       },
-      "promoted_at": "2026-03-31T05:40:55Z",
+      "promoted_at": "2026-04-10T06:11:39Z",
       "scan": {
         "status": "findings",
-        "total": 2,
+        "total": 5,
         "critical": 2,
-        "high": 0,
+        "high": 3,
         "scanner": "trivy",
-        "scanned_at": "2026-03-31T05:40:55Z"
+        "scanned_at": "2026-04-10T06:12:33Z"
       }
     },
     "caddy:v2.11.2-crowdsec": {
