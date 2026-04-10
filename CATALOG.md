@@ -55,7 +55,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/otelcol:v0.147.0` | `v0.147.0` | standard | `367bc14fc9f4` | 7 findings (1 critical, 6 high) | 2026-04-09 |
+| `ghcr.io/gwshield/otelcol:v0.147.0` | `v0.147.0` | standard | `221cd738a62f` | 7 findings (1 critical, 6 high) | 2026-04-10 |
 
 ### php
 
