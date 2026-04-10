@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-10T10:39:21Z",
+  "last_updated": "2026-04-10T10:39:27Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -488,24 +488,24 @@
       "tags": [
         "ghcr.io/gwshield/python-builder:v3.13-dev"
       ],
-      "digest": "sha256:52d4fec0dc4cd1f605e3aecca0e64b076f78d51b4890399f7885d4049cb74576",
+      "digest": "sha256:ad4fd502f4f905ba4cb1f92f4988099fef1ba8d17a9f4496e7480628b7fecbdd",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:99fd8aab0e766f68108d174ea19431baa731ab3e7e1a03701afbc31b8c99d2f8",
-        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:cedd32d3b630952879fdfed5d1d4176e805e9b61fc7c6d62d79ed227842beaac"
+        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:c234629be01e7f2005f116241d45fd94b9671c549bfa5dca47df078761b4a0ee",
+        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:f1463f78293c776f6f4fc37d00208457185adc0c806f78114c8bedecf2af4550"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:99fd8aab0e766f68108d174ea19431baa731ab3e7e1a03701afbc31b8c99d2f8",
-        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:cedd32d3b630952879fdfed5d1d4176e805e9b61fc7c6d62d79ed227842beaac"
+        "linux/amd64": "ghcr.io/gwshield/python-builder@sha256:c234629be01e7f2005f116241d45fd94b9671c549bfa5dca47df078761b4a0ee",
+        "linux/arm64": "ghcr.io/gwshield/python-builder@sha256:f1463f78293c776f6f4fc37d00208457185adc0c806f78114c8bedecf2af4550"
       },
-      "promoted_at": "2026-04-10T06:11:41Z",
+      "promoted_at": "2026-04-10T10:37:54Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-04-10T06:12:38Z"
+        "scanned_at": "2026-04-10T10:38:40Z"
       }
     },
     "python-builder:v3.12-dev": {
