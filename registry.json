@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-10T10:38:57Z",
+  "last_updated": "2026-04-10T10:39:00Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1024,24 +1024,24 @@
         "ghcr.io/gwshield/go-builder:v1.25",
         "ghcr.io/gwshield/go-builder:latest"
       ],
-      "digest": "sha256:e2fcb71e62a21efb4c579e43419c1c96a39a83207a2599e03fa8e506a7ce0fcd",
+      "digest": "sha256:d459aec10a4cd0db0efc22a1e9e46a17ee2ff9f03b2ab529ee8b2a59a2a11bf3",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:db4ded901310fdb77301d9c9179d5f8d1bb10739a663a562bb3de53ccf9d9847",
-        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:5714d4d2354b16b3c10fc4ec276683fb9bc1362fde67243f41977544af24cfe5"
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:f9d50871622639f35a68e1855fc91dc917b02794324651eb7fd704ac574cd7f2",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:63768969500c8c1ea588a0dedec8bc55fcc988f199fb1b79b74403680526738b"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:db4ded901310fdb77301d9c9179d5f8d1bb10739a663a562bb3de53ccf9d9847",
-        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:5714d4d2354b16b3c10fc4ec276683fb9bc1362fde67243f41977544af24cfe5"
+        "linux/amd64": "ghcr.io/gwshield/go-builder@sha256:f9d50871622639f35a68e1855fc91dc917b02794324651eb7fd704ac574cd7f2",
+        "linux/arm64": "ghcr.io/gwshield/go-builder@sha256:63768969500c8c1ea588a0dedec8bc55fcc988f199fb1b79b74403680526738b"
       },
-      "promoted_at": "2026-04-09T16:54:36Z",
+      "promoted_at": "2026-04-10T10:37:54Z",
       "scan": {
         "status": "clean",
         "total": 0,
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-04-09T16:56:50Z"
+        "scanned_at": "2026-04-10T10:38:52Z"
       }
     },
     "go-builder:v1.25-dev": {
