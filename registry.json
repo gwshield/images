@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-04-10T10:39:03Z",
+  "last_updated": "2026-04-10T10:39:06Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1651,24 +1651,24 @@
         "ghcr.io/gwshield/openresty:v1.29.2",
         "ghcr.io/gwshield/openresty:latest"
       ],
-      "digest": "sha256:68a691fe21cf2d2325722f4d7aeff0e3b0e6630715db8a3448232739caaaa2fc",
+      "digest": "sha256:0d4e932f1287038d853aca25691d2b730231362076479a8d52b3021468c01c76",
       "cosign_identity": "https://github.com/gwshield/images/.github/workflows/image-promote.yml@refs/heads/main",
       "sbom_ref": {
-        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:ef52a971adf8b9e17fde70a27b3bdc7032cce2ed4859c69bb8cf0560d3b73e3d",
-        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:2b9948f07b34153362ccba6e906629e97446b55e6f9ba4b531a8c9363c010156"
+        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:79d590279c215156a94ae3d53b819c41579ddc942392a0d92be8e63fb1c94fe5",
+        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:33d66bc96ccfde75f6cca8004b4f37458ab74d771ce59bdfbb3ae4cc453fc508"
       },
       "provenance_ref": {
-        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:ef52a971adf8b9e17fde70a27b3bdc7032cce2ed4859c69bb8cf0560d3b73e3d",
-        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:2b9948f07b34153362ccba6e906629e97446b55e6f9ba4b531a8c9363c010156"
+        "linux/amd64": "ghcr.io/gwshield/openresty@sha256:79d590279c215156a94ae3d53b819c41579ddc942392a0d92be8e63fb1c94fe5",
+        "linux/arm64": "ghcr.io/gwshield/openresty@sha256:33d66bc96ccfde75f6cca8004b4f37458ab74d771ce59bdfbb3ae4cc453fc508"
       },
-      "promoted_at": "2026-04-10T06:11:46Z",
+      "promoted_at": "2026-04-10T10:37:49Z",
       "scan": {
         "status": "findings",
         "total": 10,
         "critical": 1,
         "high": 9,
         "scanner": "trivy",
-        "scanned_at": "2026-04-10T06:13:26Z"
+        "scanned_at": "2026-04-10T10:39:03Z"
       }
     },
     "openresty:v1.29.2-lua": {
