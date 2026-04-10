@@ -60,12 +60,17 @@ See [CATALOG.md](CATALOG.md) for the full cosign verify table across all images.
 ### Read and adapt smoke tests
 
 Each image ships with a smoke test under `images/<name>/<version>/tests/smoke.sh`.
-The smoke tests are the canonical reference for:
+Smoke tests follow a **Trinity-Layer** architecture:
 
-- verifying the image starts correctly
-- asserting non-root execution (UID 65532)
-- confirming no shell is present in the runtime layer
-- checking the version string and binary reachability
+- **Layer 1 — Standard Checks** apply to every image (banner, binary_present, version_string, nonroot, no_shell, no_curl). Determined by runtime type.
+- **Layer 2 — Service-Type Checks** are specific to the kind of service (health_endpoint for web servers, db_connect for databases, ping_response for key-value stores).
+- **Layer 3 — Custom Checks** cover anything unique to a single image (e.g. LuaJIT functional test for OpenResty).
+
+All checks produce structured JSON results that feed into the GWShield Hub for
+badge rendering and audit history.
+
+→ **[Full smoke test documentation](docs/SMOKE_TESTING.md)** — check catalog,
+service type reference, how to run tests locally.
 
 You can use these as a starting point for your own validation pipelines, adapt them
 to different container runtimes, or extend them with application-level checks.
@@ -210,6 +215,8 @@ images/
       public/README.md   per-image CVE delta, build decisions, source pins
     tests/
       smoke.sh           smoke test (startup, non-root, no-shell, version)
+docs/
+  SMOKE_TESTING.md       smoke test architecture, check catalog, how to run
 CATALOG.md               auto-generated — image list, digests, CVE status
 README.md                this file — static, never auto-generated
 registry.json            machine-readable image metadata (auto-generated)
