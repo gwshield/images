@@ -17,8 +17,8 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `bb9e46b38cfa` | 0 CVEs | 2026-03-31 |
-| `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `8a7f697835e0` | 2 findings (2 critical, 0 high) | 2026-03-31 |
-| `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `62221849cdbe` | 5 findings (2 critical, 3 high) | 2026-04-09 |
+| `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `75dc0397ec0b` | 5 findings (2 critical, 3 high) | 2026-04-10 |
+| `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `8ec053d7ec9f` | 5 findings (2 critical, 3 high) | 2026-04-10 |
 | `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `1e4b4cc90d74` | 5 findings (2 critical, 3 high) | 2026-04-09 |
 | `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `9d6ab1d7fc67` | 5 findings (2 critical, 3 high) | 2026-04-09 |
 | `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `fe9848301e73` | 6 findings (2 critical, 4 high) | 2026-04-10 |
@@ -28,7 +28,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/haproxy:v3.1.16` | `v3.1.16` | standard | `7ba2dd484472` | 0 CVEs | 2026-04-09 |
-| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `5090736d6309` | 0 CVEs | 2026-04-09 |
+| `ghcr.io/gwshield/haproxy:v3.1.16-ssl` | `v3.1.16-ssl` | ssl | `416b88e36cc4` | 0 CVEs | 2026-04-10 |
 
 ### NATS — cloud-native messaging and event streaming
 
@@ -40,7 +40,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `e7cd7caef411` | 0 CVEs | 2026-04-09 |
+| `ghcr.io/gwshield/nginx:v1.28.2` | `v1.28.2` | standard | `cba41fb70b71` | 0 CVEs | 2026-04-10 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http2` | `v1.28.2-http2` | HTTP/2 | `34a9dac0a62a` | 0 CVEs | 2026-04-09 |
 | `ghcr.io/gwshield/nginx:v1.28.2-http3` | `v1.28.2-http3` | HTTP/3 / QUIC | `f67b95e7c5cf` | 0 CVEs | 2026-04-09 |
 
@@ -79,7 +79,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `69e2308623ac` | 1 findings (0 critical, 1 high) | 2026-03-31 |
-| `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `dee0f691705e` | 1 findings (0 critical, 1 high) | 2026-04-09 |
+| `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `5e55c47156c8` | 2 findings (0 critical, 2 high) | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `bffe38b68c1b` | 2 findings (0 critical, 2 high) | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `645886abb042` | 1 findings (0 critical, 1 high) | 2026-03-31 |
 | `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `0e3643716c64` | 2 findings (0 critical, 2 high) | 2026-04-10 |
@@ -87,7 +87,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `b58d35f0ea25` | 1 findings (0 critical, 1 high) | 2026-04-09 |
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `e1fcdc087cb7` | 2 findings (0 critical, 2 high) | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `cbf2b3eb040a` | 1 findings (0 critical, 1 high) | 2026-04-09 |
-| `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `f1992a41bcd9` | 1 findings (0 critical, 1 high) | 2026-04-09 |
+| `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `53651c78e615` | 2 findings (0 critical, 2 high) | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v18.3` | `v18.3` | standard | `07218d6e0012` | 1 findings (0 critical, 1 high) | 2026-04-09 |
 | `ghcr.io/gwshield/postgres:v18.3-cli` | `v18.3-cli` | client only | `db49560c39c3` | 1 findings (0 critical, 1 high) | 2026-04-09 |
 | `ghcr.io/gwshield/postgres:v18.3-timescale` | `v18.3-timescale` | TimescaleDB | `e0158bf66ddc` | 1 findings (0 critical, 1 high) | 2026-04-09 |
@@ -100,7 +100,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/redis:v7.4.8` | `v7.4.8` | standard | `66c235fe1c9c` | 0 CVEs | 2026-04-09 |
 | `ghcr.io/gwshield/redis:v7.4.8-cli` | `v7.4.8-cli` | client only | `b59a2c3e88a5` | 0 CVEs | 2026-04-10 |
-| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `3a68ecf22055` | 0 CVEs | 2026-04-09 |
+| `ghcr.io/gwshield/redis:v7.4.8-cluster` | `v7.4.8-cluster` | cluster mode | `7c7c26ee4866` | 0 CVEs | 2026-04-10 |
 | `ghcr.io/gwshield/redis:v7.4.8-tls` | `v7.4.8-tls` | TLS | `74f6a0c644b8` | 0 CVEs | 2026-04-09 |
 
 ### Traefik — cloud-native edge router
@@ -117,7 +117,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/valkey:v8.1.6` | `v8.1.6` | standard | `aeee36c5a1cf` | 0 CVEs | 2026-04-09 |
 | `ghcr.io/gwshield/valkey:v8.1.6-cli` | `v8.1.6-cli` | client only | `49990b44e720` | 0 CVEs | 2026-04-09 |
 | `ghcr.io/gwshield/valkey:v8.1.6-cluster` | `v8.1.6-cluster` | cluster mode | `0d6652a49a49` | 0 CVEs | 2026-04-09 |
-| `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `345035a5d780` | 0 CVEs | 2026-04-09 |
+| `ghcr.io/gwshield/valkey:v8.1.6-tls` | `v8.1.6-tls` | TLS | `2f8058bc3706` | 0 CVEs | 2026-04-10 |
 
 ---
 
@@ -153,7 +153,7 @@ ENTRYPOINT ["/myapp"]
 | `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `76fe6fb309f2` | 0 CVEs | 2026-04-09 |
 | `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `9848292bdfe8` | 0 CVEs | 2026-04-09 |
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `c5dbe350c845` | 0 CVEs | 2026-04-09 |
-| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `939d7ca738c8` | 0 CVEs | 2026-04-09 |
+| `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `52d4fec0dc4c` | 0 CVEs | 2026-04-10 |
 
 ### Rust — reproducible static musl builds
 
