@@ -48,7 +48,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/openresty:v1.29.2` | `v1.29.2` | standard | `70d9a907b081` | 8 findings (1 critical, 7 high) | 2026-04-09 |
+| `ghcr.io/gwshield/openresty:v1.29.2` | `v1.29.2` | standard | `68a691fe21cf` | 10 findings (1 critical, 9 high) | 2026-04-10 |
 | `ghcr.io/gwshield/openresty:v1.29.2-lua` | `v1.29.2-lua` | lua | `49e102de903a` | 8 findings (1 critical, 7 high) | 2026-04-09 |
 
 ### OpenTelemetry Collector — observability pipeline
@@ -62,11 +62,11 @@ Production-hardened service images. Each image is compiled from upstream source 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/php:v8.2-fpm` | `v8.2-fpm` | fpm | `6fc41a432899` | 48 findings (0 critical, 48 high) | 2026-04-09 |
-| `ghcr.io/gwshield/php:v8.2-fpm-dev` | `v8.2-fpm-dev` | fpm-dev | `3b65b31ca2bc` | 49 findings (0 critical, 49 high) | 2026-04-09 |
-| `ghcr.io/gwshield/php:v8.3-fpm` | `v8.3-fpm` | fpm | `a1a994db68af` | 48 findings (0 critical, 48 high) | 2026-04-09 |
+| `ghcr.io/gwshield/php:v8.2-fpm-dev` | `v8.2-fpm-dev` | fpm-dev | `608fb10ef834` | 50 findings (0 critical, 50 high) | 2026-04-10 |
+| `ghcr.io/gwshield/php:v8.3-fpm` | `v8.3-fpm` | fpm | `e4a037f6f135` | 49 findings (0 critical, 49 high) | 2026-04-10 |
 | `ghcr.io/gwshield/php:v8.3-fpm-dev` | `v8.3-fpm-dev` | fpm-dev | `3ccb73a74e48` | 49 findings (0 critical, 49 high) | 2026-04-09 |
 | `ghcr.io/gwshield/php:v8.4-fpm` | `v8.4-fpm` | fpm | `518417f6e325` | 48 findings (0 critical, 48 high) | 2026-04-09 |
-| `ghcr.io/gwshield/php:v8.4-fpm-dev` | `v8.4-fpm-dev` | fpm-dev | `4b2f5d11f813` | 49 findings (0 critical, 49 high) | 2026-04-09 |
+| `ghcr.io/gwshield/php:v8.4-fpm-dev` | `v8.4-fpm-dev` | fpm-dev | `a8196fa65737` | 50 findings (0 critical, 50 high) | 2026-04-10 |
 
 ### Pomerium — identity-aware access proxy
 
@@ -151,7 +151,7 @@ ENTRYPOINT ["/myapp"]
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/python-builder:v3.12` | `v3.12` | standard | `76fe6fb309f2` | 0 CVEs | 2026-04-09 |
-| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `9848292bdfe8` | 0 CVEs | 2026-04-09 |
+| `ghcr.io/gwshield/python-builder:v3.12-dev` | `v3.12-dev` | compile + test + lint | `795539e3fbe4` | 0 CVEs | 2026-04-10 |
 | `ghcr.io/gwshield/python-builder:v3.13` | `v3.13` | standard | `c5dbe350c845` | 0 CVEs | 2026-04-09 |
 | `ghcr.io/gwshield/python-builder:v3.13-dev` | `v3.13-dev` | compile + test + lint | `52d4fec0dc4c` | 0 CVEs | 2026-04-10 |
 
