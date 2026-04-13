@@ -4,7 +4,7 @@
 > Do not edit manually — changes will be overwritten.
 > Static content and documentation live in [README.md](README.md).
 
-*Last updated: 2026-04-10*
+*Last updated: 2026-04-13*
 
 ---
 
@@ -78,7 +78,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `69e2308623ac` | 1 findings (0 critical, 1 high) | 2026-03-31 |
+| `ghcr.io/gwshield/postgres:v15.17` | `v15.17` | standard | `69e2308623ac` | 0 CVEs | 2026-03-31 |
 | `ghcr.io/gwshield/postgres:v15.17-cli` | `v15.17-cli` | client only | `0bd48611a0da` | 2 findings (0 critical, 2 high) | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v15.17-timescale` | `v15.17-timescale` | TimescaleDB | `bfddbcd11da8` | 2 findings (0 critical, 2 high) | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v15.17-tls` | `v15.17-tls` | TLS | `bf273c3fd02e` | 2 findings (0 critical, 2 high) | 2026-04-10 |
