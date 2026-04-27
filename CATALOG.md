@@ -88,7 +88,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `e1fcdc087cb7` | 2 findings (0 critical, 2 high) | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `52c352ac3c91` | 2 findings (0 critical, 2 high) | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `2534ec325899` | 2 findings (0 critical, 2 high) | 2026-04-10 |
-| `ghcr.io/gwshield/postgres:v18.3` | `v18.3` | standard | `0a9cb0377fd9` | 2 findings (0 critical, 2 high) | 2026-04-10 |
+| `ghcr.io/gwshield/postgres:v18.3` | `v18.3` | standard | `0a9cb0377fd9` | 5 findings (1 critical, 4 high) | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v18.3-cli` | `v18.3-cli` | client only | `db49560c39c3` | 0 CVEs | 2026-04-09 |
 | `ghcr.io/gwshield/postgres:v18.3-timescale` | `v18.3-timescale` | TimescaleDB | `e0158bf66ddc` | 1 findings (0 critical, 1 high) | 2026-04-09 |
 | `ghcr.io/gwshield/postgres:v18.3-tls` | `v18.3-tls` | TLS | `28aeb3f812c3` | 2 findings (0 critical, 2 high) | 2026-04-10 |
