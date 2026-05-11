@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-05-11T08:58:56Z",
+  "last_updated": "2026-05-11T08:59:22Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -703,11 +703,11 @@
       "promoted_at": "2026-04-10T10:37:42Z",
       "scan": {
         "status": "findings",
-        "total": 2,
-        "critical": 0,
-        "high": 2,
+        "total": 5,
+        "critical": 1,
+        "high": 4,
         "scanner": "trivy",
-        "scanned_at": "2026-04-10T10:38:42Z"
+        "scanned_at": "2026-05-11T08:59:11Z"
       }
     },
     "rust-builder:v1.87": {
