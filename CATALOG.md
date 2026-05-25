@@ -72,7 +72,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/pomerium:v0.32.2` | `v0.32.2` | standard | `e76a5232375f` | 10 findings (1 critical, 9 high) | 2026-04-10 |
+| `ghcr.io/gwshield/pomerium:v0.32.2` | `v0.32.2` | standard | `e76a5232375f` | 23 findings (3 critical, 20 high) | 2026-04-10 |
 
 ### PostgreSQL — relational database
 
