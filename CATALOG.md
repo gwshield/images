@@ -4,7 +4,7 @@
 > Do not edit manually — changes will be overwritten.
 > Static content and documentation live in [README.md](README.md).
 
-*Last updated: 2026-05-18*
+*Last updated: 2026-05-25*
 
 ---
 
@@ -85,7 +85,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v15.17-vector` | `v15.17-vector` | pgvector | `c52e7cb8ab4f` | 2 findings (0 critical, 2 high) | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v17.9` | `v17.9` | standard | `3e8071710826` | 1 findings (0 critical, 1 high) | 2026-04-09 |
 | `ghcr.io/gwshield/postgres:v17.9-cli` | `v17.9-cli` | client only | `b58d35f0ea25` | 1 findings (0 critical, 1 high) | 2026-04-09 |
-| `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `e1fcdc087cb7` | 2 findings (0 critical, 2 high) | 2026-04-10 |
+| `ghcr.io/gwshield/postgres:v17.9-timescale` | `v17.9-timescale` | TimescaleDB | `e1fcdc087cb7` | 0 CVEs | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v17.9-tls` | `v17.9-tls` | TLS | `52c352ac3c91` | 2 findings (0 critical, 2 high) | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v17.9-vector` | `v17.9-vector` | pgvector | `2534ec325899` | 5 findings (1 critical, 4 high) | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v18.3` | `v18.3` | standard | `0a9cb0377fd9` | 5 findings (1 critical, 4 high) | 2026-04-10 |
