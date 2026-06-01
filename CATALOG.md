@@ -141,7 +141,7 @@ ENTRYPOINT ["/myapp"]
 
 | Tag | Version | Profile | Digest | CVE status | Promoted |
 |---|---|---|---|---|---|
-| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `23dbfafe6e00` | 193 findings (2 critical, 191 high) | 2026-04-10 |
+| `ghcr.io/gwshield/go-builder:v1.24` | `v1.24` | standard | `23dbfafe6e00` | 253 findings (2 critical, 251 high) | 2026-04-10 |
 | `ghcr.io/gwshield/go-builder:v1.24-dev` | `v1.24-dev` | compile + test + lint | `1eaea9617b1c` | 238 findings (2 critical, 236 high) | 2026-04-10 |
 | `ghcr.io/gwshield/go-builder:v1.25` | `v1.25` | standard | `d459aec10a4c` | 112 findings (2 critical, 110 high) | 2026-04-10 |
 | `ghcr.io/gwshield/go-builder:v1.25-dev` | `v1.25-dev` | compile + test + lint | `262f1c03ce0f` | 168 findings (2 critical, 166 high) | 2026-04-09 |
