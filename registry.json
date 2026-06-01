@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-05-25T09:48:02Z",
+  "last_updated": "2026-06-01T11:09:38Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -291,7 +291,7 @@
         "critical": 0,
         "high": 0,
         "scanner": "trivy",
-        "scanned_at": "2026-04-13T07:48:35Z"
+        "scanned_at": "2026-06-01T11:09:29Z"
       }
     },
     "nginx:v1.28.2-http3": {
