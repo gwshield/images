@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-06-01T11:09:49Z",
+  "last_updated": "2026-06-01T11:09:59Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1036,12 +1036,12 @@
       },
       "promoted_at": "2026-04-10T10:37:54Z",
       "scan": {
-        "status": "clean",
-        "total": 0,
-        "critical": 0,
-        "high": 0,
+        "status": "findings",
+        "total": 112,
+        "critical": 2,
+        "high": 110,
         "scanner": "trivy",
-        "scanned_at": "2026-04-10T10:38:52Z"
+        "scanned_at": "2026-06-01T11:09:49Z"
       }
     },
     "go-builder:v1.25-dev": {
