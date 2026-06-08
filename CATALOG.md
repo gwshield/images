@@ -4,7 +4,7 @@
 > Do not edit manually — changes will be overwritten.
 > Static content and documentation live in [README.md](README.md).
 
-*Last updated: 2026-06-01*
+*Last updated: 2026-06-08*
 
 ---
 
@@ -91,7 +91,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 | `ghcr.io/gwshield/postgres:v18.3` | `v18.3` | standard | `0a9cb0377fd9` | 5 findings (1 critical, 4 high) | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v18.3-cli` | `v18.3-cli` | client only | `db49560c39c3` | 0 CVEs | 2026-04-09 |
 | `ghcr.io/gwshield/postgres:v18.3-timescale` | `v18.3-timescale` | TimescaleDB | `e0158bf66ddc` | 1 findings (0 critical, 1 high) | 2026-04-09 |
-| `ghcr.io/gwshield/postgres:v18.3-tls` | `v18.3-tls` | TLS | `28aeb3f812c3` | 2 findings (0 critical, 2 high) | 2026-04-10 |
+| `ghcr.io/gwshield/postgres:v18.3-tls` | `v18.3-tls` | TLS | `28aeb3f812c3` | 0 CVEs | 2026-04-10 |
 | `ghcr.io/gwshield/postgres:v18.3-vector` | `v18.3-vector` | pgvector | `52a2cd0c5648` | 2 findings (0 critical, 2 high) | 2026-04-10 |
 
 ### Redis — in-memory data store
