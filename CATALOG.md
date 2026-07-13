@@ -4,7 +4,7 @@
 > Do not edit manually — changes will be overwritten.
 > Static content and documentation live in [README.md](README.md).
 
-*Last updated: 2026-07-06*
+*Last updated: 2026-07-13*
 
 ---
 
