@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-08-17T06:10:18Z",
+  "last_updated": "2026-08-17T06:10:55Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1342,11 +1342,11 @@
       "promoted_at": "2026-04-10T09:33:05Z",
       "scan": {
         "status": "findings",
-        "total": 483,
+        "total": 542,
         "critical": 32,
-        "high": 451,
+        "high": 510,
         "scanner": "trivy",
-        "scanned_at": "2026-08-03T07:04:33Z"
+        "scanned_at": "2026-08-17T06:10:45Z"
       }
     },
     "php:v8.2-fpm-dev": {
