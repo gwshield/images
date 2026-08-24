@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-08-24T06:11:46Z",
+  "last_updated": "2026-08-24T06:12:00Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -26,11 +26,11 @@
       "promoted_at": "2026-04-09T16:54:28Z",
       "scan": {
         "status": "findings",
-        "total": 37,
-        "critical": 1,
-        "high": 36,
+        "total": 53,
+        "critical": 2,
+        "high": 51,
         "scanner": "trivy",
-        "scanned_at": "2026-07-06T07:26:55Z"
+        "scanned_at": "2026-08-24T06:11:34Z"
       }
     },
     "redis:v7.4.8-cli": {
