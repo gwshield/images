@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-09-07T06:08:09Z",
+  "last_updated": "2026-09-07T06:08:32Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1071,7 +1071,7 @@
         "critical": 2,
         "high": 280,
         "scanner": "trivy",
-        "scanned_at": "2026-08-31T06:08:26Z"
+        "scanned_at": "2026-09-07T06:08:23Z"
       }
     },
     "valkey:v8.1.6-tls": {
