@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-09-21T06:10:55Z",
+  "last_updated": "2026-09-21T06:11:06Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1492,11 +1492,11 @@
       "promoted_at": "2026-04-10T10:37:55Z",
       "scan": {
         "status": "findings",
-        "total": 470,
-        "critical": 32,
-        "high": 438,
+        "total": 803,
+        "critical": 29,
+        "high": 774,
         "scanner": "trivy",
-        "scanned_at": "2026-07-27T07:07:25Z"
+        "scanned_at": "2026-09-21T06:10:51Z"
       }
     },
     "postgres:v18.3-timescale": {
