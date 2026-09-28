@@ -18,7 +18,7 @@ Production-hardened service images. Each image is compiled from upstream source 
 |---|---|---|---|---|---|
 | `ghcr.io/gwshield/caddy:v2.11.2` | `v2.11.2` | standard | `bb9e46b38cfa` | 44 findings (4 critical, 40 high) | 2026-03-31 |
 | `ghcr.io/gwshield/caddy:v2.11.2-cloudflare` | `v2.11.2-cloudflare` | cloudflare | `75dc0397ec0b` | 48 findings (2 critical, 46 high) | 2026-04-10 |
-| `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `8ec053d7ec9f` | 5 findings (2 critical, 3 high) | 2026-04-10 |
+| `ghcr.io/gwshield/caddy:v2.11.2-crowdsec` | `v2.11.2-crowdsec` | crowdsec | `8ec053d7ec9f` | 49 findings (2 critical, 47 high) | 2026-04-10 |
 | `ghcr.io/gwshield/caddy:v2.11.2-l4` | `v2.11.2-l4` | l4 | `1e4b4cc90d74` | 5 findings (2 critical, 3 high) | 2026-04-09 |
 | `ghcr.io/gwshield/caddy:v2.11.2-ratelimit` | `v2.11.2-ratelimit` | ratelimit | `9d6ab1d7fc67` | 48 findings (2 critical, 46 high) | 2026-04-09 |
 | `ghcr.io/gwshield/caddy:v2.11.2-security` | `v2.11.2-security` | security | `9317f0986645` | 37 findings (2 critical, 35 high) | 2026-04-10 |
