@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-10-12T06:11:55Z",
+  "last_updated": "2026-10-12T06:12:07Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1250,11 +1250,11 @@
       "promoted_at": "2026-04-09T16:54:35Z",
       "scan": {
         "status": "findings",
-        "total": 4,
+        "total": 35,
         "critical": 0,
-        "high": 4,
+        "high": 35,
         "scanner": "trivy",
-        "scanned_at": "2026-04-09T16:55:51Z"
+        "scanned_at": "2026-10-12T06:11:57Z"
       }
     },
     "otelcol:v0.147.0": {
