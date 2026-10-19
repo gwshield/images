@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-10-19T06:09:42Z",
+  "last_updated": "2026-10-19T06:10:08Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -414,7 +414,7 @@
         "critical": 2,
         "high": 455,
         "scanner": "trivy",
-        "scanned_at": "2026-10-12T06:13:28Z"
+        "scanned_at": "2026-10-19T06:09:59Z"
       }
     },
     "go-builder:v1.24-dev": {
