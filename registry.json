@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-10-26T06:09:48Z",
+  "last_updated": "2026-10-26T06:10:01Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1668,7 +1668,7 @@
         "critical": 8,
         "high": 80,
         "scanner": "trivy",
-        "scanned_at": "2026-10-19T06:08:41Z"
+        "scanned_at": "2026-10-26T06:09:49Z"
       }
     },
     "openresty:v1.29.2-lua": {
