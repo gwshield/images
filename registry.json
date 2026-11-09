@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-11-09T06:06:17Z",
+  "last_updated": "2026-11-09T06:06:28Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -1219,11 +1219,11 @@
       "promoted_at": "2026-04-10T10:37:44Z",
       "scan": {
         "status": "findings",
-        "total": 52,
+        "total": 68,
         "critical": 4,
-        "high": 48,
+        "high": 64,
         "scanner": "trivy",
-        "scanned_at": "2026-08-17T06:08:55Z"
+        "scanned_at": "2026-11-09T06:06:13Z"
       }
     },
     "nats:v2.12.5": {
