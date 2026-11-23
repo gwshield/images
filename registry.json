@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "last_updated": "2026-11-23T06:06:31Z",
+  "last_updated": "2026-11-23T06:06:42Z",
   "images": {
     "traefik:v3.6.9": {
       "name": "traefik",
@@ -535,7 +535,7 @@
         "critical": 3,
         "high": 32,
         "scanner": "trivy",
-        "scanned_at": "2026-11-09T06:06:05Z"
+        "scanned_at": "2026-11-23T06:06:32Z"
       }
     },
     "python-builder:v3.12": {
